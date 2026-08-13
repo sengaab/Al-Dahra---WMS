@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Youssef\\OneDrive\\Documents\\GitHub\\Al-Dahra---WBS\\backend\\backend.csproj": {}
+    "D:\\my projects\\whm\\whm.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Youssef\\OneDrive\\Documents\\GitHub\\Al-Dahra---WBS\\backend\\backend.csproj": {
+    "D:\\my projects\\whm\\whm.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Youssef\\OneDrive\\Documents\\GitHub\\Al-Dahra---WBS\\backend\\backend.csproj",
-        "projectName": "backend",
-        "projectPath": "C:\\Users\\Youssef\\OneDrive\\Documents\\GitHub\\Al-Dahra---WBS\\backend\\backend.csproj",
+        "projectUniqueName": "D:\\my projects\\whm\\whm.csproj",
+        "projectName": "whm",
+        "projectPath": "D:\\my projects\\whm\\whm.csproj",
         "packagesPath": "C:\\Users\\Youssef\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Youssef\\OneDrive\\Documents\\GitHub\\Al-Dahra---WBS\\backend\\obj\\",
+        "outputPath": "D:\\my projects\\whm\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -22,7 +22,7 @@
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "net9.0"
+          "net8.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
@@ -30,8 +30,8 @@
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net9.0": {
-            "targetAlias": "net9.0",
+          "net8.0": {
+            "targetAlias": "net8.0",
             "projectReferences": {}
           }
         },
@@ -48,12 +48,12 @@
         "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
-        "net9.0": {
-          "targetAlias": "net9.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "dependencies": {
-            "Microsoft.AspNetCore.OpenApi": {
+            "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[9.0.10, )"
+              "version": "[6.6.2, )"
             }
           },
           "imports": [
