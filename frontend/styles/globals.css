@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+:root {
+  --font-roboto: "Roboto", sans-serif;
+  --font-roboto-mono: "Roboto Mono", monospace;
+  --font-roboto-serif: "Roboto Serif", sans-serif;
+  --dark-green:"#084734";
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+h3 {
+  font-family: var(--font-roboto-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: #084734;
+}
