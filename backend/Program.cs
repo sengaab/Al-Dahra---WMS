@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using whm.Models;
+
 namespace whm
 {
     public class Program
@@ -15,6 +18,11 @@ namespace whm
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+            //Data base connection
+            builder.Services.AddDbContext<DataBaseContext>(options =>
+              options.UseSqlServer(
+                  builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
