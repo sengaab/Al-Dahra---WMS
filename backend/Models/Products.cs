@@ -54,6 +54,12 @@ public class Product
 
     // Navigation Property
     public List<Stock> Stocks { get; set; } = new List<Stock>();
+    [ForeignKey(nameof(Unit))]
+    public int UnitId { get; set; }
+
+    public Unit Units { get; set; } = null!;
+    //Stock 
+    public List<Stock>Stock { get; set; } = new List<Stock>();
 }
 
 
