@@ -34,6 +34,7 @@ namespace whm.Models
 
         public DbSet<AuditLog> AuditLogs { get; set; }
 
+        public DbSet<Department> Departments { get; set; }
 
         // =========================
         // Model Configuration
@@ -85,6 +86,15 @@ namespace whm.Models
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // =========================
+            // Category → Department
+            // =========================
+            modelBuilder.Entity<Categories>()
+            .HasOne(c => c.Department)
+            .WithMany(d => d.Categories)
+            .HasForeignKey(c => c.Department_Id)
+             .OnDelete(DeleteBehavior.Restrict);
 
 
             // =========================

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
@@ -22,6 +23,9 @@ namespace whm.Models
 
         // Navigation Property
         public List<Product> Products { get; set; }=new List<Product>();
+        [ForeignKey(nameof(Department))]
+        public int Department_Id { get; set; }
+        public Department Department { get; set; } = null!;
     }
 }
 
