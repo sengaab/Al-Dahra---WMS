@@ -11,11 +11,11 @@ namespace whm
             var builder = WebApplication.CreateBuilder(args);
 
             // =========================
-            // Database
+            // Database - Supabase PostgreSQL
             // =========================
 
             builder.Services.AddDbContext<DataBaseContext>(options =>
-                options.UseSqlServer(
+                options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection")
                 ));
 

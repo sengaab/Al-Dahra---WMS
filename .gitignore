@@ -1,13 +1,96 @@
+# Visual Studio & Rider
 .vs/
 **/.vs/
-bin/
-**/bin/
-obj/
-**/obj/
+.idea/
 
+# Build results
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+artifacts/
+publish/
+out/
+AppPackages/
+
+# Visual Studio user and workspace files
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
+*.vcxproj.user
+*.vcxproj.filters
+*.sln.iml
 
+# dotnet / NuGet
+project.lock.json
+project.fragment.lock.json
+*.nupkg
+packages/
+**/packages/
+dotnet-tools.json
+.dotnet/
+
+# Test results & coverage
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Logs and temp files
+*.log
+logs/
+*.tlog
+*.idb
+*.ilk
+*.meta
+*.cache
+
+# Database files
+*.mdf
+*.ldf
+*.ndf
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+
+# Secrets, env and local config
+.env
+**/.env
+local.settings.json
+secrets.json
+secrets.*.json
+appsettings.Development.json
+appsettings.Local.json
+*.Local.json
+backend/.env
+backend/appsettings.json
+
+# ASP.NET / IIS
+ScaffoldingReadMe.txt
+IISExpress/
+iisexpress/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# IDEs / editors
 .vscode/
+.vscode/*
+*.code-workspace
+
+# Node / package managers (if present)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Miscellaneous
+*.exe
+*.dll
+*.pdb
+*.vsix
