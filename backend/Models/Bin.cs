@@ -19,6 +19,8 @@ namespace whm.Models
         public int Shelf_Id { get; set; }
         public Shelf Shelf { get; set; } = null!;
         public List<Stock> Stocks { get; set; }=new List<Stock>();
+        public List<Transaction> Fromtransactions { get; set; } = new List<Transaction>();
+        public List<Transaction> Totransactions { get; set; } = new List<Transaction>();
 
     }
 }

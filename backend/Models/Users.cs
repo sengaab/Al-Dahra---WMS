@@ -30,6 +30,11 @@ namespace whm.Models
         [ForeignKey("Role")]
         public int Role_Id { get; set; }
         public Role role { get; set; }
+        public List<Report> Reports { get; set; }=new List<Report>();
+        public List<ReportSchedule> reportSchedules { get; set; } = new List<ReportSchedule>();
+        public List<Transaction> transactions { get; set; } = new List<Transaction>();
+        public List<AuditLog> auditLog { get; set; }= new List<AuditLog>();
+
 
     }
 }

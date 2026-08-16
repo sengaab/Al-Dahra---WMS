@@ -10,21 +10,38 @@ namespace whm
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // =========================
+            // Database
+            // =========================
+
+            builder.Services.AddDbContext<DataBaseContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection")
+                ));
+
+
+            // =========================
+            // Add services
+            // =========================
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
+
             builder.Services.AddSwaggerGen();
 
+
+            // =========================
+            // Build App
+            // =========================
+
             var app = builder.Build();
-            //Data base connection
-            builder.Services.AddDbContext<DataBaseContext>(options =>
-              options.UseSqlServer(
-                  builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
-            // Configure the HTTP request pipeline.
+            // =========================
+            // HTTP Request Pipeline
+            // =========================
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -34,7 +51,6 @@ namespace whm
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
