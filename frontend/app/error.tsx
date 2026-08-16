@@ -1,38 +1,89 @@
-/**
- * Global error boundary (app/error.tsx).
- *
- * Catches unhandled errors in the route segment tree and shows a
- * recoverable UI instead of a blank screen.
- */
-
 "use client";
 
 import { useEffect } from "react";
+import Button from "./components/button";
 
-interface ErrorBoundaryProps {
+export default function Error({
+  error,
+  reset,
+}: {
   error: Error & { digest?: string };
   reset: () => void;
-}
-
-export default function GlobalError({ error, reset }: ErrorBoundaryProps) {
+}) {
   useEffect(() => {
-    // TODO: report to your error tracking service (Sentry, etc.)
-    console.error("[GlobalError]", error);
+    console.error(error);
   }, [error]);
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
-      <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Something went wrong
-      </h2>
-      <p className="max-w-md text-zinc-600 dark:text-zinc-400">
-        An unexpected error occurred. Please try again or contact support if the
-        problem persists.
-      </p>
-      <button onClick={reset} >
-        Try Again
-      </button>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundImage: "url('/bg.svg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        width: "100%",
+        minHeight: "100vh",
+        padding: "20px",
+        boxSizing: "border-box",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+          maxWidth: "525px",
+          padding: "clamp(30px, 5vw, 45px)",
+          borderRadius: "20px",
+          gap: "10px",
+          backgroundColor: "var(--beige)",
+          boxSizing: "border-box",
+          color: "var(--midnight-blue)",
+          textAlign: "center",
+        }}
+      >
+        <h1
+          style={{
+            margin: 0,
+            fontSize: "clamp(3rem, 8vw, 5rem)",
+          }}
+        >
+          500
+        </h1>
+
+        <h2
+          style={{
+            margin: 0,
+            color: "var(--midnight-blue)",
+          }}
+        >
+          Something Went Wrong
+        </h2>
+
+        <p
+          style={{
+            margin: "5px 0 15px",
+            fontFamily: "var(--font-roboto)",
+            lineHeight: 1.5,
+            color: "var(--midnight-blue)",
+          }}
+        >
+          Something went wrong while processing your request. Please try
+          again.
+        </p>
+
+        <Button
+          variant="secondary"
+          onClick={() => reset()}
+        >
+          Try Again
+        </Button>
+      </div>
     </div>
   );
 }
-
