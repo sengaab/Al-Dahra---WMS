@@ -53,13 +53,16 @@ public class Product
     public DateTimeOffset? UpdatedAt { get; set; }
 
     // Navigation Property
-    public List<Stock> Stocks { get; set; } = new List<Stock>();
-    [ForeignKey(nameof(Unit))]
+   
+    [ForeignKey(nameof(Units))]
     public int UnitId { get; set; }
 
     public Unit Units { get; set; } = null!;
     //Stock 
     public List<Stock>Stock { get; set; } = new List<Stock>();
+    public List<Report> reports { get; set; } = new List<Report>();
+    public List<ReportSchedule> reportSchedules { get; set; } = new List<ReportSchedule>();
+    public List<Transaction> transactions { get; set; }= new List<Transaction>();
 }
 
 

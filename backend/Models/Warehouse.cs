@@ -16,6 +16,10 @@ namespace whm.Models
         public bool IsActive { get; set; } = true;
         //Navigation
         public List<Room>Rooms { get; set; }=new List<Room>();
+        public List<Report> reports { get; set; }=new List<Report>();
+        public List<ReportSchedule> reportSchedules { get; set; } = new List<ReportSchedule>();
+
+
 
     }
 }

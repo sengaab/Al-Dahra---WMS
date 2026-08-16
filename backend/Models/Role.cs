@@ -1,7 +1,10 @@
-﻿namespace whm.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace whm.Models
 {
     public class Role
     {
+        [Key]
         public int Role_Id { get; set; }
         public string Role_Name { get; set; }=string.Empty;
         public string Role_Description { get; set; } = string.Empty;
