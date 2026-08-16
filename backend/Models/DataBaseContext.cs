@@ -1,56 +1,55 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+
 namespace whm.Models
 {
-    public class DataBaseContext:DbContext
+    public class DataBaseContext : DbContext
     {
         public DataBaseContext(DbContextOptions<DataBaseContext> options)
-    : base(options)
+            : base(options)
         {
         }
-        override protected void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+
+        // =========================
+        // DbSets
+        // =========================
+
+        public DbSet<Users> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+
+        public DbSet<Categories> Categories { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Unit> Units { get; set; }
+
+        public DbSet<Warehouse> Warehouses { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<Row> Rows { get; set; }
+        public DbSet<Shelf> Shelves { get; set; }
+        public DbSet<Bin> Bins { get; set; }
+
+        public DbSet<Stock> Stocks { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
+
+        public DbSet<Report> Reports { get; set; }
+        public DbSet<ReportSchedule> ReportSchedules { get; set; }
+
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
+
+        // =========================
+        // Model Configuration
+        // =========================
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data Source=.;Initial Catalog=StockMangment;Integrated Security=True;Encrypt=False;Trust Server Certificate=True");
+            base.OnModelCreating(modelBuilder);
 
-        }
-        
-        
-
-    
-        
-           
             // =========================
-            // DbSets
+            // Decimal Precision
             // =========================
 
-            public DbSet<Users> Users { get; set; }
-            public DbSet<Role> Roles { get; set; }
-
-            public DbSet<Categories> Categories { get; set; }
-            public DbSet<Product> Products { get; set; }
-            public DbSet<Unit> Units { get; set; }
-
-            public DbSet<Warehouse> Warehouses { get; set; }
-            public DbSet<Room> Rooms { get; set; }
-            public DbSet<Row> Rows { get; set; }
-            public DbSet<Shelf> Shelves { get; set; }
-            public DbSet<Bin> Bins { get; set; }
-
-            public DbSet<Stock> Stocks { get; set; }
-            public DbSet<Transaction> Transactions { get; set; }
-
-            public DbSet<Report> Reports { get; set; }
-            public DbSet<ReportSchedule> ReportSchedules { get; set; }
-
-            public DbSet<AuditLog> AuditLogs { get; set; }
-
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                base.OnModelCreating(modelBuilder);
-                modelBuilder.Entity<Stock>()
-               .Property(s => s.Quantity)
-               .HasPrecision(18, 3);
+            modelBuilder.Entity<Stock>()
+                .Property(s => s.Quantity)
+                .HasPrecision(18, 3);
 
             modelBuilder.Entity<Transaction>()
                 .Property(t => t.Quantity)
@@ -62,239 +61,239 @@ namespace whm.Models
             // =========================
 
             modelBuilder.Entity<Users>()
-                    .HasOne(u => u.role)
-                    .WithMany(r => r.User)
-                    .HasForeignKey(u => u.Role_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(u => u.role)
+                .WithMany(r => r.User)
+                .HasForeignKey(u => u.Role_Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Unique User Email
-                // =========================
+            // =========================
+            // Unique User Email
+            // =========================
 
-                modelBuilder.Entity<Users>()
-                    .HasIndex(u => u.User_Email)
-                    .IsUnique();
-
-
-                // =========================
-                // Category → Product
-                // =========================
-
-                modelBuilder.Entity<Product>()
-                    .HasOne(p => p.Category)
-                    .WithMany(c => c.Products)
-                    .HasForeignKey(p => p.CategoryId)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Users>()
+                .HasIndex(u => u.User_Email)
+                .IsUnique();
 
 
-                // =========================
-                // Unit → Product
-                // =========================
+            // =========================
+            // Category → Product
+            // =========================
 
-                modelBuilder.Entity<Product>()
-                    .HasOne(p => p.Units)
-                    .WithMany(u => u.Products)
-                    .HasForeignKey(p => p.UnitId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // Warehouse → Room
-                // =========================
-
-                modelBuilder.Entity<Room>()
-                    .HasOne(r => r.Warehouse)
-                    .WithMany(w => w.Rooms)
-                    .HasForeignKey(r => r.Warehouse_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Room → Row
-                // =========================
+            // =========================
+            // Unit → Product
+            // =========================
 
-                modelBuilder.Entity<Row>()
-                    .HasOne(r => r.Room)
-                    .WithMany(ro => ro.Rows)
-                    .HasForeignKey(r => r.Room_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // Row → Shelf
-                // =========================
-
-                modelBuilder.Entity<Shelf>()
-                    .HasOne(s => s.Row)
-                    .WithMany(r => r.Shelves)
-                    .HasForeignKey(s => s.Row_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Units)
+                .WithMany(u => u.Products)
+                .HasForeignKey(p => p.UnitId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Shelf → Bin
-                // =========================
+            // =========================
+            // Warehouse → Room
+            // =========================
 
-                modelBuilder.Entity<Bin>()
-                    .HasOne(b => b.Shelf)
-                    .WithMany(s => s.Bins)
-                    .HasForeignKey(b => b.Shelf_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // Product → Stock
-                // =========================
-
-                modelBuilder.Entity<Stock>()
-                    .HasOne(s => s.Product)
-                    .WithMany(p => p.Stock)
-                    .HasForeignKey(s => s.ProductId)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Room>()
+                .HasOne(r => r.Warehouse)
+                .WithMany(w => w.Rooms)
+                .HasForeignKey(r => r.Warehouse_Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Bin → Stock
-                // =========================
+            // =========================
+            // Room → Row
+            // =========================
 
-                modelBuilder.Entity<Stock>()
-                    .HasOne(s => s.Bin)
-                    .WithMany(b => b.Stocks)
-                    .HasForeignKey(s => s.Bin_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // Transaction → Product
-                // =========================
-
-                modelBuilder.Entity<Transaction>()
-                    .HasOne(t => t.Product)
-                    .WithMany(p => p.transactions)
-                    .HasForeignKey(t => t.Product_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Row>()
+                .HasOne(r => r.Room)
+                .WithMany(ro => ro.Rows)
+                .HasForeignKey(r => r.Room_Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Transaction → Unit
-                // =========================
+            // =========================
+            // Row → Shelf
+            // =========================
 
-                modelBuilder.Entity<Transaction>()
-                    .HasOne(t => t.Unit)
-                    .WithMany(u => u.transactions)
-                    .HasForeignKey(t => t.Unit_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // Transaction → User
-                // =========================
-
-                modelBuilder.Entity<Transaction>()
-                    .HasOne(t => t.User)
-                    .WithMany(u => u.transactions)
-                    .HasForeignKey(t => t.User_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Shelf>()
+                .HasOne(s => s.Row)
+                .WithMany(r => r.Shelves)
+                .HasForeignKey(s => s.Row_Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Transaction → From Bin
-                // =========================
+            // =========================
+            // Shelf → Bin
+            // =========================
 
-                modelBuilder.Entity<Transaction>()
-                    .HasOne(t => t.FromBin)
-                    .WithMany(b => b.Fromtransactions)
-                    .HasForeignKey(t => t.FromBinId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // Transaction → To Bin
-                // =========================
-
-                modelBuilder.Entity<Transaction>()
-                    .HasOne(t => t.ToBin)
-                    .WithMany(b => b.Totransactions)
-                    .HasForeignKey(t => t.ToBinId)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Bin>()
+                .HasOne(b => b.Shelf)
+                .WithMany(s => s.Bins)
+                .HasForeignKey(b => b.Shelf_Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Report → User
-                // =========================
+            // =========================
+            // Product → Stock
+            // =========================
 
-                modelBuilder.Entity<Report>()
-                    .HasOne(r => r.CreateByUser)
-                    .WithMany(u => u.Reports)
-                    .HasForeignKey(r => r.craeteByUserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // Report → Warehouse
-                // =========================
-
-                modelBuilder.Entity<Report>()
-                    .HasOne(r => r.Warehouses)
-                    .WithMany(w => w.reports)
-                    .HasForeignKey(r => r.Warehouse_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Stock>()
+                .HasOne(s => s.Product)
+                .WithMany(p => p.Stock)
+                .HasForeignKey(s => s.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // Report → Product
-                // =========================
+            // =========================
+            // Bin → Stock
+            // =========================
 
-                modelBuilder.Entity<Report>()
-                    .HasOne(r => r.Products)
-                    .WithMany(p => p.reports)
-                    .HasForeignKey(r => r.Product_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // ReportSchedule → User
-                // =========================
-
-                modelBuilder.Entity<ReportSchedule>()
-                    .HasOne(r => r.CreateByUser)
-                    .WithMany(u => u.reportSchedules)
-                    .HasForeignKey(r => r.craeteByUserId)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Stock>()
+                .HasOne(s => s.Bin)
+                .WithMany(b => b.Stocks)
+                .HasForeignKey(s => s.Bin_Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // ReportSchedule → Warehouse
-                // =========================
+            // =========================
+            // Transaction → Product
+            // =========================
 
-                modelBuilder.Entity<ReportSchedule>()
-                    .HasOne(r => r.Warehouses)
-                    .WithMany(w => w.reportSchedules)
-                    .HasForeignKey(r => r.Warehouse_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-
-                // =========================
-                // ReportSchedule → Product
-                // =========================
-
-                modelBuilder.Entity<ReportSchedule>()
-                    .HasOne(r => r.Products)
-                    .WithMany(p => p.reportSchedules)
-                    .HasForeignKey(r => r.Product_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.Product)
+                .WithMany(p => p.transactions)
+                .HasForeignKey(t => t.Product_Id)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
-                // =========================
-                // AuditLog → User
-                // =========================
+            // =========================
+            // Transaction → Unit
+            // =========================
 
-                modelBuilder.Entity<AuditLog>()
-                    .HasOne(a => a.Users)
-                    .WithMany(u => u.auditLog)
-                    .HasForeignKey(a => a.User_Id)
-                    .OnDelete(DeleteBehavior.Restrict);
-            }
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.Unit)
+                .WithMany(u => u.transactions)
+                .HasForeignKey(t => t.Unit_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // Transaction → User
+            // =========================
+
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.User)
+                .WithMany(u => u.transactions)
+                .HasForeignKey(t => t.User_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // Transaction → From Bin
+            // =========================
+
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.FromBin)
+                .WithMany(b => b.Fromtransactions)
+                .HasForeignKey(t => t.FromBinId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // Transaction → To Bin
+            // =========================
+
+            modelBuilder.Entity<Transaction>()
+                .HasOne(t => t.ToBin)
+                .WithMany(b => b.Totransactions)
+                .HasForeignKey(t => t.ToBinId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // Report → User
+            // =========================
+
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.CreateByUser)
+                .WithMany(u => u.Reports)
+                .HasForeignKey(r => r.craeteByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // Report → Warehouse
+            // =========================
+
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.Warehouses)
+                .WithMany(w => w.reports)
+                .HasForeignKey(r => r.Warehouse_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // Report → Product
+            // =========================
+
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.Products)
+                .WithMany(p => p.reports)
+                .HasForeignKey(r => r.Product_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // ReportSchedule → User
+            // =========================
+
+            modelBuilder.Entity<ReportSchedule>()
+                .HasOne(r => r.CreateByUser)
+                .WithMany(u => u.reportSchedules)
+                .HasForeignKey(r => r.craeteByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // ReportSchedule → Warehouse
+            // =========================
+
+            modelBuilder.Entity<ReportSchedule>()
+                .HasOne(r => r.Warehouses)
+                .WithMany(w => w.reportSchedules)
+                .HasForeignKey(r => r.Warehouse_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // ReportSchedule → Product
+            // =========================
+
+            modelBuilder.Entity<ReportSchedule>()
+                .HasOne(r => r.Products)
+                .WithMany(p => p.reportSchedules)
+                .HasForeignKey(r => r.Product_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =========================
+            // AuditLog → User
+            // =========================
+
+            modelBuilder.Entity<AuditLog>()
+                .HasOne(a => a.Users)
+                .WithMany(u => u.auditLog)
+                .HasForeignKey(a => a.User_Id)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
+}
