@@ -43,7 +43,7 @@ export default function Error({
           gap: "10px",
           backgroundColor: "var(--beige)",
           boxSizing: "border-box",
-          color: "var(--midnight-blue)",
+          color: "black",
           textAlign: "center",
         }}
       >
@@ -51,15 +51,16 @@ export default function Error({
           style={{
             margin: 0,
             fontSize: "clamp(3rem, 8vw, 5rem)",
+            color:"var(--blood-red)",
           }}
         >
-          500
+         Error 500
         </h1>
 
         <h2
           style={{
             margin: 0,
-            color: "var(--midnight-blue)",
+            color: "black",
           }}
         >
           Something Went Wrong
@@ -70,7 +71,7 @@ export default function Error({
             margin: "5px 0 15px",
             fontFamily: "var(--font-roboto)",
             lineHeight: 1.5,
-            color: "var(--midnight-blue)",
+            color: "black",
           }}
         >
           Something went wrong while processing your request. Please try
