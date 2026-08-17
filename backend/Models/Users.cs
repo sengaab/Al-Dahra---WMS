@@ -33,9 +33,9 @@ namespace whm.Models
 
         public DateTimeOffset? LoginAt { get; set; }
 
-        public UserStatus Status { get; set; } = UserStatus.Active;
+        
 
-        // Role
+       // Role
         [ForeignKey(nameof(role))]
         public int Role_Id { get; set; }
 
