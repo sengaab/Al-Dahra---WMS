@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
 using whm.Models;
+using whm.Services;
 
 namespace whm
 {
@@ -23,6 +24,13 @@ namespace whm
                 options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection")
                 ));
+
+
+            // =========================
+            // Email Service
+            // =========================
+
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
 
             // =========================
@@ -45,12 +53,9 @@ namespace whm
 
                         ValidateIssuer = false,
                         ValidateAudience = false,
-
                         ValidateLifetime = true,
 
-                        // مهم عشان [Authorize(Roles = "Admin")]
                         RoleClaimType = ClaimTypes.Role,
-
                         NameClaimType = ClaimTypes.Name
                     };
                 });
@@ -125,7 +130,7 @@ namespace whm
             app.UseHttpsRedirection();
 
 
-            // مهم جدًا
+            // Authentication لازم قبل Authorization
             app.UseAuthentication();
 
             app.UseAuthorization();
