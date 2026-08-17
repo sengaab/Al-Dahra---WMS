@@ -1,52 +1,78 @@
-# Visual Studio & Rider
+# ==========================================
+# Visual Studio / Rider
+# ==========================================
+
 .vs/
-**/.vs/
 .idea/
 
-# Build results
-[Bb]in/
-[Oo]bj/
+# ==========================================
+# VS Code
+# ==========================================
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+*.code-workspace
+
+# ==========================================
+# .NET Build Output
+# ==========================================
+
 **/bin/
 **/obj/
+
 artifacts/
 publish/
 out/
 AppPackages/
 
-# Visual Studio user and workspace files
+# ==========================================
+# Visual Studio User Files
+# ==========================================
+
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 *.vcxproj.user
-*.vcxproj.filters
-*.sln.iml
 
-# dotnet / NuGet
+# ==========================================
+# .NET / NuGet
+# ==========================================
+
 project.lock.json
 project.fragment.lock.json
 *.nupkg
 packages/
-**/packages/
-dotnet-tools.json
-.dotnet/
 
-# Test results & coverage
+# Do NOT ignore dotnet-tools.json
+# It should normally be committed.
+
+# ==========================================
+# Test Results / Coverage
+# ==========================================
+
 TestResults/
 *.trx
 *.coverage
 *.coveragexml
 
-# Logs and temp files
+# ==========================================
+# Logs / Temporary Files
+# ==========================================
+
 *.log
 logs/
 *.tlog
 *.idb
 *.ilk
-*.meta
 *.cache
 
-# Database files
+# ==========================================
+# Database / Local Database Files
+# ==========================================
+
 *.mdf
 *.ldf
 *.ndf
@@ -55,43 +81,83 @@ logs/
 *.db
 *.bak
 
-# Secrets, env and local config
+# ==========================================
+# Secrets / Environment Variables
+# ==========================================
+
 .env
+.env.*
 **/.env
-local.settings.json
+**/.env.*
+
+# Allow example environment files
+!.env.example
+!.env.local.example
+!.env.development.example
+
+# ASP.NET local secrets / configuration
 secrets.json
 secrets.*.json
-appsettings.Development.json
+local.settings.json
+
+# Local appsettings containing secrets
 appsettings.Local.json
-*.Local.json
-backend/.env
+appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Development.json
+
+# Your backend appsettings contains the
+# Supabase database password, so ignore it.
 backend/appsettings.json
 
+# ==========================================
 # ASP.NET / IIS
+# ==========================================
+
 ScaffoldingReadMe.txt
 IISExpress/
 iisexpress/
 
-# OS generated files
+# ==========================================
+# Next.js
+# ==========================================
+
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+
+# ==========================================
+# Node.js
+# ==========================================
+
+node_modules/
+**/node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Next.js Environment Files
+# ==========================================
+
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+
 .DS_Store
 Thumbs.db
 desktop.ini
 ~$*
 
-# IDEs / editors
-.vscode/
-.vscode/*
-*.code-workspace
-
-# Node / package managers (if present)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
+# ==========================================
 # Miscellaneous
-*.exe
-*.dll
-*.pdb
+# ==========================================
+
 *.vsix
-appsettings.json

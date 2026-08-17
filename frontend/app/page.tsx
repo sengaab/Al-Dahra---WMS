@@ -1,6 +1,125 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "./components/button";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setError("");
+    setLoading(true);
+
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      setLoading(false);
+      return;
+    }
+
+    // =========================
+    // Supabase Login
+    // =========================
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("Supabase login error:", error);
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // =========================
+    // Get Session
+    // =========================
+
+    const session = data.session;
+
+    if (!session) {
+      setError("Login succeeded but no session was created.");
+      setLoading(false);
+      return;
+    }
+
+    // =========================
+    // Get Access Token
+    // =========================
+
+    console.log("SESSION:", session);
+
+    console.log("ACCESS TOKEN:", session.access_token);
+
+    // =========================
+    // Test .NET Backend
+    // =========================
+
+    try {
+      const response = await fetch(
+        "http://localhost:5171/api/Auth/me",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const responseText = await response.text();
+
+      console.log("Backend status:", response.status);
+      console.log("Backend raw response:", responseText);
+
+      if (!response.ok) {
+        setError(
+          `Backend authentication failed (${response.status})`
+        );
+
+        setLoading(false);
+        return;
+      }
+
+      let backendData = null;
+
+      if (responseText) {
+        try {
+          backendData = JSON.parse(responseText);
+        } catch (error) {
+          console.error("Invalid JSON from backend:", error);
+        }
+      }
+
+      console.log("Backend response:", backendData);
+
+      // =========================
+      // Login Successful
+      // =========================
+
+      console.log("Authentication successful!");
+
+      router.push("/dashboard");
+    } catch (backendError) {
+      console.error("Backend connection error:", backendError);
+
+      setError(
+        "Could not connect to the WMS backend."
+      );
+
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -59,16 +178,16 @@ export default function Home() {
       >
         {/* Welcome */}
         <div
-        style={{
-          textAlign:"center"
-        }}
+          style={{
+            textAlign: "center",
+          }}
         >
           <h3
             style={{
               color: "var(--midnight-blue)",
               margin: 0,
             }}
-            >
+          >
             Welcome to
           </h3>
 
@@ -114,6 +233,13 @@ export default function Home() {
               id="email"
               type="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleLogin();
+                }
+              }}
               style={{
                 width: "100%",
                 height: "42px",
@@ -149,6 +275,13 @@ export default function Home() {
               id="password"
               type="password"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleLogin();
+                }
+              }}
               style={{
                 width: "100%",
                 height: "42px",
@@ -163,16 +296,32 @@ export default function Home() {
               }}
             />
           </div>
+
+          {/* Error */}
+          {error && (
+            <p
+              style={{
+                margin: "-5px 0 0",
+                color: "#B42318",
+                fontFamily: "var(--font-roboto)",
+                fontSize: "13px",
+              }}
+            >
+              {error}
+            </p>
+          )}
         </div>
 
         {/* Login Button */}
         <Button
           variant="primary"
+          onClick={handleLogin}
+          disabled={loading}
           style={{
             width: "100%",
           }}
         >
-          Login to wms
+          {loading ? "Logging in..." : "Login to wms"}
         </Button>
       </div>
     </div>
