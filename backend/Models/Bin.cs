@@ -15,7 +15,7 @@ namespace whm.Models
         [MaxLength(500)]
         public string? Bin_Description { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
-        public bool IsOccupied { set; get; } = false;
+       
         [ForeignKey(nameof(Shelf))]
         public int Shelf_Id { get; set; }
         public Shelf Shelf { get; set; } = null!;
