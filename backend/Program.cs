@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using whm.Models;
-using whm.Services;
+
 
 namespace whm
 {
@@ -29,7 +29,7 @@ namespace whm
             // Email Service
             // =========================
 
-            builder.Services.AddScoped<IEmailService, EmailService>();
+            
 
 
             // =========================

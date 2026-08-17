@@ -24,16 +24,7 @@ namespace whm.Models
         [MaxLength(255)]
         public string User_Email { get; set; } = string.Empty;
 
-        [Required]
-        public string User_Password { get; set; } = string.Empty;
-
-        // Email Verification
-        public bool EmailConfirmed { get; set; } = false;
-
-        [MaxLength(6)]
-        public string? EmailVerificationCode { get; set; }
-
-        public DateTimeOffset? EmailVerificationExpiresAt { get; set; }
+        
 
         // User Information
         public DateTimeOffset CreateAt { get; set; } = DateTimeOffset.UtcNow;
