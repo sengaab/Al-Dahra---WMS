@@ -16,6 +16,7 @@ namespace whm.Models
         public DbSet<Users> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
 
+        public DbSet<Department> Departments { get; set; }
         public DbSet<Categories> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Unit> Units { get; set; }
@@ -34,19 +35,78 @@ namespace whm.Models
 
         public DbSet<AuditLog> AuditLogs { get; set; }
 
-        public DbSet<Department> Departments { get; set; }
-
-        // =========================
-        // Model Configuration
-        // =========================
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // =========================
+
+            // =====================================================
+            // Roles
+            // =====================================================
+
+            modelBuilder.Entity<Role>()
+                .HasIndex(r => r.Role_Name)
+                .IsUnique();
+
+
+            // =====================================================
+            // Roles Seed Data
+            // =====================================================
+
+            modelBuilder.Entity<Role>().HasData(
+
+                new Role
+                {
+                    Role_Id = 1,
+                    Role_Name = "Admin",
+                    Role_Description = "System Administrator",
+                    IsActive = true,
+                    CreateAt = new DateTimeOffset(
+                        new DateTime(2026, 1, 1),
+                        TimeSpan.Zero),
+                    UpdateAt = new DateTimeOffset(
+                        new DateTime(2026, 1, 1),
+                        TimeSpan.Zero)
+                },
+
+                new Role
+                {
+                    Role_Id = 2,
+                    Role_Name = "Employee",
+                    Role_Description = "Normal Employee",
+                    IsActive = true,
+                    CreateAt = new DateTimeOffset(
+                        new DateTime(2026, 1, 1),
+                        TimeSpan.Zero),
+                    UpdateAt = new DateTimeOffset(
+                        new DateTime(2026, 1, 1),
+                        TimeSpan.Zero)
+                },
+
+                new Role
+                {
+                    Role_Id = 3,
+                    Role_Name = "Manager",
+                    Role_Description = "Warehouse Manager",
+                    IsActive = true,
+                    CreateAt = new DateTimeOffset(
+                        new DateTime(2026, 1, 1),
+                        TimeSpan.Zero),
+                    UpdateAt = new DateTimeOffset(
+                        new DateTime(2026, 1, 1),
+                        TimeSpan.Zero)
+                }
+            );
+
+
+            // =====================================================
             // Decimal Precision
-            // =========================
+            // =====================================================
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.UnitPrice)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<Stock>()
                 .Property(s => s.Quantity)
@@ -57,9 +117,10 @@ namespace whm.Models
                 .HasPrecision(18, 3);
 
 
-            // =========================
+            // =====================================================
             // Users → Role
-            // =========================
+            // One Role → Many Users
+            // =====================================================
 
             modelBuilder.Entity<Users>()
                 .HasOne(u => u.role)
@@ -68,18 +129,31 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
-            // Unique User Email
-            // =========================
+            // =====================================================
+            // User Email Unique
+            // =====================================================
 
             modelBuilder.Entity<Users>()
                 .HasIndex(u => u.User_Email)
                 .IsUnique();
 
 
-            // =========================
+            // =====================================================
+            // Department → Category
+            // One Department → Many Categories
+            // =====================================================
+
+            modelBuilder.Entity<Categories>()
+                .HasOne(c => c.Department)
+                .WithMany(d => d.Categories)
+                .HasForeignKey(c => c.Department_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
             // Category → Product
-            // =========================
+            // One Category → Many Products
+            // =====================================================
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
@@ -87,19 +161,11 @@ namespace whm.Models
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // =========================
-            // Category → Department
-            // =========================
-            modelBuilder.Entity<Categories>()
-            .HasOne(c => c.Department)
-            .WithMany(d => d.Categories)
-            .HasForeignKey(c => c.Department_Id)
-             .OnDelete(DeleteBehavior.Restrict);
 
-
-            // =========================
+            // =====================================================
             // Unit → Product
-            // =========================
+            // One Unit → Many Products
+            // =====================================================
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Units)
@@ -108,9 +174,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Warehouse → Room
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Room>()
                 .HasOne(r => r.Warehouse)
@@ -119,9 +185,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Room → Row
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Row>()
                 .HasOne(r => r.Room)
@@ -130,9 +196,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Row → Shelf
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Shelf>()
                 .HasOne(s => s.Row)
@@ -141,9 +207,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Shelf → Bin
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Bin>()
                 .HasOne(b => b.Shelf)
@@ -152,9 +218,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Product → Stock
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Stock>()
                 .HasOne(s => s.Product)
@@ -163,9 +229,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Bin → Stock
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Stock>()
                 .HasOne(s => s.Bin)
@@ -174,9 +240,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Transaction → Product
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.Product)
@@ -185,9 +251,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Transaction → Unit
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.Unit)
@@ -196,9 +262,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Transaction → User
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.User)
@@ -207,9 +273,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Transaction → From Bin
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.FromBin)
@@ -218,9 +284,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Transaction → To Bin
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.ToBin)
@@ -229,9 +295,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Report → User
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.CreateByUser)
@@ -240,9 +306,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Report → Warehouse
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Warehouses)
@@ -251,9 +317,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // Report → Product
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Products)
@@ -262,9 +328,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // ReportSchedule → User
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<ReportSchedule>()
                 .HasOne(r => r.CreateByUser)
@@ -273,9 +339,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // ReportSchedule → Warehouse
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<ReportSchedule>()
                 .HasOne(r => r.Warehouses)
@@ -284,9 +350,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // ReportSchedule → Product
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<ReportSchedule>()
                 .HasOne(r => r.Products)
@@ -295,9 +361,9 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =========================
+            // =====================================================
             // AuditLog → User
-            // =========================
+            // =====================================================
 
             modelBuilder.Entity<AuditLog>()
                 .HasOne(a => a.Users)
