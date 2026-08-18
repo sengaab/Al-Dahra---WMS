@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using whm.DTOs;
 using whm.Models;
+using whm.Repositories.Interfaces;
 
 namespace whm.Controllers
 {
@@ -12,10 +13,14 @@ namespace whm.Controllers
     [Authorize]
     public class TransactionsController : ControllerBase
     {
+        private readonly IUnitOfWork unitOfWork;
         private readonly DataBaseContext db;
 
-        public TransactionsController(DataBaseContext db)
+        public TransactionsController(
+            IUnitOfWork unitOfWork,
+            DataBaseContext db)
         {
+            this.unitOfWork = unitOfWork;
             this.db = db;
         }
 
@@ -25,15 +30,20 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpPost]
-        public IActionResult CreateTransaction(CreateTransactionDTO dto)
+        public async Task<IActionResult> CreateTransaction(
+            CreateTransactionDTO dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+            // =====================================================
             // Get logged-in user from JWT
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // =====================================================
+
+            var userIdClaim =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userIdClaim) ||
                 !Guid.TryParse(userIdClaim, out Guid userId))
@@ -42,38 +52,60 @@ namespace whm.Controllers
             }
 
             // Check User
-            var user = db.Users
-                .FirstOrDefault(u => u.User_Id == userId);
+            var user = await db.Users
+                .FirstOrDefaultAsync(u => u.User_Id == userId);
 
             if (user == null)
             {
                 return Unauthorized("User not found.");
             }
 
+            // =====================================================
             // Check Product
-            var product = db.Products
-                .FirstOrDefault(p => p.ProductId == dto.Product_Id);
+            // =====================================================
+
+            var product = await db.Products
+                .FirstOrDefaultAsync(
+                    p => p.ProductId == dto.Product_Id);
 
             if (product == null)
             {
                 return NotFound("Product not found.");
             }
 
+            // =====================================================
             // Check Unit
-            var unit = db.Units
-                .FirstOrDefault(u => u.Unit_Id == dto.Unit_Id);
+            // =====================================================
+
+            var unit = await db.Units
+                .FirstOrDefaultAsync(
+                    u => u.Unit_Id == dto.Unit_Id);
 
             if (unit == null)
             {
                 return BadRequest("Unit not found.");
             }
 
-            // Check Transaction Type
-            if (dto.TransactionType < 1 || dto.TransactionType > 3)
+            // =====================================================
+            // Validate Quantity
+            // =====================================================
+
+            if (dto.Quantity <= 0)
             {
                 return BadRequest(
-                    "Invalid transaction type. Use 1 = IN, 2 = OUT, 3 = TRANSFER."
-                );
+                    "Quantity must be greater than zero.");
+            }
+
+            // =====================================================
+            // Validate Transaction Type
+            // =====================================================
+
+            if (dto.TransactionType < 1 ||
+                dto.TransactionType > 3)
+            {
+                return BadRequest(
+                    "Invalid transaction type. " +
+                    "Use 1 = IN, 2 = OUT, 3 = TRANSFER.");
             }
 
             // =====================================================
@@ -85,12 +117,12 @@ namespace whm.Controllers
                 if (!dto.ToBinId.HasValue)
                 {
                     return BadRequest(
-                        "ToBinId is required for IN transaction."
-                    );
+                        "ToBinId is required for IN transaction.");
                 }
 
-                var toBin = db.Bins
-                    .FirstOrDefault(b => b.Bin_Id == dto.ToBinId.Value);
+                var toBin = await db.Bins
+                    .FirstOrDefaultAsync(
+                        b => b.Bin_Id == dto.ToBinId.Value);
 
                 if (toBin == null)
                 {
@@ -98,12 +130,12 @@ namespace whm.Controllers
                 }
 
                 // Find existing stock
-                var stock = db.Stocks
-                    .FirstOrDefault(s =>
+                var stock = await db.Stocks
+                    .FirstOrDefaultAsync(s =>
                         s.ProductId == dto.Product_Id &&
                         s.Bin_Id == dto.ToBinId.Value);
 
-                // If stock doesn't exist -> create it
+                // Create stock if it doesn't exist
                 if (stock == null)
                 {
                     stock = new Stock
@@ -135,13 +167,12 @@ namespace whm.Controllers
                 if (!dto.FromBinId.HasValue)
                 {
                     return BadRequest(
-                        "FromBinId is required for OUT transaction."
-                    );
+                        "FromBinId is required for OUT transaction.");
                 }
 
-                var fromBin = db.Bins
-                    .FirstOrDefault(b =>
-                        b.Bin_Id == dto.FromBinId.Value);
+                var fromBin = await db.Bins
+                    .FirstOrDefaultAsync(
+                        b => b.Bin_Id == dto.FromBinId.Value);
 
                 if (fromBin == null)
                 {
@@ -149,16 +180,15 @@ namespace whm.Controllers
                 }
 
                 // Find stock
-                var stock = db.Stocks
-                    .FirstOrDefault(s =>
+                var stock = await db.Stocks
+                    .FirstOrDefaultAsync(s =>
                         s.ProductId == dto.Product_Id &&
                         s.Bin_Id == dto.FromBinId.Value);
 
                 if (stock == null)
                 {
                     return BadRequest(
-                        "No stock found for this product in the selected bin."
-                    );
+                        "No stock found for this product in the selected bin.");
                 }
 
                 // Check quantity
@@ -176,7 +206,6 @@ namespace whm.Controllers
                 stock.Quantity -= dto.Quantity;
                 stock.LastUpdatedAt = DateTime.UtcNow;
 
-                // If stock becomes zero
                 if (stock.Quantity == 0)
                 {
                     stock.IsActive = false;
@@ -192,28 +221,25 @@ namespace whm.Controllers
                 if (!dto.FromBinId.HasValue)
                 {
                     return BadRequest(
-                        "FromBinId is required for TRANSFER."
-                    );
+                        "FromBinId is required for TRANSFER.");
                 }
 
                 if (!dto.ToBinId.HasValue)
                 {
                     return BadRequest(
-                        "ToBinId is required for TRANSFER."
-                    );
+                        "ToBinId is required for TRANSFER.");
                 }
 
                 if (dto.FromBinId == dto.ToBinId)
                 {
                     return BadRequest(
-                        "FromBin and ToBin cannot be the same."
-                    );
+                        "FromBin and ToBin cannot be the same.");
                 }
 
                 // Check From Bin
-                var fromBin = db.Bins
-                    .FirstOrDefault(b =>
-                        b.Bin_Id == dto.FromBinId.Value);
+                var fromBin = await db.Bins
+                    .FirstOrDefaultAsync(
+                        b => b.Bin_Id == dto.FromBinId.Value);
 
                 if (fromBin == null)
                 {
@@ -221,9 +247,9 @@ namespace whm.Controllers
                 }
 
                 // Check To Bin
-                var toBin = db.Bins
-                    .FirstOrDefault(b =>
-                        b.Bin_Id == dto.ToBinId.Value);
+                var toBin = await db.Bins
+                    .FirstOrDefaultAsync(
+                        b => b.Bin_Id == dto.ToBinId.Value);
 
                 if (toBin == null)
                 {
@@ -231,16 +257,15 @@ namespace whm.Controllers
                 }
 
                 // Get source stock
-                var fromStock = db.Stocks
-                    .FirstOrDefault(s =>
+                var fromStock = await db.Stocks
+                    .FirstOrDefaultAsync(s =>
                         s.ProductId == dto.Product_Id &&
                         s.Bin_Id == dto.FromBinId.Value);
 
                 if (fromStock == null)
                 {
                     return BadRequest(
-                        "No stock found in the source bin."
-                    );
+                        "No stock found in the source bin.");
                 }
 
                 // Check quantity
@@ -264,8 +289,8 @@ namespace whm.Controllers
                 }
 
                 // Get destination stock
-                var toStock = db.Stocks
-                    .FirstOrDefault(s =>
+                var toStock = await db.Stocks
+                    .FirstOrDefaultAsync(s =>
                         s.ProductId == dto.Product_Id &&
                         s.Bin_Id == dto.ToBinId.Value);
 
@@ -304,7 +329,8 @@ namespace whm.Controllers
 
                 Unit_Id = dto.Unit_Id,
 
-                TransactionType = (TransactionType)dto.TransactionType,
+                TransactionType =
+                    (TransactionType)dto.TransactionType,
 
                 FromBinId = dto.FromBinId,
 
@@ -317,32 +343,43 @@ namespace whm.Controllers
                 CreateAt = DateTimeOffset.UtcNow
             };
 
-            db.Transactions.Add(transaction);
+            // Use Repository
+            await unitOfWork.Transactions
+                .AddAsync(transaction);
 
             // Save everything
-            db.SaveChanges();
+            await unitOfWork.SaveChangesAsync();
 
             return Ok(new
             {
                 message = "Transaction created successfully.",
 
-                transactionId = transaction.transaction_Id,
+                transactionId =
+                    transaction.transaction_Id,
 
-                productId = transaction.Product_Id,
+                productId =
+                    transaction.Product_Id,
 
-                quantity = transaction.Quantity,
+                quantity =
+                    transaction.Quantity,
 
-                unitId = transaction.Unit_Id,
+                unitId =
+                    transaction.Unit_Id,
 
-                transactionType = transaction.TransactionType,
+                transactionType =
+                    transaction.TransactionType,
 
-                fromBinId = transaction.FromBinId,
+                fromBinId =
+                    transaction.FromBinId,
 
-                toBinId = transaction.ToBinId,
+                toBinId =
+                    transaction.ToBinId,
 
-                userId = transaction.User_Id,
+                userId =
+                    transaction.User_Id,
 
-                createdAt = transaction.CreateAt
+                createdAt =
+                    transaction.CreateAt
             });
         }
 
@@ -353,49 +390,42 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpGet]
-        public IActionResult GetAllTransactions()
+        public async Task<IActionResult> GetAllTransactions()
         {
-            var transactions = db.Transactions
-                .Include(t => t.Product)
-                .Include(t => t.Unit)
-                .Include(t => t.User)
-                .Include(t => t.FromBin)
-                .Include(t => t.ToBin)
-                .OrderByDescending(t => t.CreateAt)
+            var transactions =
+                await unitOfWork.Transactions
+                    .GetAllAsync();
+
+            var result = transactions
                 .Select(t => new
                 {
                     transactionId = t.transaction_Id,
 
                     productId = t.Product_Id,
-                    productName = t.Product.ProductName,
+                    productName = t.Product?.ProductName,
 
                     quantity = t.Quantity,
 
                     unitId = t.Unit_Id,
-                    unitName = t.Unit.Unit_Name,
+                    unitName = t.Unit?.Unit_Name,
 
                     transactionType = t.TransactionType,
 
                     fromBinId = t.FromBinId,
-                    fromBinName = t.FromBin != null
-                        ? t.FromBin.Bin_Name
-                        : null,
+                    fromBinName = t.FromBin?.Bin_Name,
 
                     toBinId = t.ToBinId,
-                    toBinName = t.ToBin != null
-                        ? t.ToBin.Bin_Name
-                        : null,
+                    toBinName = t.ToBin?.Bin_Name,
 
                     userId = t.User_Id,
-                    userName = t.User.User_Name,
+                    userName = t.User?.User_Name,
 
                     notes = t.Notes,
 
                     createdAt = t.CreateAt
-                })
-                .ToList();
+                });
 
-            return Ok(transactions);
+            return Ok(result);
         }
 
 
@@ -405,54 +435,64 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpGet("{id}")]
-        public IActionResult GetTransactionById(int id)
+        public async Task<IActionResult> GetTransactionById(int id)
         {
-            var transaction = db.Transactions
-                .Include(t => t.Product)
-                .Include(t => t.Unit)
-                .Include(t => t.User)
-                .Include(t => t.FromBin)
-                .Include(t => t.ToBin)
-                .Where(t => t.transaction_Id == id)
-                .Select(t => new
-                {
-                    transactionId = t.transaction_Id,
-
-                    productId = t.Product_Id,
-                    productName = t.Product.ProductName,
-
-                    quantity = t.Quantity,
-
-                    unitId = t.Unit_Id,
-                    unitName = t.Unit.Unit_Name,
-
-                    transactionType = t.TransactionType,
-
-                    fromBinId = t.FromBinId,
-                    fromBinName = t.FromBin != null
-                        ? t.FromBin.Bin_Name
-                        : null,
-
-                    toBinId = t.ToBinId,
-                    toBinName = t.ToBin != null
-                        ? t.ToBin.Bin_Name
-                        : null,
-
-                    userId = t.User_Id,
-                    userName = t.User.User_Name,
-
-                    notes = t.Notes,
-
-                    createdAt = t.CreateAt
-                })
-                .FirstOrDefault();
+            var transaction =
+                await unitOfWork.Transactions
+                    .GetByIdAsync(id);
 
             if (transaction == null)
             {
                 return NotFound("Transaction not found.");
             }
 
-            return Ok(transaction);
+            return Ok(new
+            {
+                transactionId =
+                    transaction.transaction_Id,
+
+                productId =
+                    transaction.Product_Id,
+
+                productName =
+                    transaction.Product?.ProductName,
+
+                quantity =
+                    transaction.Quantity,
+
+                unitId =
+                    transaction.Unit_Id,
+
+                unitName =
+                    transaction.Unit?.Unit_Name,
+
+                transactionType =
+                    transaction.TransactionType,
+
+                fromBinId =
+                    transaction.FromBinId,
+
+                fromBinName =
+                    transaction.FromBin?.Bin_Name,
+
+                toBinId =
+                    transaction.ToBinId,
+
+                toBinName =
+                    transaction.ToBin?.Bin_Name,
+
+                userId =
+                    transaction.User_Id,
+
+                userName =
+                    transaction.User?.User_Name,
+
+                notes =
+                    transaction.Notes,
+
+                createdAt =
+                    transaction.CreateAt
+            });
         }
 
 
@@ -462,49 +502,45 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpGet("Product/{productId}")]
-        public IActionResult GetTransactionsByProduct(int productId)
+        public async Task<IActionResult> GetTransactionsByProduct(
+            int productId)
         {
-            var productExists = db.Products
-                .Any(p => p.ProductId == productId);
+            var productExists = await db.Products
+                .AnyAsync(p => p.ProductId == productId);
 
             if (!productExists)
             {
                 return NotFound("Product not found.");
             }
 
-            var transactions = db.Transactions
-                .Include(t => t.Product)
-                .Include(t => t.Unit)
-                .Include(t => t.User)
-                .Where(t => t.Product_Id == productId)
-                .OrderByDescending(t => t.CreateAt)
-                .Select(t => new
-                {
-                    transactionId = t.transaction_Id,
+            var transactions =
+                await unitOfWork.Transactions
+                    .GetByProductIdAsync(productId);
 
-                    productId = t.Product_Id,
-                    productName = t.Product.ProductName,
+            return Ok(transactions.Select(t => new
+            {
+                transactionId = t.transaction_Id,
 
-                    quantity = t.Quantity,
+                productId = t.Product_Id,
+                productName = t.Product?.ProductName,
 
-                    unitName = t.Unit.Unit_Name,
+                quantity = t.Quantity,
 
-                    transactionType = t.TransactionType,
+                unitId = t.Unit_Id,
+                unitName = t.Unit?.Unit_Name,
 
-                    fromBinId = t.FromBinId,
+                transactionType = t.TransactionType,
 
-                    toBinId = t.ToBinId,
+                fromBinId = t.FromBinId,
+                toBinId = t.ToBinId,
 
-                    userId = t.User_Id,
-                    userName = t.User.User_Name,
+                userId = t.User_Id,
+                userName = t.User?.User_Name,
 
-                    notes = t.Notes,
+                notes = t.Notes,
 
-                    createdAt = t.CreateAt
-                })
-                .ToList();
-
-            return Ok(transactions);
+                createdAt = t.CreateAt
+            }));
         }
 
 
@@ -514,51 +550,45 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpGet("Bin/{binId}")]
-        public IActionResult GetTransactionsByBin(int binId)
+        public async Task<IActionResult> GetTransactionsByBin(
+            int binId)
         {
-            var binExists = db.Bins
-                .Any(b => b.Bin_Id == binId);
+            var binExists = await db.Bins
+                .AnyAsync(b => b.Bin_Id == binId);
 
             if (!binExists)
             {
                 return NotFound("Bin not found.");
             }
 
-            var transactions = db.Transactions
-                .Include(t => t.Product)
-                .Include(t => t.User)
-                .Include(t => t.Unit)
-                .Where(t =>
-                    t.FromBinId == binId ||
-                    t.ToBinId == binId)
-                .OrderByDescending(t => t.CreateAt)
-                .Select(t => new
-                {
-                    transactionId = t.transaction_Id,
+            var transactions =
+                await unitOfWork.Transactions
+                    .GetByBinIdAsync(binId);
 
-                    productId = t.Product_Id,
-                    productName = t.Product.ProductName,
+            return Ok(transactions.Select(t => new
+            {
+                transactionId = t.transaction_Id,
 
-                    quantity = t.Quantity,
+                productId = t.Product_Id,
+                productName = t.Product?.ProductName,
 
-                    unitName = t.Unit.Unit_Name,
+                quantity = t.Quantity,
 
-                    transactionType = t.TransactionType,
+                unitId = t.Unit_Id,
+                unitName = t.Unit?.Unit_Name,
 
-                    fromBinId = t.FromBinId,
+                transactionType = t.TransactionType,
 
-                    toBinId = t.ToBinId,
+                fromBinId = t.FromBinId,
+                toBinId = t.ToBinId,
 
-                    userId = t.User_Id,
-                    userName = t.User.User_Name,
+                userId = t.User_Id,
+                userName = t.User?.User_Name,
 
-                    notes = t.Notes,
+                notes = t.Notes,
 
-                    createdAt = t.CreateAt
-                })
-                .ToList();
-
-            return Ok(transactions);
+                createdAt = t.CreateAt
+            }));
         }
 
 
@@ -568,49 +598,45 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpGet("User/{userId}")]
-        public IActionResult GetTransactionsByUser(Guid userId)
+        public async Task<IActionResult> GetTransactionsByUser(
+            Guid userId)
         {
-            var userExists = db.Users
-                .Any(u => u.User_Id == userId);
+            var userExists = await db.Users
+                .AnyAsync(u => u.User_Id == userId);
 
             if (!userExists)
             {
                 return NotFound("User not found.");
             }
 
-            var transactions = db.Transactions
-                .Include(t => t.Product)
-                .Include(t => t.Unit)
-                .Include(t => t.User)
-                .Where(t => t.User_Id == userId)
-                .OrderByDescending(t => t.CreateAt)
-                .Select(t => new
-                {
-                    transactionId = t.transaction_Id,
+            var transactions =
+                await unitOfWork.Transactions
+                    .GetByUserIdAsync(userId);
 
-                    productId = t.Product_Id,
-                    productName = t.Product.ProductName,
+            return Ok(transactions.Select(t => new
+            {
+                transactionId = t.transaction_Id,
 
-                    quantity = t.Quantity,
+                productId = t.Product_Id,
+                productName = t.Product?.ProductName,
 
-                    unitName = t.Unit.Unit_Name,
+                quantity = t.Quantity,
 
-                    transactionType = t.TransactionType,
+                unitId = t.Unit_Id,
+                unitName = t.Unit?.Unit_Name,
 
-                    fromBinId = t.FromBinId,
+                transactionType = t.TransactionType,
 
-                    toBinId = t.ToBinId,
+                fromBinId = t.FromBinId,
+                toBinId = t.ToBinId,
 
-                    userId = t.User_Id,
-                    userName = t.User.User_Name,
+                userId = t.User_Id,
+                userName = t.User?.User_Name,
 
-                    notes = t.Notes,
+                notes = t.Notes,
 
-                    createdAt = t.CreateAt
-                })
-                .ToList();
-
-            return Ok(transactions);
+                createdAt = t.CreateAt
+            }));
         }
 
 
@@ -620,48 +646,45 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpGet("Type/{type}")]
-        public IActionResult GetTransactionsByType(int type)
+        public async Task<IActionResult> GetTransactionsByType(
+            int type)
         {
             if (type < 1 || type > 3)
             {
                 return BadRequest(
-                    "Invalid transaction type. Use 1 = IN, 2 = OUT, 3 = TRANSFER."
-                );
+                    "Invalid transaction type. " +
+                    "Use 1 = IN, 2 = OUT, 3 = TRANSFER.");
             }
 
-            var transactions = db.Transactions
-     .Include(t => t.Product)
-     .Include(t => t.Unit)
-     .Include(t => t.User)
-     .Where(t => t.TransactionType == (TransactionType)type)
-     .OrderByDescending(t => t.CreateAt)
-                .Select(t => new
-                {
-                    transactionId = t.transaction_Id,
+            var transactions =
+                await unitOfWork.Transactions
+                    .GetByTypeAsync(
+                        (TransactionType)type);
 
-                    productId = t.Product_Id,
-                    productName = t.Product.ProductName,
+            return Ok(transactions.Select(t => new
+            {
+                transactionId = t.transaction_Id,
 
-                    quantity = t.Quantity,
+                productId = t.Product_Id,
+                productName = t.Product?.ProductName,
 
-                    unitName = t.Unit.Unit_Name,
+                quantity = t.Quantity,
 
-                    transactionType = t.TransactionType,
+                unitId = t.Unit_Id,
+                unitName = t.Unit?.Unit_Name,
 
-                    fromBinId = t.FromBinId,
+                transactionType = t.TransactionType,
 
-                    toBinId = t.ToBinId,
+                fromBinId = t.FromBinId,
+                toBinId = t.ToBinId,
 
-                    userId = t.User_Id,
-                    userName = t.User.User_Name,
+                userId = t.User_Id,
+                userName = t.User?.User_Name,
 
-                    notes = t.Notes,
+                notes = t.Notes,
 
-                    createdAt = t.CreateAt
-                })
-                .ToList();
-
-            return Ok(transactions);
+                createdAt = t.CreateAt
+            }));
         }
 
 
@@ -671,7 +694,7 @@ namespace whm.Controllers
         // =========================================================
 
         [HttpGet("Filter")]
-        public IActionResult FilterTransactions(
+        public async Task<IActionResult> FilterTransactions(
             int? productId,
             Guid? userId,
             int? transactionType,
@@ -684,6 +707,8 @@ namespace whm.Controllers
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
+                .Include(t => t.FromBin)
+                .Include(t => t.ToBin)
                 .AsQueryable();
 
             // Product
@@ -703,17 +728,18 @@ namespace whm.Controllers
             // Transaction Type
             if (transactionType.HasValue)
             {
-                if (transactionType < 0 ||
+                if (transactionType < 1 ||
                     transactionType > 3)
                 {
                     return BadRequest(
-                        "Invalid transaction type."
-                    );
+                        "Invalid transaction type.");
                 }
 
                 query = query.Where(
-                    t => t.TransactionType == (TransactionType)transactionType.Value);
+                    t => t.TransactionType ==
+                        (TransactionType)transactionType.Value);
             }
+
             // From Bin
             if (fromBinId.HasValue)
             {
@@ -742,7 +768,7 @@ namespace whm.Controllers
                     t => t.CreateAt <= toDate.Value);
             }
 
-            var result = query
+            var result = await query
                 .OrderByDescending(t => t.CreateAt)
                 .Select(t => new
                 {
@@ -769,7 +795,7 @@ namespace whm.Controllers
 
                     createdAt = t.CreateAt
                 })
-                .ToList();
+                .ToListAsync();
 
             return Ok(result);
         }

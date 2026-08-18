@@ -4,8 +4,11 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using whm.Middleware;
 using whm.Models;
-
+using whm.Repositories;
+using whm.Repositories.Interfaces;
+using whm.Middleware;
 
 namespace whm
 {
@@ -46,6 +49,18 @@ namespace whm
                         .AllowAnyMethod();
                 });
             });
+
+
+            builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
+
+
+
+
+
+
 
 
             // =========================
@@ -311,6 +326,7 @@ namespace whm
             // =========================
 
             var app = builder.Build();
+            app.UseMiddleware<ExceptionMiddleware>();
 
 
             // =========================
