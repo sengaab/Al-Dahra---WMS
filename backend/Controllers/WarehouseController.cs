@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using whm.DTOs;
 using whm.Models;
 using whm.Repositories.Interfaces;
+using whm.UnitOfWork;
 
 namespace whm.Controllers
 {
@@ -69,7 +70,7 @@ namespace whm.Controllers
             await unitOfWork.Warehouses
                 .AddAsync(warehouse);
 
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveAsync();
 
             return CreatedAtAction(
                 nameof(GetWarehouseById),
@@ -275,7 +276,7 @@ namespace whm.Controllers
             unitOfWork.Warehouses
                 .Update(warehouse);
 
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveAsync();
 
             return Ok(new
             {
@@ -325,7 +326,7 @@ namespace whm.Controllers
             unitOfWork.Warehouses
                 .Update(warehouse);
 
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveAsync();
 
             return Ok(new
             {
@@ -368,7 +369,7 @@ namespace whm.Controllers
             unitOfWork.Warehouses
                 .Update(warehouse);
 
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveAsync();
 
             return Ok(new
             {
@@ -414,7 +415,7 @@ namespace whm.Controllers
             unitOfWork.Warehouses
                 .Update(warehouse);
 
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveAsync();
 
             return Ok(new
             {

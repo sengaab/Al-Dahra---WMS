@@ -1,13 +1,19 @@
-﻿using whm.Models;
+﻿using whm.Repositories.Interfaces;
 
-namespace whm.Repositories.Interfaces
+namespace whm.UnitOfWork
 {
     public interface IUnitOfWork
     {
+        IProductRepository Products { get; }
+
         ITransactionRepository Transactions { get; }
 
         IWarehouseRepository Warehouses { get; }
 
-        Task<int> SaveChangesAsync();
+        ICategoryRepository Categories { get; }
+
+        IUnitRepository Units { get; }
+
+        Task<int> SaveAsync();
     }
 }

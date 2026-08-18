@@ -5,6 +5,7 @@ using System.Security.Claims;
 using whm.DTOs;
 using whm.Models;
 using whm.Repositories.Interfaces;
+using whm.UnitOfWork;
 
 namespace whm.Controllers
 {
@@ -348,7 +349,7 @@ namespace whm.Controllers
                 .AddAsync(transaction);
 
             // Save everything
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveAsync();
 
             return Ok(new
             {
