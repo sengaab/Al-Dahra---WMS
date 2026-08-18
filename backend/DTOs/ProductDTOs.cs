@@ -13,6 +13,7 @@ namespace whm.DTOs
 
         [Required]
         public int UnitId { get; set; }
+        public int subCategoryId { get; set; }
 
         [Required]
         [Range(0, double.MaxValue)]
@@ -22,11 +23,9 @@ namespace whm.DTOs
         [Range(0, int.MaxValue)]
         public int MinimumStock { get; set; }
 
-        [StringLength(100)]
-        public string? SKU { get; set; }
+       
 
-        [StringLength(100)]
-        public string? Barcode { get; set; }
+       
     }
 
 

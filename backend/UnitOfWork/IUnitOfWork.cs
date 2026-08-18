@@ -1,4 +1,5 @@
-﻿using whm.Repositories.Interfaces;
+﻿using whm.Repositories;
+using whm.Repositories.Interfaces;
 
 namespace whm.UnitOfWork
 {
@@ -11,6 +12,7 @@ namespace whm.UnitOfWork
         IWarehouseRepository Warehouses { get; }
 
         ICategoryRepository Categories { get; }
+        ISubCategoryRepository SubCategories { get; }
 
         IUnitRepository Units { get; }
 

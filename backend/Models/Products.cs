@@ -63,6 +63,10 @@ public class Product
     public List<Report> reports { get; set; } = new List<Report>();
     public List<ReportSchedule> reportSchedules { get; set; } = new List<ReportSchedule>();
     public List<Transaction> transactions { get; set; }= new List<Transaction>();
+    [ForeignKey(nameof(SubCategory))]
+    public int SubCategoryId { get; set; }
+
+    public SubCategory SubCategory { get; set; }
 }
 
 
