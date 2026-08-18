@@ -34,7 +34,7 @@ namespace whm.Controllers
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateProduct(
-            CreateProductDTO dto)
+     CreateProductDTO dto)
         {
             if (!ModelState.IsValid)
             {
@@ -52,8 +52,32 @@ namespace whm.Controllers
 
             if (categoryExists == null)
             {
+                return BadRequest("Category not found.");
+            }
+
+
+            // =================================================
+            // CHECK SUB CATEGORY
+            // =================================================
+
+            var subCategoryExists =
+                await unitOfWork.SubCategories
+                    .GetByIdAsync(dto.subCategoryId);
+
+            if (subCategoryExists == null)
+            {
+                return BadRequest("SubCategory not found.");
+            }
+
+
+            // =================================================
+            // CHECK SUB CATEGORY BELONGS TO CATEGORY
+            // =================================================
+
+            if (subCategoryExists.CategoryId != dto.CategoryId)
+            {
                 return BadRequest(
-                    "Category not found.");
+                    "SubCategory does not belong to the selected Category.");
             }
 
 
@@ -67,58 +91,64 @@ namespace whm.Controllers
 
             if (unitExists == null)
             {
-                return BadRequest(
-                    "Unit not found.");
+                return BadRequest("Unit not found.");
             }
 
 
             // =================================================
-            // GENERATE / CHECK SKU
+            // GENERATE CATEGORY PREFIX
             // =================================================
 
-            string sku;
+            var categoryName =
+                categoryExists.Category_Name
+                    .Trim()
+                    .ToUpper();
 
-            do
-            {
-                sku =
-                    $"PRD-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
+            var prefix =
+                categoryName.Length >= 3
+                    ? categoryName[..3]
+                    : categoryName;
 
-            } while (
+
+            // =================================================
+            // GET LAST SKU FOR THIS CATEGORY
+            // =================================================
+
+            var lastSKU =
                 await unitOfWork.Products
-                    .SKUExistsAsync(sku)
-            );
-       
+                    .GetLastSKUByPrefixAsync(prefix);
 
 
             // =================================================
-            // GENERATE / CHECK BARCODE
+            // GENERATE NEXT NUMBER
             // =================================================
 
-            string barcode;
+            int nextNumber = 1;
 
-            if (string.IsNullOrWhiteSpace(dto.Barcode))
+            if (!string.IsNullOrWhiteSpace(lastSKU))
             {
-                do
-                {
-                    barcode =
-                        barcodeService.GenerateBarcodeValue();
+                var numberPart =
+                    lastSKU[prefix.Length..];
 
-                } while (
-                    await unitOfWork.Products
-                        .BarcodeExistsAsync(barcode)
-                );
-            }
-            else
-            {
-                barcode = dto.Barcode.Trim();
-
-                if (await unitOfWork.Products
-                    .BarcodeExistsAsync(barcode))
+                if (int.TryParse(
+                    numberPart,
+                    out int lastNumber))
                 {
-                    return Conflict(
-                        "Barcode already exists.");
+                    nextNumber =
+                        lastNumber + 1;
                 }
             }
+
+
+            // =================================================
+            // GENERATE PRODUCT CODE
+            // Example:
+            // Machine -> MAC001
+            // Machine -> MAC002
+            // =================================================
+
+            var productCode =
+                $"{prefix}{nextNumber:D3}";
 
 
             // =================================================
@@ -133,6 +163,9 @@ namespace whm.Controllers
                 CategoryId =
                     dto.CategoryId,
 
+                SubCategoryId =
+                    dto.subCategoryId,
+
                 UnitId =
                     dto.UnitId,
 
@@ -142,16 +175,17 @@ namespace whm.Controllers
                 MinimumStock =
                     dto.MinimumStock,
 
+                // SAME VALUE
                 SKU =
-                    sku,
+                    productCode,
 
-                // Barcode
+                // SAME VALUE
                 Barcode =
-                    barcode,
+                    productCode,
 
-                // QR uses SAME value as Barcode
+                // SAME VALUE
                 QRValue =
-                    barcode,
+                    productCode,
 
                 CreatedAt =
                     DateTimeOffset.UtcNow,
@@ -160,6 +194,10 @@ namespace whm.Controllers
                     null
             };
 
+
+            // =================================================
+            // SAVE PRODUCT
+            // =================================================
 
             await unitOfWork.Products
                 .AddAsync(product);
@@ -177,6 +215,15 @@ namespace whm.Controllers
 
 
             // =================================================
+            // GENERATE BARCODE IMAGE
+            // =================================================
+
+            var barcodeImage =
+                barcodeService.GenerateBarcode(
+                    product.Barcode);
+
+
+            // =================================================
             // RESPONSE
             // =================================================
 
@@ -191,21 +238,11 @@ namespace whm.Controllers
                 productName =
                     product.ProductName,
 
-                sku =
-                    product.SKU,
-
-                barcode =
-                    product.Barcode,
-
-                // Same as Barcode
-                qrValue =
-                    product.QRValue,
-
-                qrCode =
-                    $"data:image/png;base64,{Convert.ToBase64String(qrImage)}",
-
                 categoryId =
                     product.CategoryId,
+
+                subCategoryId =
+                    product.SubCategoryId,
 
                 unitId =
                     product.UnitId,
@@ -216,6 +253,28 @@ namespace whm.Controllers
                 minimumStock =
                     product.MinimumStock,
 
+                // Same generated code
+                sku =
+                    product.SKU,
+
+                // Same generated code
+                barcode =
+                    product.Barcode,
+
+                // Same generated code
+                qrValue =
+                    product.QRValue,
+
+                // QR image
+                qrCode =
+                    $"data:image/png;base64," +
+                    Convert.ToBase64String(qrImage),
+
+                // Barcode image
+                barcodeImage =
+                    $"data:image/png;base64," +
+                    Convert.ToBase64String(barcodeImage),
+
                 status =
                     product.Status,
 
@@ -223,7 +282,6 @@ namespace whm.Controllers
                     product.CreatedAt
             });
         }
-
 
         // =====================================================
         // 2. GET ALL PRODUCTS

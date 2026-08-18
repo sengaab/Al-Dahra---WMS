@@ -12,7 +12,14 @@ namespace whm.Repositories
         {
             this.db = db;
         }
-
+        public async Task<string?> GetLastSKUByPrefixAsync(string prefix)
+        {
+            return await db.Products
+                .Where(p => p.SKU.StartsWith(prefix))
+                .OrderByDescending(p => p.SKU)
+                .Select(p => p.SKU)
+                .FirstOrDefaultAsync();
+        }
 
         // =====================================================
         // GET ALL

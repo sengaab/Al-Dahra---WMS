@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace whm.Models
 {
@@ -34,6 +35,7 @@ namespace whm.Models
         public DbSet<ReportSchedule> ReportSchedules { get; set; }
 
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<SubCategory> SubCategories { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -160,6 +162,21 @@ namespace whm.Models
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+
+           
+// =====================================================
+// Category → SubCategory
+// One Category → Many SubCategories
+// =====================================================
+
+     modelBuilder.Entity<SubCategory>()
+    .HasOne(sc => sc.Category)
+    .WithMany(c => c.SubCategories)
+    .HasForeignKey(sc => sc.CategoryId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+            
 
 
             // =====================================================

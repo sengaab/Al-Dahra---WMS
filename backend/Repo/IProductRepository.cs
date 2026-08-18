@@ -23,6 +23,7 @@ namespace whm.Repositories.Interfaces
         Task<bool> BarcodeExistsAsync(
             string barcode,
             int? excludeProductId = null);
+        Task<string?> GetLastSKUByPrefixAsync(string prefix);
 
         Task AddAsync(Product product);
 

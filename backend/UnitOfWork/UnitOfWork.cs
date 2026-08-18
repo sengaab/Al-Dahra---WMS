@@ -18,6 +18,9 @@ namespace whm.UnitOfWork
 
         public IUnitRepository Units { get; }
 
+        public ISubCategoryRepository SubCategories { get; }
+
+
         public UnitOfWork(DataBaseContext db)
         {
             this.db = db;
@@ -31,7 +34,10 @@ namespace whm.UnitOfWork
             Categories = new CategoryRepository(db);
 
             Units = new UnitRepository(db);
+
+            SubCategories = new SubCategoryRepository(db);
         }
+
 
         public async Task<int> SaveAsync()
         {
