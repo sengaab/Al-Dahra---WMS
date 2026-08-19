@@ -19,6 +19,14 @@ namespace whm.UnitOfWork
         public IUnitRepository Units { get; }
 
         public ISubCategoryRepository SubCategories { get; }
+        public IUserRepository User { get; }
+        public IRoleRepository Roles { get; }
+        public IRowRepository Rows { get; }
+
+        public IShelfRepository Shelves { get; }
+
+        public IBinRepository Bins { get; }
+        public IRoomRepository Rooms { get; }
 
 
         public UnitOfWork(DataBaseContext db)
@@ -36,6 +44,14 @@ namespace whm.UnitOfWork
             Units = new UnitRepository(db);
 
             SubCategories = new SubCategoryRepository(db);
+            User = new UserRepository(db);
+            Roles = new RoleRepository(db);
+            Rows = new RowRepository(db);
+
+            Shelves = new ShelfRepository(db);
+
+            Bins = new BinRepository(db);
+            Rooms= new RoomRepository(db);
         }
 
 
