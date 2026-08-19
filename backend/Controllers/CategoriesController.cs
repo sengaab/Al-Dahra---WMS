@@ -23,7 +23,7 @@ namespace whm.Controllers
         // GET: api/Categories
         // =========================================
 
-        [HttpGet]
+        [HttpGet("Getall")]
         public async Task<IActionResult> GetAll()
         {
             var categories =
@@ -47,7 +47,7 @@ namespace whm.Controllers
         // GET: api/Categories/1
         // =========================================
 
-        [HttpGet("{id}")]
+        [HttpGet("GetbyId{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var category =
@@ -99,7 +99,7 @@ namespace whm.Controllers
         // POST: api/Categories
         // =========================================
 
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> Create(
             CreateCategoryDTO dto)
         {
@@ -164,7 +164,7 @@ namespace whm.Controllers
         // PUT: api/Categories/1
         // =========================================
 
-        [HttpPut("{id}")]
+        [HttpPut("Update/{id}")]
         public async Task<IActionResult> Update(
             int id,
             UpdateCategoryDTO dto)
