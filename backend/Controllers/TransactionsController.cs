@@ -30,7 +30,7 @@ namespace whm.Controllers
         // POST: api/Transactions
         // =========================================================
 
-        [HttpPost]
+        [HttpPost("Create")]
         public async Task<IActionResult> CreateTransaction(
             CreateTransactionDTO dto)
         {
@@ -342,6 +342,7 @@ namespace whm.Controllers
                 Notes = dto.Notes,
 
                 CreateAt = DateTimeOffset.UtcNow
+
             };
 
             // Use Repository
@@ -390,7 +391,7 @@ namespace whm.Controllers
         // GET: api/Transactions
         // =========================================================
 
-        [HttpGet]
+        [HttpGet("Getall")]
         public async Task<IActionResult> GetAllTransactions()
         {
             var transactions =
@@ -435,7 +436,7 @@ namespace whm.Controllers
         // GET: api/Transactions/{id}
         // =========================================================
 
-        [HttpGet("{id}")]
+        [HttpGet("Getbyid/{id}")]
         public async Task<IActionResult> GetTransactionById(int id)
         {
             var transaction =
@@ -502,7 +503,7 @@ namespace whm.Controllers
         // GET: api/Transactions/Product/{productId}
         // =========================================================
 
-        [HttpGet("Product/{productId}")]
+        [HttpGet("Product/{productId}GetTransactionById")]
         public async Task<IActionResult> GetTransactionsByProduct(
             int productId)
         {
@@ -550,7 +551,7 @@ namespace whm.Controllers
         // GET: api/Transactions/Bin/{binId}
         // =========================================================
 
-        [HttpGet("Bin/{binId}")]
+        [HttpGet("{binId}GetbyBin")]
         public async Task<IActionResult> GetTransactionsByBin(
             int binId)
         {
@@ -598,7 +599,7 @@ namespace whm.Controllers
         // GET: api/Transactions/User/{userId}
         // =========================================================
 
-        [HttpGet("User/{userId}")]
+        [HttpGet("GetTransactionByUser/{userId}")]
         public async Task<IActionResult> GetTransactionsByUser(
             Guid userId)
         {
@@ -646,7 +647,7 @@ namespace whm.Controllers
         // GET: api/Transactions/Type/{type}
         // =========================================================
 
-        [HttpGet("Type/{type}")]
+        [HttpGet("GetByType/{type}")]
         public async Task<IActionResult> GetTransactionsByType(
             int type)
         {

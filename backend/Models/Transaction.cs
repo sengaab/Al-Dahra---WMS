@@ -41,6 +41,7 @@ namespace whm.Models
         [MaxLength(500)]
         public string? Notes { get; set; }
         public DateTimeOffset CreateAt { get; set; }=DateTimeOffset.UtcNow;
+       
 
     }
 }

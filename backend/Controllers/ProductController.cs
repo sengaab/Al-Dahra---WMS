@@ -148,7 +148,7 @@ namespace whm.Controllers
             // =================================================
 
             var productCode =
-                $"{prefix}{nextNumber:D3}";
+                $"{prefix}{nextNumber:D6}";
 
 
             // =================================================
@@ -291,61 +291,50 @@ namespace whm.Controllers
         [HttpGet("Getall")]
         public async Task<IActionResult> GetAllProducts()
         {
-            var products =
-                await unitOfWork.Products
-                    .GetAllAsync();
+            try
+            {
+                var products = await unitOfWork.Products.GetAllAsync();
 
-            var result =
-                products.Select(p => new
+                var result = products.Select(p => new
                 {
-                    productId =
-                        p.ProductId,
+                    productId = p.ProductId,
+                    productName = p.ProductName,
+                    sku = p.SKU,
+                    barcode = p.Barcode,
+                    qrValue = p.QRValue,
 
-                    productName =
-                        p.ProductName,
+                    categoryId = p.CategoryId,
+                    categoryName = p.Category != null
+                        ? p.Category.Category_Name
+                        : null,
 
-                    sku =
-                        p.SKU,
+                    subCategoryId = p.SubCategoryId,
+                    subCategoryName = p.SubCategory != null
+                        ? p.SubCategory.SubCategory_Name
+                        : null,
 
-                    barcode =
-                        p.Barcode,
+                    unitId = p.UnitId,
+                    unitName = p.Units != null
+                        ? p.Units.Unit_Name
+                        : null,
 
-                    qrValue =
-                        p.QRValue,
-
-                    categoryId =
-                        p.CategoryId,
-
-                    categoryName =
-                        p.Category != null
-                            ? p.Category.Category_Name
-                            : null,
-
-                    unitId =
-                        p.UnitId,
-
-                    unitName =
-                        p.Units != null
-                            ? p.Units.Unit_Name
-                            : null,
-
-                    unitPrice =
-                        p.UnitPrice,
-
-                    minimumStock =
-                        p.MinimumStock,
-
-                    status =
-                        p.Status,
-
-                    createdAt =
-                        p.CreatedAt,
-
-                    updatedAt =
-                        p.UpdatedAt
+                    unitPrice = p.UnitPrice,
+                    minimumStock = p.MinimumStock,
+                    status = p.Status,
+                    createdAt = p.CreatedAt,
+                    updatedAt = p.UpdatedAt
                 });
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    innerException = ex.InnerException?.Message
+                });
+            }
         }
 
 
@@ -424,27 +413,54 @@ namespace whm.Controllers
         // GET: api/Products/SKU/{sku}
         // =====================================================
 
-        [HttpGet("SKU/{sku}")]
-        public async Task<IActionResult> GetProductBySKU(
-            string sku)
+        [HttpGet("GetbySKU/{sku}")]
+        public async Task<IActionResult> GetProductBySKU(string sku)
         {
             if (string.IsNullOrWhiteSpace(sku))
             {
-                return BadRequest(
-                    "SKU is required.");
+                return BadRequest("SKU is required.");
             }
 
-            var product =
-                await unitOfWork.Products
-                    .GetBySKUAsync(sku.Trim());
+            var product = await unitOfWork.Products
+                .GetBySKUAsync(sku.Trim());
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound("Product not found.");
             }
 
-            return Ok(product);
+            return Ok(new
+            {
+                productId = product.ProductId,
+                productName = product.ProductName,
+
+                sku = product.SKU,
+                barcode = product.Barcode,
+                qrValue = product.QRValue,
+
+                categoryId = product.CategoryId,
+                categoryName = product.Category != null
+                    ? product.Category.Category_Name
+                    : null,
+
+                subCategoryId = product.SubCategoryId,
+                subCategoryName = product.SubCategory != null
+                    ? product.SubCategory.SubCategory_Name
+                    : null,
+
+                unitId = product.UnitId,
+                unitName = product.Units != null
+                    ? product.Units.Unit_Name
+                    : null,
+
+                unitPrice = product.UnitPrice,
+                minimumStock = product.MinimumStock,
+
+                status = product.Status,
+
+                createdAt = product.CreatedAt,
+                updatedAt = product.UpdatedAt
+            });
         }
 
 
@@ -452,38 +468,62 @@ namespace whm.Controllers
         // 5. GET BY BARCODE
         // GET: api/Products/Barcode/{barcode}
         // =====================================================
-
-        [HttpGet("Barcode/{barcode}")]
-        public async Task<IActionResult> GetProductByBarcode(
-            string barcode)
+        [HttpGet("GetbyBarcode/{barcode}")]
+        public async Task<IActionResult> GetProductByBarcode(string barcode)
         {
             if (string.IsNullOrWhiteSpace(barcode))
             {
-                return BadRequest(
-                    "Barcode is required.");
+                return BadRequest("Barcode is required.");
             }
 
-            var product =
-                await unitOfWork.Products
-                    .GetByBarcodeAsync(
-                        barcode.Trim());
+            var product = await unitOfWork.Products
+                .GetByBarcodeAsync(barcode.Trim());
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound("Product not found.");
             }
 
-            return Ok(product);
-        }
+            return Ok(new
+            {
+                productId = product.ProductId,
+                productName = product.ProductName,
 
+                sku = product.SKU,
+                barcode = product.Barcode,
+                qrValue = product.QRValue,
+
+                categoryId = product.CategoryId,
+                categoryName = product.Category != null
+                    ? product.Category.Category_Name
+                    : null,
+
+                subCategoryId = product.SubCategoryId,
+                subCategoryName = product.SubCategory != null
+                    ? product.SubCategory.SubCategory_Name
+                    : null,
+
+                unitId = product.UnitId,
+                unitName = product.Units != null
+                    ? product.Units.Unit_Name
+                    : null,
+
+                unitPrice = product.UnitPrice,
+                minimumStock = product.MinimumStock,
+
+                status = product.Status,
+
+                createdAt = product.CreatedAt,
+                updatedAt = product.UpdatedAt
+            });
+        }
 
         // =====================================================
         // 6. GET BY QR
         // GET: api/Products/QR/{qrValue}
         // =====================================================
 
-        [HttpGet("QR/{qrValue}")]
+        [HttpGet("GetbyQR/{qrValue}")]
         public async Task<IActionResult> GetProductByQR(
             string qrValue)
         {
@@ -544,7 +584,7 @@ namespace whm.Controllers
         // GET: api/Products/Search?search=laptop
         // =====================================================
 
-        [HttpGet("Search")]
+        [HttpGet("Searchproducts")]
         public async Task<IActionResult> SearchProducts(
             string search)
         {
@@ -567,7 +607,7 @@ namespace whm.Controllers
         // PUT: api/Products/{id}
         // =====================================================
 
-        [HttpPut("{id:int}")]
+        [HttpPut("Update{id:int}")]
         public async Task<IActionResult> UpdateProduct(
             int id,
             UpdateProductDTO dto)
@@ -783,7 +823,7 @@ namespace whm.Controllers
         // GET: api/Products/{id}/GetQRCode
         // =====================================================
 
-        [HttpGet("{id:int}/GetQRCode")]
+        [HttpGet("{id:int}/GetQRCodeImage")]
         public async Task<IActionResult> GetQRCode(
             int id)
         {
@@ -819,7 +859,7 @@ namespace whm.Controllers
         // GET: api/Products/{id}/barcode
         // =====================================================
 
-        [HttpGet("{id:int}/barcode")]
+        [HttpGet("{id:int}/barcodeImage")]
         public async Task<IActionResult> GetProductBarcode(
             int id)
         {

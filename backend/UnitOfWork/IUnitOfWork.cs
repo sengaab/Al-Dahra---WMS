@@ -15,6 +15,14 @@ namespace whm.UnitOfWork
         ISubCategoryRepository SubCategories { get; }
 
         IUnitRepository Units { get; }
+        IUserRepository User { get; }
+        IRoleRepository Roles { get; }
+        IRowRepository Rows { get; }
+
+        IShelfRepository Shelves { get; }
+
+        IBinRepository Bins { get; }
+        IRoomRepository Rooms { get; }
 
         Task<int> SaveAsync();
     }
