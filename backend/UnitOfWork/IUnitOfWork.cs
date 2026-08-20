@@ -24,6 +24,8 @@ namespace whm.UnitOfWork
         IBinRepository Bins { get; }
         IRoomRepository Rooms { get; }
         IStockRepository Stocks { get; }
+        ISiteRepository Sites { get; }
+        IDepartmentRepository Departments { get; }
 
         Task<int> SaveAsync();
     }
