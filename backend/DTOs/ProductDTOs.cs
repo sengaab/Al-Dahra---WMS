@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using whm.Models;
 
 namespace whm.DTOs
 {
@@ -56,5 +57,10 @@ namespace whm.DTOs
         public string? Barcode { get; set; }
 
         
+    }
+    public class UpdateProductStatusDTO
+    {
+        [Required]
+        public ProductStatus Status { get; set; }
     }
 }

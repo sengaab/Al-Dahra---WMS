@@ -36,6 +36,7 @@ namespace whm.Models
 
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<SubCategory> SubCategories { get; set; }
+        public DbSet<Site> Sites { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -85,6 +86,7 @@ namespace whm.Models
                         new DateTime(2026, 1, 1),
                         TimeSpan.Zero)
                 },
+
 
                 new Role
                 {
@@ -176,7 +178,19 @@ namespace whm.Models
     .HasForeignKey(sc => sc.CategoryId)
     .OnDelete(DeleteBehavior.Restrict);
 
-            
+            //Site → Warehouse
+            modelBuilder.Entity<Site>()
+           .HasMany(s => s.Warehouses)
+           .WithOne(w => w.Site)
+           .HasForeignKey(w => w.Site_Id)
+           .OnDelete(DeleteBehavior.Restrict);
+
+
+
+
+
+
+
 
 
             // =====================================================
@@ -387,6 +401,29 @@ namespace whm.Models
                 .WithMany(u => u.auditLog)
                 .HasForeignKey(a => a.User_Id)
                 .OnDelete(DeleteBehavior.Restrict);
+            //Convert status from int to string
+
+            modelBuilder.Entity<Product>()
+             .Property(p => p.Status)
+           .HasConversion<string>();
+
+            modelBuilder.Entity<Stock>()
+           .Property(s => s.StockStatue)
+            .HasConversion<string>();
+
+            modelBuilder.Entity<Report>()
+           .Property(r => r.ReportType)
+           .HasConversion<string>();
+
+            modelBuilder.Entity<ReportSchedule>()
+            .Property(r => r.Frequency)
+             .HasConversion<string>();
+
+            modelBuilder.Entity<Transaction>()
+           .Property(t => t.TransactionType)
+           .HasConversion<string>();
+
+            
         }
     }
 }

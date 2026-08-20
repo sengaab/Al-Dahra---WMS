@@ -16,7 +16,7 @@ namespace whm.Models
         [Required]
         public ReportType ReportType { get; set; }
         [Required]
-        public ScheduleFrequency Frequency { get; set; }
+        public ScheduleFrequency Frequency { get; set; } = ScheduleFrequency.Monthly;
         [Required]
         public TimeSpan RunAt { get; set; }
         public bool IsActive { get; set; }=true;

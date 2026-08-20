@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using whm.Models;
@@ -11,9 +12,11 @@ using whm.Models;
 namespace whm.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260820095336_ChangeProductStatusToString")]
+    partial class ChangeProductStatusToString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,9 +245,8 @@ namespace whm.Migrations
                     b.Property<int?>("Product_Id")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ReportType")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("ReportType")
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("ToDate")
                         .HasColumnType("timestamp with time zone");
@@ -277,9 +279,8 @@ namespace whm.Migrations
                     b.Property<DateTimeOffset>("CreateAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Frequency")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Frequency")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -539,10 +540,6 @@ namespace whm.Migrations
                         .HasPrecision(18, 3)
                         .HasColumnType("numeric(18,3)");
 
-                    b.Property<string>("StockStatue")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Stock_Id");
 
                     b.HasIndex("Bin_Id");
@@ -616,9 +613,8 @@ namespace whm.Migrations
                     b.Property<int?>("ToBinId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TransactionType")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("TransactionType")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Unit_Id")
                         .HasColumnType("integer");
