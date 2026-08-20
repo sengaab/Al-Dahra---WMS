@@ -13,5 +13,6 @@ namespace whm.DTOs
 
         [MaxLength(500)]
         public string? Warehouse_Description { get; set; }
+        public int Site_Id { get; set; }
     }
 }

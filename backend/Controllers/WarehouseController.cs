@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using whm.DTOs;
 using whm.Models;
-using whm.Repositories.Interfaces;
 using whm.UnitOfWork;
 
 namespace whm.Controllers
@@ -14,15 +13,15 @@ namespace whm.Controllers
     {
         private readonly IUnitOfWork unitOfWork;
 
-        public WarehousesController(
-            IUnitOfWork unitOfWork)
+        public WarehousesController(IUnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork;
         }
 
+
         // =========================================================
         // 1. CREATE WAREHOUSE
-        // POST: api/Warehouses
+        // POST: api/Warehouses/Create
         // =========================================================
 
         [HttpPost("Create")]
@@ -34,15 +33,43 @@ namespace whm.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Normalize
+            // =====================================================
+            // NORMALIZE
+            // =====================================================
+
             var warehouseName =
                 dto.Warehouse_Name.Trim();
 
             var warehouseCode =
                 dto.Warehouse_Code?.Trim();
 
-            // Check code
-            if (!string.IsNullOrEmpty(warehouseCode))
+
+            // =====================================================
+            // CHECK SITE
+            // =====================================================
+
+            var site =
+                await unitOfWork.Sites
+                    .GetByIdAsync(dto.Site_Id);
+
+            if (site == null)
+            {
+                return BadRequest(
+                    "Site not found.");
+            }
+
+            if (!site.IsActive)
+            {
+                return BadRequest(
+                    "Cannot add warehouse to an inactive site.");
+            }
+
+
+            // =====================================================
+            // CHECK WAREHOUSE CODE
+            // =====================================================
+
+            if (!string.IsNullOrWhiteSpace(warehouseCode))
             {
                 var codeExists =
                     await unitOfWork.Warehouses
@@ -55,26 +82,46 @@ namespace whm.Controllers
                 }
             }
 
+
+            // =====================================================
+            // CREATE WAREHOUSE
+            // =====================================================
+
             var warehouse = new Warehouse
             {
-                Warehouse_Name = warehouseName,
+                Warehouse_Name =
+                    warehouseName,
 
-                Warehouse_Code = warehouseCode,
+                Warehouse_Code =
+                    warehouseCode,
 
                 Warehouse_Description =
                     dto.Warehouse_Description?.Trim(),
 
-                IsActive = true
+                Site_Id =
+                    dto.Site_Id,
+
+                IsActive =
+                    true
             };
+
 
             await unitOfWork.Warehouses
                 .AddAsync(warehouse);
 
             await unitOfWork.SaveAsync();
 
+
+            // =====================================================
+            // RESPONSE
+            // =====================================================
+
             return CreatedAtAction(
                 nameof(GetWarehouseById),
-                new { id = warehouse.Warehouse_Id },
+                new
+                {
+                    id = warehouse.Warehouse_Id
+                },
                 new
                 {
                     message =
@@ -92,6 +139,9 @@ namespace whm.Controllers
                     description =
                         warehouse.Warehouse_Description,
 
+                    siteId =
+                        warehouse.Site_Id,
+
                     isActive =
                         warehouse.IsActive
                 });
@@ -100,7 +150,7 @@ namespace whm.Controllers
 
         // =========================================================
         // 2. GET ALL WAREHOUSES
-        // GET: api/Warehouses
+        // GET: api/Warehouses/GetallWarehouses
         // =========================================================
 
         [HttpGet("GetallWarehouses")]
@@ -110,8 +160,8 @@ namespace whm.Controllers
                 await unitOfWork.Warehouses
                     .GetAllAsync();
 
-            var result = warehouses
-                .Select(w => new
+            var result =
+                warehouses.Select(w => new
                 {
                     warehouseId =
                         w.Warehouse_Id,
@@ -125,6 +175,9 @@ namespace whm.Controllers
                     description =
                         w.Warehouse_Description,
 
+                    siteId =
+                        w.Site_Id,
+
                     isActive =
                         w.IsActive
                 });
@@ -135,10 +188,10 @@ namespace whm.Controllers
 
         // =========================================================
         // 3. GET WAREHOUSE BY ID
-        // GET: api/Warehouses/{id}
+        // GET: api/Warehouses/1/GetWarehousebyid
         // =========================================================
 
-        [HttpGet("{id}/GetWarehousebyid")]
+        [HttpGet("{id:int}/GetWarehousebyid")]
         public async Task<IActionResult> GetWarehouseById(
             int id)
         {
@@ -152,6 +205,7 @@ namespace whm.Controllers
                     "Warehouse not found.");
             }
 
+
             return Ok(new
             {
                 warehouseId =
@@ -166,6 +220,9 @@ namespace whm.Controllers
                 description =
                     warehouse.Warehouse_Description,
 
+                siteId =
+                    warehouse.Site_Id,
+
                 isActive =
                     warehouse.IsActive
             });
@@ -174,7 +231,7 @@ namespace whm.Controllers
 
         // =========================================================
         // 4. GET WAREHOUSE BY CODE
-        // GET: api/Warehouses/Code/{code}
+        // GET: api/Warehouses/GetWarehouseCode/{code}
         // =========================================================
 
         [HttpGet("GetWarehouseCode/{code}")]
@@ -187,6 +244,7 @@ namespace whm.Controllers
                     "Warehouse code is required.");
             }
 
+
             var warehouse =
                 await unitOfWork.Warehouses
                     .GetByCodeAsync(code.Trim());
@@ -196,6 +254,7 @@ namespace whm.Controllers
                 return NotFound(
                     "Warehouse not found.");
             }
+
 
             return Ok(new
             {
@@ -211,6 +270,9 @@ namespace whm.Controllers
                 description =
                     warehouse.Warehouse_Description,
 
+                siteId =
+                    warehouse.Site_Id,
+
                 isActive =
                     warehouse.IsActive
             });
@@ -219,10 +281,10 @@ namespace whm.Controllers
 
         // =========================================================
         // 5. UPDATE WAREHOUSE
-        // PUT: api/Warehouses/{id}
+        // PUT: api/Warehouses/UpdateWarehouseby/{id}
         // =========================================================
 
-        [HttpPut("UpdateWarehouseby{id}")]
+        [HttpPut("UpdateWarehouseby/{id:int}")]
         public async Task<IActionResult> UpdateWarehouse(
             int id,
             UpdateWarehouseDTO dto)
@@ -231,6 +293,11 @@ namespace whm.Controllers
             {
                 return BadRequest(ModelState);
             }
+
+
+            // =====================================================
+            // GET WAREHOUSE
+            // =====================================================
 
             var warehouse =
                 await unitOfWork.Warehouses
@@ -242,14 +309,45 @@ namespace whm.Controllers
                     "Warehouse not found.");
             }
 
+
+            // =====================================================
+            // CHECK SITE
+            // =====================================================
+
+            var site =
+                await unitOfWork.Sites
+                    .GetByIdAsync(dto.Site_Id);
+
+            if (site == null)
+            {
+                return BadRequest(
+                    "Site not found.");
+            }
+
+            if (!site.IsActive)
+            {
+                return BadRequest(
+                    "Cannot assign warehouse to an inactive site.");
+            }
+
+
+            // =====================================================
+            // NORMALIZE
+            // =====================================================
+
             var warehouseName =
                 dto.Warehouse_Name.Trim();
 
             var warehouseCode =
                 dto.Warehouse_Code?.Trim();
 
-            // Check duplicate code
-            if (!string.IsNullOrEmpty(warehouseCode))
+
+            // =====================================================
+            // CHECK DUPLICATE CODE
+            // =====================================================
+
+            if (!string.IsNullOrWhiteSpace(
+                warehouseCode))
             {
                 var codeExists =
                     await unitOfWork.Warehouses
@@ -264,6 +362,11 @@ namespace whm.Controllers
                 }
             }
 
+
+            // =====================================================
+            // UPDATE
+            // =====================================================
+
             warehouse.Warehouse_Name =
                 warehouseName;
 
@@ -273,10 +376,15 @@ namespace whm.Controllers
             warehouse.Warehouse_Description =
                 dto.Warehouse_Description?.Trim();
 
+            warehouse.Site_Id =
+                dto.Site_Id;
+
+
             unitOfWork.Warehouses
                 .Update(warehouse);
 
             await unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -295,6 +403,9 @@ namespace whm.Controllers
                 description =
                     warehouse.Warehouse_Description,
 
+                siteId =
+                    warehouse.Site_Id,
+
                 isActive =
                     warehouse.IsActive
             });
@@ -303,10 +414,10 @@ namespace whm.Controllers
 
         // =========================================================
         // 6. DELETE WAREHOUSE
-        // DELETE: api/Warehouses/{id}
+        // DELETE: api/Warehouses/DeleteWarehouseby/{id}
         // =========================================================
 
-        [HttpDelete("DeleteWarehouseby{id}")]
+        [HttpDelete("DeleteWarehouseby/{id:int}")]
         public async Task<IActionResult> DeleteWarehouse(
             int id)
         {
@@ -320,13 +431,20 @@ namespace whm.Controllers
                     "Warehouse not found.");
             }
 
-            // Soft Delete
-            warehouse.IsActive = false;
+
+            // =====================================================
+            // SOFT DELETE
+            // =====================================================
+
+            warehouse.IsActive =
+                false;
+
 
             unitOfWork.Warehouses
                 .Update(warehouse);
 
             await unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -334,17 +452,20 @@ namespace whm.Controllers
                     "Warehouse deactivated successfully.",
 
                 warehouseId =
-                    warehouse.Warehouse_Id
+                    warehouse.Warehouse_Id,
+
+                isActive =
+                    warehouse.IsActive
             });
         }
 
 
         // =========================================================
         // 7. ACTIVATE WAREHOUSE
-        // PATCH: api/Warehouses/{id}/activate
+        // PATCH: api/Warehouses/ActivateWarehouseby/{id}
         // =========================================================
 
-        [HttpPatch("ActivateWarehouseby{id}")]
+        [HttpPatch("ActivateWarehouseby/{id:int}")]
         public async Task<IActionResult> ActivateWarehouse(
             int id)
         {
@@ -358,18 +479,23 @@ namespace whm.Controllers
                     "Warehouse not found.");
             }
 
+
             if (warehouse.IsActive)
             {
                 return BadRequest(
                     "Warehouse is already active.");
             }
 
-            warehouse.IsActive = true;
+
+            warehouse.IsActive =
+                true;
+
 
             unitOfWork.Warehouses
                 .Update(warehouse);
 
             await unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -390,7 +516,7 @@ namespace whm.Controllers
         // PATCH: api/Warehouses/{id}/deactivate
         // =========================================================
 
-        [HttpPatch("{id}/deactivate")]
+        [HttpPatch("{id:int}/deactivate")]
         public async Task<IActionResult> DeactivateWarehouse(
             int id)
         {
@@ -404,18 +530,23 @@ namespace whm.Controllers
                     "Warehouse not found.");
             }
 
+
             if (!warehouse.IsActive)
             {
                 return BadRequest(
                     "Warehouse is already inactive.");
             }
 
-            warehouse.IsActive = false;
+
+            warehouse.IsActive =
+                false;
+
 
             unitOfWork.Warehouses
                 .Update(warehouse);
 
             await unitOfWork.SaveAsync();
+
 
             return Ok(new
             {

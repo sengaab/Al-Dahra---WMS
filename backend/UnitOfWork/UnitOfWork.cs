@@ -28,6 +28,8 @@ namespace whm.UnitOfWork
         public IBinRepository Bins { get; }
         public IRoomRepository Rooms { get; }
         public IStockRepository Stocks { get; }
+        public ISiteRepository Sites { get; }
+        public IDepartmentRepository Departments { get; }
 
 
         public UnitOfWork(DataBaseContext db)
@@ -54,6 +56,8 @@ namespace whm.UnitOfWork
             Bins = new BinRepository(db);
             Rooms= new RoomRepository(db);
             Stocks = new StockRepository(db);
+            Sites = new SiteRepository(db);
+            Departments = new DepartmentRepository(db);
         }
 
 
