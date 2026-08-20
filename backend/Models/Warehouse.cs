@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
@@ -18,7 +19,10 @@ namespace whm.Models
         public List<Room>Rooms { get; set; }=new List<Room>();
         public List<Report> reports { get; set; }=new List<Report>();
         public List<ReportSchedule> reportSchedules { get; set; } = new List<ReportSchedule>();
-     
+        [ForeignKey(nameof(Site))]
+        public int Site_Id { get; set; }
+
+        public Site Site { get; set; } = null!;
 
 
     }

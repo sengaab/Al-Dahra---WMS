@@ -3,12 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
-    public enum UserStatus
-    {
-        Active,
-        Inactive,
-        Suspended
-    }
+   
 
     public class Users
     {

@@ -7,9 +7,11 @@ namespace whm.Models
    
         public enum ProductStatus
         {
-            Active,
-            Inactive,
-            Discontinued
+            Available,
+            Reserved,
+            Damage,
+            Expired,
+            Quarantined
         }
 
           
@@ -46,7 +48,7 @@ public class Product
 
     public int MinimumStock { get; set; }
 
-    public ProductStatus Status { get; set; } = ProductStatus.Active;
+    public ProductStatus Status { get; set; } = ProductStatus.Available;
 
     public DateTimeOffset CreatedAt { get; set; }
 

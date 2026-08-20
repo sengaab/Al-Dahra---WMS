@@ -9,7 +9,7 @@ using whm.Middleware;
 using whm.Models;
 using whm.Services;
 using whm.UnitOfWork;
-
+using System.Text.Json.Serialization;
 
 namespace whm
 {
@@ -276,7 +276,13 @@ namespace whm
             // CONTROLLERS
             // =====================================================
 
-            builder.Services.AddControllers();
+            builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter());
+    });
 
 
             // =====================================================

@@ -16,7 +16,7 @@ namespace whm.Models
         [Key]
         public int transaction_Id { get; set; }
         [Required]
-        public TransactionType TransactionType { get; set; }
+        public TransactionType TransactionType { get; set; }= TransactionType.StockIn;
         [Required]
         public int Product_Id { get; set; }
         [ForeignKey(nameof(Product_Id))]

@@ -4,6 +4,7 @@ using whm.DTOs;
 using whm.Models;
 using whm.Services;
 using whm.UnitOfWork;
+using ClosedXML.Excel;
 
 namespace whm.Controllers
 {
@@ -860,8 +861,7 @@ namespace whm.Controllers
         // =====================================================
 
         [HttpGet("{id:int}/barcodeImage")]
-        public async Task<IActionResult> GetProductBarcode(
-            int id)
+        public async Task<IActionResult> GetProductBarcode(int id)
         {
             var product =
                 await unitOfWork.Products
@@ -887,6 +887,33 @@ namespace whm.Controllers
                 image,
                 "image/png",
                 $"Product-{product.ProductId}-Barcode.png");
+        }
+        [HttpPut("UpdateStatus/{id}")]
+        public async Task<IActionResult> UpdateProductStatus(
+    int id,
+    UpdateProductStatusDTO dto)
+        {
+            var product = await unitOfWork.Products.GetByIdAsync(id);
+
+            if (product == null)
+            {
+                return NotFound("Product not found.");
+            }
+
+            product.Status = dto.Status;
+            product.UpdatedAt = DateTimeOffset.UtcNow;
+
+            unitOfWork.Products.Update(product);
+
+            await unitOfWork.SaveAsync();
+
+            return Ok(new
+            {
+                message = "Product status updated successfully.",
+                productId = product.ProductId,
+                status = product.Status,
+                updatedAt = product.UpdatedAt
+            });
         }
     }
 }

@@ -3,6 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
+    public enum StockStatus
+    {
+        InTransit,
+        Pending,
+        Received
+    }
     public class Stock
     {
         [Key]
@@ -20,6 +26,7 @@ namespace whm.Models
         public int Bin_Id { get; set; }
         [ForeignKey(nameof(Bin_Id))]
         public Bin Bin { get; set; }
+        public StockStatus StockStatue { get; set; }=StockStatus.InTransit;
 
 
 
