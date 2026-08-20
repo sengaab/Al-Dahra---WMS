@@ -106,8 +106,7 @@ appsettings.Development.json
 **/appsettings.Local.json
 **/appsettings.Development.json
 
-# Your backend appsettings contains the
-# Supabase database password, so ignore it.
+# Backend appsettings contains secrets
 backend/appsettings.json
 
 # ==========================================
@@ -122,9 +121,9 @@ iisexpress/
 # Next.js
 # ==========================================
 
-frontend/.next/
-frontend/out/
-frontend/.vercel/
+**/.next/
+**/out/
+**/.vercel/
 
 # ==========================================
 # Node.js
@@ -142,10 +141,23 @@ pnpm-debug.log*
 # Next.js Environment Files
 # ==========================================
 
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# ==========================================
+# TypeScript
+# ==========================================
+
+*.tsbuildinfo
+next-env.d.ts
+
+# ==========================================
+# ESLint
+# ==========================================
+
+.eslintcache
 
 # ==========================================
 # OS Generated Files
@@ -161,3 +173,7 @@ desktop.ini
 # ==========================================
 
 *.vsix
+*.swp
+*.swo
+*.tmp
+*.temp

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "./components/button";
+import Button from "@/components/button";
 import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
@@ -133,7 +133,10 @@ export default function Home() {
         overflow: "hidden",
       }}
     >
-      {/* Left Section */}
+      {/* =========================
+          Left Section
+          ========================= */}
+
       <div
         style={{
           position: "relative",
@@ -161,7 +164,10 @@ export default function Home() {
         />
       </div>
 
-      {/* Login Section */}
+      {/* =========================
+          Login Section
+          ========================= */}
+
       <div
         style={{
           display: "flex",
@@ -171,58 +177,66 @@ export default function Home() {
           width: "clamp(360px, 35vw, 520px)",
           minHeight: "100vh",
           padding: "clamp(30px, 5vw, 70px)",
-          gap: "30px",
+          gap: "var(--space-8)",
           backgroundColor: "var(--beige)",
           boxSizing: "border-box",
         }}
       >
-        {/* Welcome */}
+        {/* =========================
+            Welcome
+            ========================= */}
+
         <div
           style={{
             textAlign: "center",
           }}
         >
-          <h3
+          <h1
             style={{
               color: "var(--midnight-blue)",
-              margin: 0,
             }}
           >
             Welcome to
-          </h3>
+          </h1>
 
-          <p
+          <h4
             style={{
-              margin: "8px 0 0",
+              marginTop: "var(--space-2)",
               color: "var(--midnight-blue)",
-              fontFamily: "var(--font-roboto)",
-              fontSize: "16px",
               lineHeight: 1.5,
             }}
           >
             Eldahra's Warehouse Management System
-          </p>
+          </h4>
         </div>
 
-        {/* Form */}
+        {/* =========================
+            Form
+            ========================= */}
+
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "20px",
+            gap: "var(--space-5)",
             width: "100%",
           }}
         >
           {/* Email */}
-          <div style={{ width: "100%" }}>
+
+          <div
+            style={{
+              width: "100%",
+            }}
+          >
             <label
               htmlFor="email"
               style={{
                 display: "block",
-                marginBottom: "8px",
+                marginBottom: "var(--space-2)",
                 fontFamily: "var(--font-roboto-serif)",
-                fontSize: "14px",
-                fontWeight: "600",
+                fontSize: "var(--font-section-title)",
+                fontWeight: "var(--weight-section-title)",
                 color: "var(--dark-green)",
               }}
             >
@@ -242,29 +256,37 @@ export default function Home() {
               }}
               style={{
                 width: "100%",
-                height: "42px",
-                borderRadius: "5px",
-                border: "1px solid var(--dark-green)",
-                padding: "0 12px",
+                height: "var(--input-height)",
+                borderRadius: "var(--input-radius)",
+                border: "var(--border-default)",
+                borderColor: "var(--dark-green)",
+                padding: "0 var(--input-padding-x)",
                 boxSizing: "border-box",
                 fontFamily: "var(--font-roboto)",
-                fontSize: "14px",
+                fontSize: "var(--font-placeholder)",
+                fontWeight: "var(--weight-placeholder)",
                 backgroundColor: "var(--beige)",
+                color: "var(--dark-green)",
                 outline: "none",
               }}
             />
           </div>
 
           {/* Password */}
-          <div style={{ width: "100%" }}>
+
+          <div
+            style={{
+              width: "100%",
+            }}
+          >
             <label
               htmlFor="password"
               style={{
                 display: "block",
-                marginBottom: "8px",
+                marginBottom: "var(--space-2)",
                 fontFamily: "var(--font-roboto-serif)",
-                fontSize: "14px",
-                fontWeight: "600",
+                fontSize: "var(--font-section-title)",
+                fontWeight: "var(--weight-section-title)",
                 color: "var(--dark-green)",
               }}
             >
@@ -284,14 +306,17 @@ export default function Home() {
               }}
               style={{
                 width: "100%",
-                height: "42px",
-                borderRadius: "5px",
-                border: "1px solid var(--dark-green)",
-                padding: "0 12px",
+                height: "var(--input-height)",
+                borderRadius: "var(--input-radius)",
+                border: "var(--border-default)",
+                borderColor: "var(--dark-green)",
+                padding: "0 var(--input-padding-x)",
                 boxSizing: "border-box",
                 fontFamily: "var(--font-roboto)",
-                fontSize: "14px",
+                fontSize: "var(--font-placeholder)",
+                fontWeight: "var(--weight-placeholder)",
                 backgroundColor: "var(--beige)",
+                color: "var(--dark-green)",
                 outline: "none",
               }}
             />
@@ -312,13 +337,17 @@ export default function Home() {
           )}
         </div>
 
-        {/* Login Button */}
+        {/* =========================
+            Login Button
+            ========================= */}
+
         <Button
           variant="primary"
           onClick={handleLogin}
           disabled={loading}
           style={{
             width: "100%",
+            minHeight: "var(--button-height)",
           }}
         >
           {loading ? "Logging in..." : "Login to wms"}

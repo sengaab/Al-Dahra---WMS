@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import Button from "./components/button";
+import Button from "../components/button";
 
 export default function Error({
   error,
@@ -50,7 +50,6 @@ export default function Error({
         <h1
           style={{
             margin: 0,
-            fontSize: "clamp(3rem, 8vw, 5rem)",
             color:"var(--blood-red)",
           }}
         >
@@ -66,7 +65,7 @@ export default function Error({
           Something Went Wrong
         </h2>
 
-        <p
+        <h4
           style={{
             margin: "5px 0 15px",
             fontFamily: "var(--font-roboto)",
@@ -76,7 +75,7 @@ export default function Error({
         >
           Something went wrong while processing your request. Please try
           again.
-        </p>
+        </h4>
 
         <Button
           variant="secondary"
