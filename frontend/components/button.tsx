@@ -89,7 +89,7 @@ export default function Button({
         padding: "12px 24px",
         borderRadius: "8px",
         fontFamily: "var(--font-roboto-serif)",
-        fontSize: "clamp(0.875rem, 1vw, 1rem)",
+        fontSize: "var(--font-section-title)",
         fontWeight: 400,
         cursor: "pointer",
         transition: "all 0.2s ease",

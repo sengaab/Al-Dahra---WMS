@@ -1,6 +1,128 @@
+<<<<<<< Updated upstream
 import Button from "./components/button";
 
 export default function Home() {
+=======
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Button from "../components/button";
+import { createClient } from "@/lib/supabase/client";
+
+export default function Home() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setError("");
+    setLoading(true);
+
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      setLoading(false);
+      return;
+    }
+
+    // =========================
+    // Supabase Login
+    // =========================
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("Supabase login error:", error);
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // =========================
+    // Get Session
+    // =========================
+
+    const session = data.session;
+
+    if (!session) {
+      setError("Login succeeded but no session was created.");
+      setLoading(false);
+      return;
+    }
+
+    // =========================
+    // Get Access Token
+    // =========================
+
+    console.log("SESSION:", session);
+    console.log("ACCESS TOKEN:", session.access_token);
+
+    // =========================
+    // Test .NET Backend
+    // =========================
+
+    try {
+      const response = await fetch(
+        "http://localhost:5171/api/Auth/me",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const responseText = await response.text();
+
+      console.log("Backend status:", response.status);
+      console.log("Backend raw response:", responseText);
+
+      if (!response.ok) {
+        setError(
+          `Backend authentication failed (${response.status})`
+        );
+
+        setLoading(false);
+        return;
+      }
+
+      let backendData = null;
+
+      if (responseText) {
+        try {
+          backendData = JSON.parse(responseText);
+        } catch (error) {
+          console.error("Invalid JSON from backend:", error);
+        }
+      }
+
+      console.log("Backend response:", backendData);
+
+      // =========================
+      // Login Successful
+      // =========================
+
+      console.log("Authentication successful!");
+
+      router.push("/dashboard");
+    } catch (backendError) {
+      console.error("Backend connection error:", backendError);
+
+      setError("Could not connect to the WMS backend.");
+
+      setLoading(false);
+    }
+  };
+
+>>>>>>> Stashed changes
   return (
     <div
       style={{
@@ -14,7 +136,10 @@ export default function Home() {
         overflow: "hidden",
       }}
     >
-      {/* Left Section */}
+      {/* =========================
+          Left Section
+          ========================= */}
+
       <div
         style={{
           position: "relative",
@@ -42,7 +167,10 @@ export default function Home() {
         />
       </div>
 
-      {/* Login Section */}
+      {/* =========================
+          Login Section
+          ========================= */}
+
       <div
         style={{
           display: "flex",
@@ -52,58 +180,66 @@ export default function Home() {
           width: "clamp(360px, 35vw, 520px)",
           minHeight: "100vh",
           padding: "clamp(30px, 5vw, 70px)",
-          gap: "30px",
+          gap: "var(--space-8)",
           backgroundColor: "var(--beige)",
           boxSizing: "border-box",
         }}
       >
-        {/* Welcome */}
+        {/* =========================
+            Welcome
+            ========================= */}
+
         <div
         style={{
           textAlign:"center"
         }}
         >
-          <h3
+          <h1
             style={{
               color: "var(--midnight-blue)",
-              margin: 0,
             }}
             >
             Welcome to
-          </h3>
+          </h1>
 
-          <p
+          <h4
             style={{
-              margin: "8px 0 0",
+              marginTop: "var(--space-2)",
               color: "var(--midnight-blue)",
-              fontFamily: "var(--font-roboto)",
-              fontSize: "16px",
               lineHeight: 1.5,
             }}
           >
             Eldahra's Warehouse Management System
-          </p>
+          </h4>
         </div>
 
-        {/* Form */}
+        {/* =========================
+            Form
+            ========================= */}
+
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "20px",
+            gap: "var(--space-5)",
             width: "100%",
           }}
         >
           {/* Email */}
-          <div style={{ width: "100%" }}>
+
+          <div
+            style={{
+              width: "100%",
+            }}
+          >
             <label
               htmlFor="email"
               style={{
                 display: "block",
-                marginBottom: "8px",
+                marginBottom: "var(--space-2)",
                 fontFamily: "var(--font-roboto-serif)",
-                fontSize: "14px",
-                fontWeight: "600",
+                fontSize: "var(--font-section-title)",
+                fontWeight: "var(--weight-section-title)",
                 color: "var(--dark-green)",
               }}
             >
@@ -116,29 +252,37 @@ export default function Home() {
               placeholder="Enter your email"
               style={{
                 width: "100%",
-                height: "42px",
-                borderRadius: "5px",
-                border: "1px solid var(--dark-green)",
-                padding: "0 12px",
+                height: "var(--input-height)",
+                borderRadius: "var(--input-radius)",
+                border: "var(--border-default)",
+                borderColor: "var(--dark-green)",
+                padding: "0 var(--input-padding-x)",
                 boxSizing: "border-box",
                 fontFamily: "var(--font-roboto)",
-                fontSize: "14px",
+                fontSize: "var(--font-placeholder)",
+                fontWeight: "var(--weight-placeholder)",
                 backgroundColor: "var(--beige)",
+                color: "var(--dark-green)",
                 outline: "none",
               }}
             />
           </div>
 
           {/* Password */}
-          <div style={{ width: "100%" }}>
+
+          <div
+            style={{
+              width: "100%",
+            }}
+          >
             <label
               htmlFor="password"
               style={{
                 display: "block",
-                marginBottom: "8px",
+                marginBottom: "var(--space-2)",
                 fontFamily: "var(--font-roboto-serif)",
-                fontSize: "14px",
-                fontWeight: "600",
+                fontSize: "var(--font-section-title)",
+                fontWeight: "var(--weight-section-title)",
                 color: "var(--dark-green)",
               }}
             >
@@ -151,28 +295,58 @@ export default function Home() {
               placeholder="Enter your password"
               style={{
                 width: "100%",
-                height: "42px",
-                borderRadius: "5px",
-                border: "1px solid var(--dark-green)",
-                padding: "0 12px",
+                height: "var(--input-height)",
+                borderRadius: "var(--input-radius)",
+                border: "var(--border-default)",
+                borderColor: "var(--dark-green)",
+                padding: "0 var(--input-padding-x)",
                 boxSizing: "border-box",
                 fontFamily: "var(--font-roboto)",
-                fontSize: "14px",
+                fontSize: "var(--font-placeholder)",
+                fontWeight: "var(--weight-placeholder)",
                 backgroundColor: "var(--beige)",
+                color: "var(--dark-green)",
                 outline: "none",
               }}
             />
           </div>
+<<<<<<< Updated upstream
+=======
+
+          {/* Error */}
+
+          {error && (
+            <p
+              style={{
+                margin: "calc(var(--space-1) * -1) 0 0",
+                color: "var(--danger)",
+                fontFamily: "var(--font-roboto)",
+                fontSize: "var(--font-body-title)",
+                fontWeight: "var(--weight-body)",
+              }}
+            >
+              {error}
+            </p>
+          )}
+>>>>>>> Stashed changes
         </div>
 
-        {/* Login Button */}
+        {/* =========================
+            Login Button
+            ========================= */}
+
         <Button
           variant="primary"
           style={{
             width: "100%",
+            minHeight: "var(--button-height)",
           }}
         >
+<<<<<<< Updated upstream
           Login to wms
+=======
+          {loading ? "Logging in..." : "Login to WMS"}
+>>>>>>> Stashed changes
         </Button>
       </div>
     </div>

@@ -1,6 +1,30 @@
 @use "sass:meta";
 @include meta.load-css("tailwindcss");
 
+:root {
+  /* =========================
+     Typography
+     1440 × 900 Reference
+     ========================= */
+
+  /* Roboto Serif */
+  --font-section-title: clamp(14px, 1.11vw, 16px);
+  --font-page-title: clamp(20px, 1.6vw, 23px);
+  --font-big-text: clamp(32px, 3vw, 48px);
+
+  /* Roboto */
+  --font-body: clamp(11px, 0.83vw, 12px);
+  --font-body-title: clamp(11px, 0.83vw, 12px);
+  --font-placeholder: clamp(14px, 1.11vw, 16px);
+
+  /* Font weights */
+  --weight-section-title: 600;
+  --weight-page-title: 500;
+  --weight-body: 300;
+  --weight-body-title: 700;
+  --weight-placeholder: 100;
+}
+
 * {
   box-sizing: border-box;
   font-family: var(--font-roboto);
@@ -10,7 +34,14 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  font-family: var(--font-roboto);
+  font-size: var(--font-body);
+  font-weight: var(--weight-body);
 }
+
+/* =========================
+   Headings
+   ========================= */
 
 h1,
 h2,
@@ -18,32 +49,73 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-roboto-serif);
-  font-weight: 600;
-  color: var(--dark-green);
   margin: 0;
+  color: var(--midnight-blue);
 }
 
+/* Big Text */
 h1 {
-  font-size: clamp(2.25rem, 5vw, 4.5rem);
+  font-family: var(--font-roboto-serif);
+  font-size: var(--font-big-text);
+  font-weight: var(--weight-page-title);
 }
 
+/* Page Title */
 h2 {
-  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-family: var(--font-roboto-serif);
+  font-size: var(--font-page-title);
+  font-weight: var(--weight-page-title);
 }
 
+/* Section Title Serif */
 h3 {
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-family: var(--font-roboto-serif);
+  font-size: var(--font-section-title);
+  font-weight: var(--weight-section-title);
 }
 
+/* Section Title */
 h4 {
-  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-family: var(--font-roboto);
+  font-size: var(--font-section-title);
+  font-weight: var(--weight-section-title);
 }
 
 h5 {
-  font-size: clamp(1.1rem, 1.5vw, 1.5rem);
+  font-family: var(--font-roboto);
+  font-size: var(--font-page-title);
+  font-weight: var(--weight-section-title);
 }
 
 h6 {
-  font-size: clamp(1rem, 1.25vw, 1.25rem);
+  font-family: var(--font-roboto);
+  font-size: var(--font-section-title);
+  font-weight: var(--weight-body);
+}
+/* =========================
+   Typography Classes
+   ========================= */
+
+.body {
+  font-family: var(--font-roboto);
+  font-size: var(--font-body-title);
+  font-weight: var(--weight-body);
+}
+
+.body-subtitle {
+  font-family: var(--font-roboto);
+  font-size: var(--font-body-title);
+  font-weight: var(--weight-page-title);
+}
+
+.body-title {
+  font-family: var(--font-roboto);
+  font-size: var(--font-body-title);
+  font-weight: var(--weight-body-title);
+}
+
+.placeholder {
+  font-family: var(--font-roboto);
+  font-size: var(--font-placeholder);
+  font-weight: var(--weight-placeholder);
 }

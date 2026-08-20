@@ -1,10 +1,331 @@
 :root {
-    
+
+    /* =========================================
+     Main Palette
+     ========================================= */
+
     --dark-green: #084734;
-    --beige: #f9ffe3;
+    --beige: #FAF9F6;
     --grey: #828282;
     --dahra-green: #93976d;
     --midnight-blue: #1c252c;
     --blood-red: #780606;
+    --lime-green: #F1FE77;
+    --white: #ffffff;
 
+
+    /* =========================================
+     System Colors
+     ========================================= */
+
+    --green-1: #2F4A0D;
+    --green-2: #667E35;
+    --green-3: #9BAD65;
+    --green-4: #C5D099;
+    --orange: #FE6A35;
+    --red: #780606;
+    --blue: #2B72FB;
+    --light-grey: #D9D9D9;
+
+
+    /* =========================================
+     Typography
+     1440 × 900 Reference
+     ========================================= */
+
+    /* Font Families */
+    --font-roboto: "Roboto", sans-serif;
+    --font-roboto-serif: "Roboto Serif", serif;
+
+    /* Font Sizes */
+
+    /* Roboto Serif */
+    --font-big-text: clamp(32px, 3vw, 48px);
+    --font-page-title: clamp(20px, 1.6vw, 23px);
+    --font-section-title: clamp(14px, 1.11vw, 16px);
+
+    /* Roboto */
+    --font-body: clamp(10px, 0.75vw, 10px);
+    --font-body-title: clamp(11px, 0.83vw, 12px);
+    --font-placeholder: clamp(14px, 1.11vw, 16px);
+
+    /* Font Weights */
+    --weight-thin: 100;
+    --weight-light: 300;
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+
+    --weight-section-title: var(--weight-medium);
+    --weight-page-title: var(--weight-medium);
+    --weight-body: var(--weight-light);
+    --weight-body-title: var(--weight-bold);
+    --weight-placeholder: var(--weight-thin);
+
+
+    /* =========================================
+     Icon Sizes
+     ========================================= */
+
+    --icon-xs: 12px;
+    --icon-sm: 16px;
+    --icon-md: 20px;
+    --icon-lg: 24px;
+    --icon-xl: 32px;
+    --icon-2xl: 40px;
+    --icon-3xl: 48px;
+
+
+    /* Semantic Icon Sizes */
+
+    /* Small inline icons */
+    --icon-inline: var(--icon-sm);
+
+    /* Search / form icons */
+    --icon-input: var(--icon-md);
+
+    /* Navigation icons */
+    --icon-nav: var(--icon-lg);
+
+    /* Button icons */
+    --icon-button: var(--icon-md);
+
+    /* Card / dashboard icons */
+    --icon-card: var(--icon-xl);
+
+    /* Large dashboard/stat icons */
+    --icon-stat: var(--icon-2xl);
+
+    /* Empty states / large actions */
+    --icon-empty-state: var(--icon-3xl);
+
+
+    /* =========================================
+     Spacing
+     ========================================= */
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 28px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+
+
+    /* =========================================
+     Border Radius
+     ========================================= */
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-full: 9999px;
+
+
+    /* =========================================
+     Borders
+     ========================================= */
+
+    --border-width: 1px;
+
+    --border-color: var(--grey);
+    --border-color-dark: var(--grey);
+
+    --border-default:
+        var(--border-width) solid var(--border-color);
+
+
+    /* =========================================
+     Shadows
+     ========================================= */
+
+    --shadow-sm:
+        0 1px 2px rgba(0, 0, 0, 0.05);
+
+    --shadow-md:
+        0 4px 6px rgba(0, 0, 0, 0.08);
+
+    --shadow-lg:
+        0 10px 20px rgba(0, 0, 0, 0.10);
+
+
+    /* =========================================
+     Layout
+     ========================================= */
+
+    --sidebar-width: 240px;
+
+    --header-height: clamp(64px, 5.9vw, 85px);
+
+    --content-padding: clamp(16px, 2.5vw, 40px);
+
+    --content-gap: clamp(12px, 1.5vw, 24px);
+
+    --card-padding: clamp(12px, 1.5vw, 24px);
+
+    --card-gap: clamp(12px, 1.5vw, 24px);
+
+
+    /* =========================================
+     Components
+     ========================================= */
+
+    /* Buttons */
+    --button-height: 40px;
+    --button-padding-x: 16px;
+    --button-radius: var(--radius-md);
+
+    --button-outline-border:
+        1px solid var(--dark-green);
+
+    --button-primary-hover: #171e24;
+
+    --button-ghost-hover:
+        rgba(0, 0, 0, 0.05);
+
+
+    /* Inputs */
+    --input-height: 40px;
+    --input-padding-x: 12px;
+    --input-radius: var(--radius-md);
+
+    --input-border:
+        1px solid var(--grey);
+
+    --input-border-focus:
+        1px solid var(--dark-green);
+
+    --input-background: var(--white);
+
+    --input-text: var(--midnight-blue);
+
+    --input-placeholder: var(--grey);
+
+
+    /* Search */
+    --search-max-width: 500px;
+    --search-icon-size: var(--icon-input);
+
+
+    /* Cards */
+    --card-radius: var(--radius-lg);
+    --card-border: var(--border-default);
+    --card-background: var(--white);
+
+
+    /* =========================================
+     Transitions
+     ========================================= */
+
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+
+
+    /* =========================================
+     Z-Index
+     ========================================= */
+
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-sidebar: 300;
+    --z-modal: 400;
+    --z-toast: 500;
+
+
+    /* =========================================
+ Cards
+ ========================================= */
+
+    /* Base Card */
+    --card-radius: var(--radius-lg);
+    --card-border: var(--border-default);
+    --card-background: var(--white);
+    --card-padding: clamp(12px, 1.5vw, 24px);
+
+
+    /* Card Widths */
+
+    --card-width-xs: clamp(120px, 10vw, 150px);
+    --card-width-sm: clamp(180px, 15vw, 240px);
+    --card-width-md: clamp(240px, 20vw, 320px);
+    --card-width-lg: clamp(320px, 30vw, 480px);
+    --card-width-xl: clamp(400px, 40vw, 640px);
+
+
+    /* Card Heights */
+
+    --card-height-xs: clamp(40px, 4vw, 50px);
+    --card-height-sm: clamp(70px, 6vw, 100px);
+    --card-height-md: clamp(140px, 12vw, 180px);
+    --card-height-lg: clamp(180px, 16vw, 240px);
+    --card-height-xl: clamp(240px, 20vw, 320px);
+
+
+    /* Semantic Card Sizes */
+
+    /* Extra Small cards */
+    --card-xs-width: var(--card-width-xs);
+    --card-xs-height: var(--card-height-xs);
+
+    /* Small cards */
+    --card-sm-width: var(--card-width-sm);
+    --card-sm-height: var(--card-height-sm);
+
+    /* Standard dashboard cards */
+    --card-md-width: var(--card-width-md);
+    --card-md-height: var(--card-height-md);
+
+    /* Large cards / charts */
+    --card-lg-width: var(--card-width-lg);
+    --card-lg-height: var(--card-height-lg);
+
+    /* Full / feature cards */
+    --card-xl-width: var(--card-width-xl);
+    --card-xl-height: var(--card-height-xl);
+
+
+    /* Card Layout */
+
+    --card-gap: clamp(12px, 1.5vw, 24px);
+
+    --card-header-gap: var(--space-4);
+
+    --card-content-gap: var(--space-3);
+
+    --card-footer-gap: var(--space-4);
+
+
+    /* Card Internal Spacing */
+
+    --card-header-padding: var(--card-padding);
+
+    --card-content-padding: var(--card-padding);
+
+    --card-footer-padding: var(--card-padding);
+
+
+    /* Card Colors */
+
+    --card-background: var(--white);
+
+    --card-title-color: var(--dark-green);
+
+    --card-text-color: var(--grey);
+
+
+    /* Card Shadow */
+
+    --card-shadow: var(--shadow-sm);
+
+    --card-shadow-hover: var(--shadow-md);
 }

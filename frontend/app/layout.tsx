@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Roboto, Roboto_Mono, Roboto_Serif } from "next/font/google";
+import { Roboto, Roboto_Mono, Roboto_Serif, Geist } from "next/font/google";
 import "../styles/globals.css";
 import "../styles/variables.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -25,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body
         className={`${roboto.variable} ${robotoMono.variable} ${robotoSerif.variable}`}
       >

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Button from "./components/button";
+import Button from "../components/button";
 
 export default function NotFound() {
   return (
@@ -34,16 +34,16 @@ export default function NotFound() {
           textAlign: "center",
         }}
       >
-        <h2 style={{color: "var(--blood-red)"}}>Error 404</h2>
+        <h1 style={{color: "var(--blood-red)"}}>Error 404</h1>
 
-        <h3 style={{color: "black"}}>Page Not Found</h3>
+        <h2 style={{color: "black"}}>Page Not Found</h2>
 
-        <p>
+        <h4>
           The page you're looking for doesn't exist.
-        </p>
+        </h4>
 
         <Link
-          href="/"
+          href="/dashboard"
           style={{
             textDecoration: "none",
           }}
