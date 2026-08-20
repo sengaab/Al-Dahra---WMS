@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
@@ -17,11 +19,36 @@ namespace whm.Models
         public bool IsActive { get; set; } = true;
 
         public DateTimeOffset CreatedAt { get; set; }
+            = DateTimeOffset.UtcNow;
 
         public DateTimeOffset? UpdatedAt { get; set; }
 
-        // Navigation Property
-        public List<Product> Products { get; set; }=new List<Product>();
+
+        // =========================
+        // Department
+        // =========================
+
+        [Required]
+        public int Department_Id { get; set; }
+
+        [ForeignKey(nameof(Department_Id))]
+        public Department Department { get; set; } = null!;
+
+
+        // =========================
+        // Products
+        // =========================
+
+        public ICollection<Product> Products { get; set; }
+            = new List<Product>();
+
+
+        // =========================
+        // SubCategories
+        // =========================
+
+        public ICollection<SubCategory> SubCategories { get; set; }
+            = new List<SubCategory>();
     }
 }
 

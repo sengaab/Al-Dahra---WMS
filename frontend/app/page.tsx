@@ -1,13 +1,8 @@
-<<<<<<< Updated upstream
-import Button from "./components/button";
-
-export default function Home() {
-=======
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "../components/button";
+import Button from "@/components/button";
 import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
@@ -62,6 +57,7 @@ export default function Home() {
     // =========================
 
     console.log("SESSION:", session);
+
     console.log("ACCESS TOKEN:", session.access_token);
 
     // =========================
@@ -116,13 +112,14 @@ export default function Home() {
     } catch (backendError) {
       console.error("Backend connection error:", backendError);
 
-      setError("Could not connect to the WMS backend.");
+      setError(
+        "Could not connect to the WMS backend."
+      );
 
       setLoading(false);
     }
   };
 
->>>>>>> Stashed changes
   return (
     <div
       style={{
@@ -190,15 +187,15 @@ export default function Home() {
             ========================= */}
 
         <div
-        style={{
-          textAlign:"center"
-        }}
+          style={{
+            textAlign: "center",
+          }}
         >
           <h1
             style={{
               color: "var(--midnight-blue)",
             }}
-            >
+          >
             Welcome to
           </h1>
 
@@ -250,6 +247,13 @@ export default function Home() {
               id="email"
               type="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleLogin();
+                }
+              }}
               style={{
                 width: "100%",
                 height: "var(--input-height)",
@@ -293,6 +297,13 @@ export default function Home() {
               id="password"
               type="password"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleLogin();
+                }
+              }}
               style={{
                 width: "100%",
                 height: "var(--input-height)",
@@ -310,25 +321,20 @@ export default function Home() {
               }}
             />
           </div>
-<<<<<<< Updated upstream
-=======
 
           {/* Error */}
-
           {error && (
             <p
               style={{
-                margin: "calc(var(--space-1) * -1) 0 0",
-                color: "var(--danger)",
+                margin: "-5px 0 0",
+                color: "#B42318",
                 fontFamily: "var(--font-roboto)",
-                fontSize: "var(--font-body-title)",
-                fontWeight: "var(--weight-body)",
+                fontSize: "13px",
               }}
             >
               {error}
             </p>
           )}
->>>>>>> Stashed changes
         </div>
 
         {/* =========================
@@ -337,16 +343,14 @@ export default function Home() {
 
         <Button
           variant="primary"
+          onClick={handleLogin}
+          disabled={loading}
           style={{
             width: "100%",
             minHeight: "var(--button-height)",
           }}
         >
-<<<<<<< Updated upstream
-          Login to wms
-=======
-          {loading ? "Logging in..." : "Login to WMS"}
->>>>>>> Stashed changes
+          {loading ? "Logging in..." : "Login to wms"}
         </Button>
       </div>
     </div>

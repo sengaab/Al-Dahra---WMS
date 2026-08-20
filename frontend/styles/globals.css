@@ -1,5 +1,4 @@
-@use "sass:meta";
-@include meta.load-css("tailwindcss");
+@import "tailwindcss";
 
 :root {
   /* =========================

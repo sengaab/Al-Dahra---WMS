@@ -1,13 +1,163 @@
+# ==========================================
+# Visual Studio / Rider
+# ==========================================
+
 .vs/
-**/.vs/
-bin/
+.idea/
+
+# ==========================================
+# VS Code
+# ==========================================
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+*.code-workspace
+
+# ==========================================
+# .NET Build Output
+# ==========================================
+
 **/bin/
-obj/
 **/obj/
+
+artifacts/
+publish/
+out/
+AppPackages/
+
+# ==========================================
+# Visual Studio User Files
+# ==========================================
 
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
+*.vcxproj.user
 
-.vscode/
+# ==========================================
+# .NET / NuGet
+# ==========================================
+
+project.lock.json
+project.fragment.lock.json
+*.nupkg
+packages/
+
+# Do NOT ignore dotnet-tools.json
+# It should normally be committed.
+
+# ==========================================
+# Test Results / Coverage
+# ==========================================
+
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ==========================================
+# Logs / Temporary Files
+# ==========================================
+
+*.log
+logs/
+*.tlog
+*.idb
+*.ilk
+*.cache
+
+# ==========================================
+# Database / Local Database Files
+# ==========================================
+
+*.mdf
+*.ldf
+*.ndf
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+
+# ==========================================
+# Secrets / Environment Variables
+# ==========================================
+
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Allow example environment files
+!.env.example
+!.env.local.example
+!.env.development.example
+
+# ASP.NET local secrets / configuration
+secrets.json
+secrets.*.json
+local.settings.json
+
+# Local appsettings containing secrets
+appsettings.Local.json
+appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Development.json
+
+# Your backend appsettings contains the
+# Supabase database password, so ignore it.
+backend/appsettings.json
+
+# ==========================================
+# ASP.NET / IIS
+# ==========================================
+
+ScaffoldingReadMe.txt
+IISExpress/
+iisexpress/
+
+# ==========================================
+# Next.js
+# ==========================================
+
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+
+# ==========================================
+# Node.js
+# ==========================================
+
+node_modules/
+**/node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Next.js Environment Files
+# ==========================================
+
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# ==========================================
+# Miscellaneous
+# ==========================================
+
+*.vsix

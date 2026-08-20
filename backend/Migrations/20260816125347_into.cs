@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace whm.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class into : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,13 +16,13 @@ namespace whm.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Category_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Category_Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
+                    Category_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Category_Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -32,13 +33,13 @@ namespace whm.Migrations
                 name: "Roles",
                 columns: table => new
                 {
-                    Role_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Role_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role_Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    Role_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Role_Name = table.Column<string>(type: "text", nullable: false),
+                    Role_Description = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,11 +50,11 @@ namespace whm.Migrations
                 name: "Units",
                 columns: table => new
                 {
-                    Unit_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Unit_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Unit_Symbol = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    Unit_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Unit_Name = table.Column<string>(type: "text", nullable: false),
+                    Unit_Symbol = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,12 +65,12 @@ namespace whm.Migrations
                 name: "Warehouses",
                 columns: table => new
                 {
-                    Warehouse_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Warehouse_Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Warehouse_Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Warehouse_Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    Warehouse_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Warehouse_Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Warehouse_Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Warehouse_Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -80,15 +81,15 @@ namespace whm.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    User_Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    User_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    User_Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    User_Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    LoginAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Role_Id = table.Column<int>(type: "int", nullable: false)
+                    User_Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    User_Name = table.Column<string>(type: "text", nullable: false),
+                    User_Email = table.Column<string>(type: "text", nullable: false),
+                    User_Password = table.Column<string>(type: "text", nullable: false),
+                    CreateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LoginAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Role_Id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -105,19 +106,19 @@ namespace whm.Migrations
                 name: "Products",
                 columns: table => new
                 {
-                    ProductId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ProductName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    SKU = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Barcode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    QRValue = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    MinimumStock = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    UnitId = table.Column<int>(type: "int", nullable: false)
+                    ProductId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ProductName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    SKU = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Barcode = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    QRValue = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    CategoryId = table.Column<int>(type: "integer", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    MinimumStock = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    UnitId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -140,13 +141,13 @@ namespace whm.Migrations
                 name: "Rooms",
                 columns: table => new
                 {
-                    Room_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Room_Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Room_Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Room_Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Warehouse_Id = table.Column<int>(type: "int", nullable: false)
+                    Room_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Room_Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Room_Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Room_Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    Warehouse_Id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -163,14 +164,14 @@ namespace whm.Migrations
                 name: "AuditLogs",
                 columns: table => new
                 {
-                    AuditLog_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    User_Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Action = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    EntityName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    EntityId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    details = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    CreateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    AuditLog_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    User_Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Action = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    EntityName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    EntityId = table.Column<string>(type: "text", nullable: true),
+                    details = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    CreateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -187,15 +188,15 @@ namespace whm.Migrations
                 name: "Reports",
                 columns: table => new
                 {
-                    Report_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ReportType = table.Column<int>(type: "int", nullable: false),
-                    FromDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ToDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    craeteByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    Warehouse_Id = table.Column<int>(type: "int", nullable: true),
-                    Product_Id = table.Column<int>(type: "int", nullable: true)
+                    Report_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ReportType = table.Column<int>(type: "integer", nullable: false),
+                    FromDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ToDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    craeteByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    Warehouse_Id = table.Column<int>(type: "integer", nullable: true),
+                    Product_Id = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -224,19 +225,19 @@ namespace whm.Migrations
                 name: "ReportSchedules",
                 columns: table => new
                 {
-                    ReportSchedule_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ReportType = table.Column<int>(type: "int", nullable: false),
-                    Frequency = table.Column<int>(type: "int", nullable: false),
-                    RunAt = table.Column<TimeSpan>(type: "time", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    craeteByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Warehouse_Id = table.Column<int>(type: "int", nullable: true),
-                    Product_Id = table.Column<int>(type: "int", nullable: true),
-                    LastRunAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    NextRunAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    UpdateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    CreateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    ReportSchedule_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ReportType = table.Column<int>(type: "integer", nullable: false),
+                    Frequency = table.Column<int>(type: "integer", nullable: false),
+                    RunAt = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    craeteByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Warehouse_Id = table.Column<int>(type: "integer", nullable: true),
+                    Product_Id = table.Column<int>(type: "integer", nullable: true),
+                    LastRunAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    NextRunAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    UpdateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -265,13 +266,13 @@ namespace whm.Migrations
                 name: "Rows",
                 columns: table => new
                 {
-                    Row_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Row_Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Row_Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Row_Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Room_Id = table.Column<int>(type: "int", nullable: false)
+                    Row_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Row_Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Row_Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Row_Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    Room_Id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -288,13 +289,13 @@ namespace whm.Migrations
                 name: "Shelves",
                 columns: table => new
                 {
-                    Shelf_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Shelf_Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Shelf_Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Shelf_Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Row_Id = table.Column<int>(type: "int", nullable: false)
+                    Shelf_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Shelf_Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Shelf_Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Shelf_Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    Row_Id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -311,13 +312,13 @@ namespace whm.Migrations
                 name: "Bins",
                 columns: table => new
                 {
-                    Bin_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Bin_Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Bin_Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Bin_Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Shelf_Id = table.Column<int>(type: "int", nullable: false)
+                    Bin_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Bin_Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Bin_Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Bin_Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    Shelf_Id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -334,14 +335,14 @@ namespace whm.Migrations
                 name: "Stocks",
                 columns: table => new
                 {
-                    Stock_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Quantity = table.Column<decimal>(type: "decimal(18,3)", precision: 18, scale: 3, nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreateAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
-                    Bin_Id = table.Column<int>(type: "int", nullable: false)
+                    Stock_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Quantity = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreateAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastUpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ProductId = table.Column<int>(type: "integer", nullable: false),
+                    Bin_Id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -364,17 +365,17 @@ namespace whm.Migrations
                 name: "Transactions",
                 columns: table => new
                 {
-                    transaction_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TransactionType = table.Column<int>(type: "int", nullable: false),
-                    Product_Id = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<decimal>(type: "decimal(18,3)", precision: 18, scale: 3, nullable: false),
-                    Unit_Id = table.Column<int>(type: "int", nullable: false),
-                    FromBinId = table.Column<int>(type: "int", nullable: true),
-                    ToBinId = table.Column<int>(type: "int", nullable: true),
-                    User_Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreateAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    transaction_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TransactionType = table.Column<int>(type: "integer", nullable: false),
+                    Product_Id = table.Column<int>(type: "integer", nullable: false),
+                    Quantity = table.Column<decimal>(type: "numeric(18,3)", precision: 18, scale: 3, nullable: false),
+                    Unit_Id = table.Column<int>(type: "integer", nullable: false),
+                    FromBinId = table.Column<int>(type: "integer", nullable: true),
+                    ToBinId = table.Column<int>(type: "integer", nullable: true),
+                    User_Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Notes = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    CreateAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
