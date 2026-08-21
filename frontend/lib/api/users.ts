@@ -1,35 +1,64 @@
 import { apiFetch } from "./api";
+import {
+    User,
+    UpdateUserRequest,
+    ChangeUserRoleRequest,
+} from "./types";
 
-export function getUsers() {
-    return apiFetch("/api/Users/Getall");
+export async function getUsers(): Promise<User[]> {
+    return apiFetch<User[]>(
+        "/api/Users/Getall"
+    );
 }
 
-export function getUserById(id: string | number) {
-    return apiFetch(`/api/Users/GetbyId/${id}`);
+export async function getUser(
+    id: string
+): Promise<User> {
+    return apiFetch<User>(
+        `/api/Users/GetbyId/${id}`
+    );
 }
 
-export function getUserByEmail(email: string) {
-    return apiFetch(
+export async function getUserByEmail(
+    email: string
+): Promise<User> {
+    return apiFetch<User>(
         `/api/Users/Getbyemail/${encodeURIComponent(email)}`
     );
 }
 
-export function updateUser(id: string | number, data: unknown) {
-    return apiFetch(`/api/Users/UpdateUser/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function updateUser(
+    id: string,
+    data: UpdateUserRequest
+): Promise<User> {
+    return apiFetch<User>(
+        `/api/Users/UpdateUser/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function changeUserRole(data: unknown) {
-    return apiFetch("/api/Users/ChangeRole", {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function changeUserRole(
+    data: ChangeUserRoleRequest
+): Promise<User> {
+    return apiFetch<User>(
+        "/api/Users/ChangeRole",
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function deleteUser(id: string | number) {
-    return apiFetch(`/api/Users/${id}`, {
-        method: "DELETE",
-    });
+export async function deleteUser(
+    id: string
+): Promise<void> {
+    await apiFetch<void>(
+        `/api/Users/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
 }

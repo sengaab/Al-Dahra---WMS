@@ -1,29 +1,56 @@
 import { apiFetch } from "./api";
+import {
+    Unit,
+    CreateUnitRequest,
+    UpdateUnitRequest,
+} from "./types";
 
-export function getUnits() {
-    return apiFetch("/api/Units/Getall");
+export async function getUnits(): Promise<Unit[]> {
+    return apiFetch<Unit[]>(
+        "/api/Units/Getall"
+    );
 }
 
-export function getUnitById(id: string | number) {
-    return apiFetch(`/api/Units/GetbyId/${id}`);
+export async function getUnit(
+    id: number
+): Promise<Unit> {
+    return apiFetch<Unit>(
+        `/api/Units/GetbyId/${id}`
+    );
 }
 
-export function createUnit(data: unknown) {
-    return apiFetch("/api/Units/Create", {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+export async function createUnit(
+    data: CreateUnitRequest
+): Promise<Unit> {
+    return apiFetch<Unit>(
+        "/api/Units/Create",
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function updateUnit(id: string | number, data: unknown) {
-    return apiFetch(`/api/Units/Update/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function updateUnit(
+    id: number,
+    data: UpdateUnitRequest
+): Promise<Unit> {
+    return apiFetch<Unit>(
+        `/api/Units/Update/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function deleteUnit(id: string | number) {
-    return apiFetch(`/api/Units/${id}`, {
-        method: "DELETE",
-    });
+export async function deleteUnit(
+    id: number
+): Promise<void> {
+    await apiFetch<void>(
+        `/api/Units/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
 }

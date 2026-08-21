@@ -1,33 +1,64 @@
 import { apiFetch } from "./api";
+import {
+    Category,
+    CreateCategoryRequest,
+    UpdateCategoryRequest,
+} from "./types";
 
-export function getCategories() {
-    return apiFetch("/api/Categories/Getall");
+export async function getCategories(): Promise<Category[]> {
+    return apiFetch<Category[]>(
+        "/api/Categories/Getall"
+    );
 }
 
-export function getCategoryById(id: string | number) {
-    return apiFetch(`/api/Categories/GetbyId${id}`);
+export async function getCategory(
+    id: number
+): Promise<Category> {
+    return apiFetch<Category>(
+        `/api/Categories/GetbyId${id}`
+    );
 }
 
-export function getCategoriesByDepartment(departmentId: string | number) {
-    return apiFetch(`/api/Categories/Department/${departmentId}`);
+export async function getCategoriesByDepartment(
+    departmentId: number
+): Promise<Category[]> {
+    return apiFetch<Category[]>(
+        `/api/Categories/Department/${departmentId}`
+    );
 }
 
-export function createCategory(data: unknown) {
-    return apiFetch("/api/Categories/create", {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+export async function createCategory(
+    data: CreateCategoryRequest
+): Promise<Category> {
+    return apiFetch<Category>(
+        "/api/Categories/create",
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function updateCategory(id: string | number, data: unknown) {
-    return apiFetch(`/api/Categories/Update/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function updateCategory(
+    id: number,
+    data: UpdateCategoryRequest
+): Promise<Category> {
+    return apiFetch<Category>(
+        `/api/Categories/Update/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function deleteCategory(id: string | number) {
-    return apiFetch(`/api/Categories/${id}`, {
-        method: "DELETE",
-    });
+export async function deleteCategory(
+    id: number
+): Promise<void> {
+    await apiFetch<void>(
+        `/api/Categories/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
 }

@@ -2,10 +2,10 @@ import { createClient } from "@/lib/supabase/client";
 
 const API_URL = "http://localhost:5171";
 
-export async function apiFetch(
+export async function apiFetch<T>(
     endpoint: string,
     options: RequestInit = {}
-) {
+): Promise<T> {
     const supabase = createClient();
 
     const {

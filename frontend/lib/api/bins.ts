@@ -1,33 +1,62 @@
 import { apiFetch } from "./api";
+import {
+    Bin,
+    CreateBinRequest,
+    UpdateBinRequest,
+} from "./types";
 
-export function getBins() {
-    return apiFetch("/api/Bins/Getall");
+export async function getBins(): Promise<Bin[]> {
+    return apiFetch<Bin[]>("/api/Bins/Getall");
 }
 
-export function getBinById(id: string | number) {
-    return apiFetch(`/api/Bins/GetbyId/${id}`);
+export async function getBin(
+    id: number
+): Promise<Bin> {
+    return apiFetch<Bin>(
+        `/api/Bins/GetbyId/${id}`
+    );
 }
 
-export function getBinsByShelfId(shelfId: string | number) {
-    return apiFetch(`/api/Bins/GetBinbyshelfid/${shelfId}`);
+export async function getBinsByShelf(
+    shelfId: number
+): Promise<Bin[]> {
+    return apiFetch<Bin[]>(
+        `/api/Bins/GetBinbyshelfid/${shelfId}`
+    );
 }
 
-export function createBin(data: unknown) {
-    return apiFetch("/api/Bins/Create", {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+export async function createBin(
+    data: CreateBinRequest
+): Promise<Bin> {
+    return apiFetch<Bin>(
+        "/api/Bins/Create",
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function updateBin(id: string | number, data: unknown) {
-    return apiFetch(`/api/Bins/Updatebyid${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function updateBin(
+    id: number,
+    data: UpdateBinRequest
+): Promise<Bin> {
+    return apiFetch<Bin>(
+        `/api/Bins/Updatebyid${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function deleteBin(id: string | number) {
-    return apiFetch(`/api/Bins/${id}`, {
-        method: "DELETE",
-    });
+export async function deleteBin(
+    id: number
+): Promise<void> {
+    await apiFetch<void>(
+        `/api/Bins/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
 }

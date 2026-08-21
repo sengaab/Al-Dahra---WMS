@@ -1,33 +1,62 @@
 import { apiFetch } from "./api";
+import {
+    Row,
+    CreateRowRequest,
+    UpdateRowRequest,
+} from "./types";
 
-export function getRows() {
-    return apiFetch("/api/Rows/Getall");
+export async function getRows(): Promise<Row[]> {
+    return apiFetch<Row[]>("/api/Rows/Getall");
 }
 
-export function getRowById(id: string | number) {
-    return apiFetch(`/api/Rows/Getbyid${id}`);
+export async function getRow(
+    id: number
+): Promise<Row> {
+    return apiFetch<Row>(
+        `/api/Rows/Getbyid${id}`
+    );
 }
 
-export function getRowsByRoomId(roomId: string | number) {
-    return apiFetch(`/api/Rows/GetRowbyroomid/${roomId}`);
+export async function getRowsByRoom(
+    roomId: number
+): Promise<Row[]> {
+    return apiFetch<Row[]>(
+        `/api/Rows/GetRowbyroomid/${roomId}`
+    );
 }
 
-export function createRow(data: unknown) {
-    return apiFetch("/api/Rows/create", {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+export async function createRow(
+    data: CreateRowRequest
+): Promise<Row> {
+    return apiFetch<Row>(
+        "/api/Rows/create",
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function updateRow(id: string | number, data: unknown) {
-    return apiFetch(`/api/Rows/Update${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function updateRow(
+    id: number,
+    data: UpdateRowRequest
+): Promise<Row> {
+    return apiFetch<Row>(
+        `/api/Rows/Update/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function deleteRow(id: string | number) {
-    return apiFetch(`/api/Rows/${id}`, {
-        method: "DELETE",
-    });
+export async function deleteRow(
+    id: number
+): Promise<void> {
+    await apiFetch<void>(
+        `/api/Rows/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
 }

@@ -1,76 +1,100 @@
 import { apiFetch } from "./api";
+import {
+    Product,
+    CreateProductRequest,
+    UpdateProductRequest,
+    UpdateProductStatusRequest,
+} from "./types";
 
-export function createProduct(data: unknown) {
-    return apiFetch("/api/Products/create", {
-        method: "POST",
-        body: JSON.stringify(data),
-    });
+export async function getProducts(): Promise<Product[]> {
+    return apiFetch<Product[]>("/api/Products/Getall");
 }
 
-export function getProducts() {
-    return apiFetch("/api/Products/Getall");
+export async function getProduct(
+    id: number
+): Promise<Product> {
+    return apiFetch<Product>(
+        `/api/Products/GetProductBy/${id}`
+    );
 }
 
-export function getProductById(id: string | number) {
-    return apiFetch(`/api/Products/GetProductBy/${id}`);
+export async function getProductBySKU(
+    sku: string
+): Promise<Product> {
+    return apiFetch<Product>(
+        `/api/Products/GetbySKU/${encodeURIComponent(sku)}`
+    );
 }
 
-export function getProductBySKU(sku: string) {
-    return apiFetch(`/api/Products/GetbySKU/${encodeURIComponent(sku)}`);
-}
-
-export function getProductByBarcode(barcode: string) {
-    return apiFetch(
+export async function getProductByBarcode(
+    barcode: string
+): Promise<Product> {
+    return apiFetch<Product>(
         `/api/Products/GetbyBarcode/${encodeURIComponent(barcode)}`
     );
 }
 
-export function getProductByQR(qrValue: string) {
-    return apiFetch(
+export async function getProductByQR(
+    qrValue: string
+): Promise<Product> {
+    return apiFetch<Product>(
         `/api/Products/GetbyQR/${encodeURIComponent(qrValue)}`
     );
 }
 
-export function searchProducts(params?: Record<string, string | number>) {
-    const query = params
-        ? `?${new URLSearchParams(
-              Object.entries(params).map(([key, value]) => [
-                  key,
-                  String(value),
-              ])
-          ).toString()}`
-        : "";
-
-    return apiFetch(`/api/Products/Searchproducts${query}`);
+export async function searchProducts(
+    query: string
+): Promise<Product[]> {
+    return apiFetch<Product[]>(
+        `/api/Products/Searchproducts?search=${encodeURIComponent(query)}`
+    );
 }
 
-export function updateProduct(id: string | number, data: unknown) {
-    return apiFetch(`/api/Products/Update${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function createProduct(
+    data: CreateProductRequest
+): Promise<Product> {
+    return apiFetch<Product>(
+        "/api/Products/create",
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function deleteProduct(id: string | number) {
-    return apiFetch(`/api/Products/${id}`, {
-        method: "DELETE",
-    });
+export async function updateProduct(
+    id: number,
+    data: UpdateProductRequest
+): Promise<Product> {
+    return apiFetch<Product>(
+        `/api/Products/Update${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
-export function getProductQRCodeImage(id: string | number) {
-    return apiFetch(`/api/Products/${id}/GetQRCodeImage`);
+export async function deleteProduct(
+    id: number
+): Promise<void> {
+    await apiFetch<void>(
+        `/api/Products/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
 }
 
-export function getProductBarcodeImage(id: string | number) {
-    return apiFetch(`/api/Products/${id}/barcodeImage`);
-}
-
-export function updateProductStatus(
-    id: string | number,
-    data: unknown
-) {
-    return apiFetch(`/api/Products/UpdateStatus/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-    });
+export async function updateProductStatus(
+    id: number,
+    data: UpdateProductStatusRequest
+): Promise<Product> {
+    return apiFetch<Product>(
+        `/api/Products/UpdateStatus/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }
+    );
 }
