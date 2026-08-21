@@ -25,6 +25,7 @@ namespace whm.Repositories
                 .ToListAsync();
         }
 
+
         // =========================================================
         // GET BY ID
         // =========================================================
@@ -35,6 +36,7 @@ namespace whm.Repositories
                 .FirstOrDefaultAsync(
                     w => w.Warehouse_Id == id);
         }
+
 
         // =========================================================
         // GET BY CODE
@@ -48,6 +50,7 @@ namespace whm.Repositories
                     w => w.Warehouse_Code == code);
         }
 
+
         // =========================================================
         // EXISTS
         // =========================================================
@@ -58,6 +61,7 @@ namespace whm.Repositories
                 .AnyAsync(
                     w => w.Warehouse_Id == id);
         }
+
 
         // =========================================================
         // CHECK CODE
@@ -79,6 +83,86 @@ namespace whm.Repositories
             return await query.AnyAsync();
         }
 
+
+        // =========================================================
+        // SEARCH BY SITE AND/OR DEPARTMENT
+        //
+        // Site only:
+        // ?siteId=1
+        //
+        // Department only:
+        // ?departmentId=2
+        //
+        // Both:
+        // ?siteId=1&departmentId=2
+        // =========================================================
+
+        public async Task<List<Warehouse>>
+            SearchBySiteAndDepartmentAsync(
+                int? siteId,
+                int? departmentId)
+        {
+            var query = db.Warehouses
+                .AsNoTracking()
+                .AsQueryable();
+
+
+            // =====================================================
+            // FILTER BY SITE
+            // =====================================================
+
+            if (siteId.HasValue)
+            {
+                query = query.Where(w =>
+                    w.Site_Id == siteId.Value);
+            }
+
+
+            // =====================================================
+            // FILTER BY DEPARTMENT
+            //
+            // Warehouse
+            // → Room
+            // → Row
+            // → Shelf
+            // → Bin
+            // → Stock
+            // → Product
+            // → Category
+            // → Department
+            // =====================================================
+
+            if (departmentId.HasValue)
+            {
+                query = query.Where(w =>
+                    w.Rooms.Any(room =>
+                        room.Rows.Any(row =>
+                            row.Shelves.Any(shelf =>
+                                shelf.Bins.Any(bin =>
+                                    bin.Stocks.Any(stock =>
+                                        stock.Product != null &&
+                                        stock.Product.Category != null &&
+                                        stock.Product.Category.Department_Id
+                                            == departmentId.Value
+                                    )
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+
+
+            // =====================================================
+            // RETURN
+            // =====================================================
+
+            return await query
+                .OrderBy(w => w.Warehouse_Name)
+                .ToListAsync();
+        }
+
+
         // =========================================================
         // ADD
         // =========================================================
@@ -86,8 +170,10 @@ namespace whm.Repositories
         public async Task AddAsync(
             Warehouse warehouse)
         {
-            await db.Warehouses.AddAsync(warehouse);
+            await db.Warehouses
+                .AddAsync(warehouse);
         }
+
 
         // =========================================================
         // UPDATE
@@ -96,8 +182,10 @@ namespace whm.Repositories
         public void Update(
             Warehouse warehouse)
         {
-            db.Warehouses.Update(warehouse);
+            db.Warehouses
+                .Update(warehouse);
         }
+
 
         // =========================================================
         // DELETE
@@ -106,7 +194,8 @@ namespace whm.Repositories
         public void Delete(
             Warehouse warehouse)
         {
-            db.Warehouses.Remove(warehouse);
+            db.Warehouses
+                .Remove(warehouse);
         }
     }
 }

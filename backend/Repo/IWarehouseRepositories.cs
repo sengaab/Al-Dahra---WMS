@@ -19,5 +19,8 @@ namespace whm.Repositories.Interfaces
         void Update(Warehouse warehouse);
 
         void Delete(Warehouse warehouse);
+        Task<List<Warehouse>> SearchBySiteAndDepartmentAsync(
+         int? siteId,
+         int? departmentId);
     }
 }
