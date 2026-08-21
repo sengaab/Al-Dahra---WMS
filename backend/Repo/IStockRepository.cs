@@ -17,5 +17,6 @@ namespace whm.Repositories.Interfaces
         void Update(Stock stock);
 
         void Delete(Stock stock);
+        Task<List<Stock>> SearchBySiteAndDepartmentAsync( int? siteId,int? departmentId);
     }
 }
