@@ -23,6 +23,7 @@ namespace whm.Models
         public int Site_Id { get; set; }
 
         public Site Site { get; set; } = null!;
+       
 
 
     }
