@@ -244,5 +244,19 @@ namespace whm.Repositories
                 .OrderBy(p => p.ProductName)
                 .ToListAsync();
         }
+        // =====================================================
+        // GET ALL SKUs
+        // =====================================================
+
+        public async Task<List<string>> GetAllSKUsAsync()
+        {
+            return await db.Products
+                .AsNoTracking()
+                .Where(p => !string.IsNullOrWhiteSpace(p.SKU))
+                .Select(p => p.SKU)
+                .Distinct()
+                .OrderBy(sku => sku)
+                .ToListAsync();
+        }
     }
 }

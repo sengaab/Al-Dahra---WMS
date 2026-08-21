@@ -100,5 +100,78 @@ namespace whm.Repositories
         {
             await db.Transactions.AddAsync(transaction);
         }
+        public async Task<List<Transaction>>
+    SearchBySiteAndDepartmentAsync(
+        int? siteId,
+        int? departmentId)
+        {
+            var query = db.Transactions
+                .AsNoTracking()
+                .Include(t => t.Product)
+                    .ThenInclude(p => p.Category)
+                .Include(t => t.Unit)
+                .Include(t => t.User)
+                .Include(t => t.FromBin)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(s => s.Row)
+                            .ThenInclude(r => r.Room)
+                                .ThenInclude(r => r.Warehouse)
+                .Include(t => t.ToBin)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(s => s.Row)
+                            .ThenInclude(r => r.Room)
+                                .ThenInclude(r => r.Warehouse)
+                .AsQueryable();
+
+
+            // =====================================================
+            // FILTER BY SITE
+            //
+            // Transaction
+            // → FromBin / ToBin
+            // → Shelf
+            // → Row
+            // → Room
+            // → Warehouse
+            // → Site
+            // =====================================================
+
+            if (siteId.HasValue)
+            {
+                query = query.Where(t =>
+                    (t.FromBin != null &&
+                     t.FromBin.Shelf.Row.Room.Warehouse.Site_Id
+                        == siteId.Value)
+
+                    ||
+
+                    (t.ToBin != null &&
+                     t.ToBin.Shelf.Row.Room.Warehouse.Site_Id
+                        == siteId.Value)
+                );
+            }
+
+
+            // =====================================================
+            // FILTER BY DEPARTMENT
+            //
+            // Transaction
+            // → Product
+            // → Category
+            // → Department
+            // =====================================================
+
+            if (departmentId.HasValue)
+            {
+                query = query.Where(t =>
+                    t.Product.Category.Department_Id
+                        == departmentId.Value);
+            }
+
+
+            return await query
+                .OrderByDescending(t => t.CreateAt)
+                .ToListAsync();
+        }
     }
 }

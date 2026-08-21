@@ -458,5 +458,131 @@ namespace whm.Controllers
                     stock.LastUpdatedAt
             });
         }
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchStock(
+    int? siteId,
+    int? departmentId)
+        {
+            if (!siteId.HasValue && !departmentId.HasValue)
+            {
+                return BadRequest(
+                    "Please provide SiteId or DepartmentId.");
+            }
+
+            // =====================================================
+            // CHECK SITE
+            // =====================================================
+
+            if (siteId.HasValue)
+            {
+                var site = await unitOfWork.Sites
+                    .GetByIdAsync(siteId.Value);
+
+                if (site == null)
+                {
+                    return NotFound("Site not found.");
+                }
+            }
+
+            // =====================================================
+            // CHECK DEPARTMENT
+            // =====================================================
+
+            if (departmentId.HasValue)
+            {
+                var department =
+                    await unitOfWork.Departments
+                        .GetByIdAsync(departmentId.Value);
+
+                if (department == null)
+                {
+                    return NotFound("Department not found.");
+                }
+            }
+
+            // =====================================================
+            // SEARCH
+            // =====================================================
+
+            var stocks =
+                await unitOfWork.Stocks
+                    .SearchBySiteAndDepartmentAsync(
+                        siteId,
+                        departmentId);
+
+            if (!stocks.Any())
+            {
+                return NotFound(
+                    "No stock found matching the specified filters.");
+            }
+
+            // =====================================================
+            // RESPONSE
+            // =====================================================
+
+            var result = stocks.Select(stock => new
+            {
+                stockId = stock.Stock_Id,
+
+                quantity = stock.Quantity,
+
+                isActive = stock.IsActive,
+
+                stockStatue = stock.StockStatue,
+
+                createAt = stock.CreateAt,
+
+                lastUpdatedAt = stock.LastUpdatedAt,
+
+                // Product
+                productId = stock.ProductId,
+
+                productName = stock.Product?.ProductName,
+
+                sku = stock.Product?.SKU,
+
+                // Bin
+                binId = stock.Bin_Id,
+
+                binName = stock.Bin?.Bin_Name,
+
+                // Location
+                shelfId = stock.Bin?.Shelf_Id,
+
+                shelfName = stock.Bin?.Shelf?.Shelf_Name,
+
+                rowId = stock.Bin?.Shelf?.Row_Id,
+
+                rowName = stock.Bin?.Shelf?.Row?.Row_Name,
+
+                roomId = stock.Bin?.Shelf?.Row?.Room_Id,
+
+                roomName = stock.Bin?.Shelf?.Row?.Room?.Room_Name,
+
+                warehouseId =
+                    stock.Bin?.Shelf?.Row?.Room?.Warehouse_Id,
+
+                warehouseName =
+                    stock.Bin?.Shelf?.Row?.Room?.Warehouse
+                        ?.Warehouse_Name,
+
+                siteId =
+                    stock.Bin?.Shelf?.Row?.Room?.Warehouse
+                        ?.Site_Id
+            });
+
+            return Ok(new
+            {
+                count = result.Count(),
+
+                filters = new
+                {
+                    siteId,
+                    departmentId
+                },
+
+                stocks = result
+            });
+        }
     }
 }

@@ -17,5 +17,6 @@ namespace whm.Repositories.Interfaces
         void Update(Categories category);
 
         void Delete(Categories category);
+        Task<List<Categories>> SearchBySiteAndDepartmentAsync(  int? siteId,int? departmentId);
     }
 }
