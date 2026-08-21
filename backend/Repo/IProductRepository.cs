@@ -30,5 +30,8 @@ namespace whm.Repositories.Interfaces
         void Update(Product product);
 
         void Delete(Product product);
+        Task<List<Product>> SearchBySiteAndDepartmentAsync(
+       int? siteId,
+       int? departmentId);
     }
 }

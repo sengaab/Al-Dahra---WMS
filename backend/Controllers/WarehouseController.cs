@@ -560,5 +560,84 @@ namespace whm.Controllers
                     warehouse.IsActive
             });
         }
+        // =========================================================
+        // SEARCH WAREHOUSES BY SITE AND/OR DEPARTMENT
+        //
+        // Examples:
+        //
+        // GET: api/Warehouses/Search?siteId=1
+        // GET: api/Warehouses/Search?departmentId=2
+        // GET: api/Warehouses/Search?siteId=1&departmentId=2
+        //
+        // =========================================================
+
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchWarehouses(
+          int? siteId,
+          int? departmentId)
+        {
+            if (!siteId.HasValue && !departmentId.HasValue)
+            {
+                return BadRequest(
+                    "Please provide SiteId or DepartmentId.");
+            }
+
+            // Check Site
+            if (siteId.HasValue)
+            {
+                var site = await unitOfWork.Sites
+                    .GetByIdAsync(siteId.Value);
+
+                if (site == null)
+                {
+                    return NotFound("Site not found.");
+                }
+            }
+
+            // Check Department
+            if (departmentId.HasValue)
+            {
+                var department = await unitOfWork.Departments
+                    .GetByIdAsync(departmentId.Value);
+
+                if (department == null)
+                {
+                    return NotFound("Department not found.");
+                }
+            }
+
+            var warehouses =
+                await unitOfWork.Warehouses
+                    .SearchBySiteAndDepartmentAsync(
+                        siteId,
+                        departmentId);
+
+            if (!warehouses.Any())
+            {
+                return NotFound(
+                    "No warehouses found matching the specified filters.");
+            }
+
+            var result = warehouses.Select(w => new
+            {
+                warehouseId = w.Warehouse_Id,
+                warehouseName = w.Warehouse_Name,
+                warehouseCode = w.Warehouse_Code,
+                description = w.Warehouse_Description,
+                siteId = w.Site_Id,
+                isActive = w.IsActive
+            });
+
+            return Ok(new
+            {
+                count = result.Count(),
+                filters = new
+                {
+                    siteId,
+                    departmentId
+                },
+                warehouses = result
+            });
+        }
     }
 }

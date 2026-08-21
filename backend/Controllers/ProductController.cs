@@ -915,5 +915,131 @@ namespace whm.Controllers
                 updatedAt = product.UpdatedAt
             });
         }
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchProducts(
+    int? siteId,
+    int? departmentId)
+        {
+            if (!siteId.HasValue && !departmentId.HasValue)
+            {
+                return BadRequest(
+                    "Please provide SiteId or DepartmentId.");
+            }
+
+
+            // =====================================================
+            // CHECK SITE
+            // =====================================================
+
+            if (siteId.HasValue)
+            {
+                var site = await unitOfWork.Sites
+                    .GetByIdAsync(siteId.Value);
+
+                if (site == null)
+                {
+                    return NotFound("Site not found.");
+                }
+            }
+
+
+            // =====================================================
+            // CHECK DEPARTMENT
+            // =====================================================
+
+            if (departmentId.HasValue)
+            {
+                var department =
+                    await unitOfWork.Departments
+                        .GetByIdAsync(departmentId.Value);
+
+                if (department == null)
+                {
+                    return NotFound("Department not found.");
+                }
+            }
+
+
+            // =====================================================
+            // SEARCH
+            // =====================================================
+
+            var products =
+                await unitOfWork.Products
+                    .SearchBySiteAndDepartmentAsync(
+                        siteId,
+                        departmentId);
+
+
+            if (!products.Any())
+            {
+                return NotFound(
+                    "No products found matching the specified filters.");
+            }
+
+
+            // =====================================================
+            // RESPONSE
+            // =====================================================
+
+            var result = products.Select(product => new
+            {
+                productId = product.ProductId,
+
+                productName = product.ProductName,
+
+                sku = product.SKU,
+
+                barcode = product.Barcode,
+
+                qrValue = product.QRValue,
+
+                categoryId = product.CategoryId,
+
+                categoryName =
+                    product.Category?.Category_Name,
+
+                subCategoryId =
+                    product.SubCategoryId,
+
+                subCategoryName =
+                    product.SubCategory?.SubCategory_Name,
+
+                unitId =
+                    product.UnitId,
+
+                unitName =
+                    product.Units?.Unit_Name,
+
+                unitPrice =
+                    product.UnitPrice,
+
+                minimumStock =
+                    product.MinimumStock,
+
+                status =
+                    product.Status,
+
+                createdAt =
+                    product.CreatedAt,
+
+                updatedAt =
+                    product.UpdatedAt
+            });
+
+
+            return Ok(new
+            {
+                count = result.Count(),
+
+                filters = new
+                {
+                    siteId,
+                    departmentId
+                },
+
+                products = result
+            });
+        }
     }
 }

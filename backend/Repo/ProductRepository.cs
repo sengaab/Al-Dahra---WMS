@@ -186,5 +186,63 @@ namespace whm.Repositories
         {
             db.Products.Remove(product);
         }
+        public async Task<List<Product>>
+    SearchBySiteAndDepartmentAsync(
+        int? siteId,
+        int? departmentId)
+        {
+            var query = db.Products
+                .AsNoTracking()
+                .AsQueryable();
+
+
+            // =====================================================
+            // FILTER BY SITE
+            // Product
+            // → Stock
+            // → Bin
+            // → Shelf
+            // → Row
+            // → Room
+            // → Warehouse
+            // → Site
+            // =====================================================
+
+            if (siteId.HasValue)
+            {
+                query = query.Where(product =>
+                    product.Stock.Any(stock =>
+                        stock.Bin != null &&
+                        stock.Bin.Shelf != null &&
+                        stock.Bin.Shelf.Row != null &&
+                        stock.Bin.Shelf.Row.Room != null &&
+                        stock.Bin.Shelf.Row.Room.Warehouse != null &&
+                        stock.Bin.Shelf.Row.Room.Warehouse.Site_Id
+                            == siteId.Value
+                    )
+                );
+            }
+
+
+            // =====================================================
+            // FILTER BY DEPARTMENT
+            //
+            // Product → Category → Department
+            // =====================================================
+
+            if (departmentId.HasValue)
+            {
+                query = query.Where(product =>
+                    product.Category != null &&
+                    product.Category.Department_Id
+                        == departmentId.Value
+                );
+            }
+
+
+            return await query
+                .OrderBy(p => p.ProductName)
+                .ToListAsync();
+        }
     }
 }
