@@ -347,7 +347,7 @@ namespace whm
             // GLOBAL EXCEPTION MIDDLEWARE
             // =====================================================
 
-            app.UseMiddleware<ExceptionMiddleware>();
+            //app.UseMiddleware<ExceptionMiddleware>();
 
 
             // =====================================================

@@ -144,16 +144,15 @@ namespace whm.Controllers
         }
 
         // PUT: api/Bins/5
-        [HttpPut("Updatebyid{id:int}")]
+        [HttpPut("UpdateById/{id:int}")]
         public async Task<IActionResult> Update(
-            int id,
-            UpdateBinDTO dto)
+     int id,
+     UpdateBinDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var bin =
-                await unitOfWork.Bins.GetByIdAsync(id);
+            var bin = await unitOfWork.Bins.GetByIdAsync(id);
 
             if (bin == null)
                 return NotFound("Bin not found.");
@@ -167,8 +166,10 @@ namespace whm.Controllers
                         bin.Shelf_Id);
 
             if (exists && bin.Bin_Name != name)
+            {
                 return Conflict(
                     "A bin with this name already exists in this shelf.");
+            }
 
             bin.Bin_Name = name;
 
@@ -182,9 +183,13 @@ namespace whm.Controllers
                     ? null
                     : dto.Bin_Description.Trim();
 
-            bin.IsActive = dto.IsActive;
+            if (dto.IsActive.HasValue)
+            {
+                bin.IsActive = dto.IsActive.Value;
+            }
 
             unitOfWork.Bins.Update(bin);
+
             await unitOfWork.SaveAsync();
 
             return Ok(new

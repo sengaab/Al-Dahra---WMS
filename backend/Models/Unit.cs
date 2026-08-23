@@ -12,7 +12,9 @@ namespace whm.Models
         public string Unit_Symbol { get; set;} =String.Empty;
         public bool IsActive { get; set; }=true;
         public List<Product> Products { get; set; }=new List<Product>();
-        public List<Transaction> transactions { get; set; } = new List<Transaction>();
+        public List<Operations> operations { get; set; } = new List<Operations>();
+        public List<Stock> Stocks { get; set; }= new List<Stock>();
+
 
 
 

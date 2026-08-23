@@ -13,22 +13,22 @@ namespace whm.Repositories
             this.db = db;
         }
 
-        public async Task<Transaction?> GetByIdAsync(int id)
+        public async Task<Operations?> GetByIdAsync(int id)
         {
-            return await db.Transactions
+            return await db.Operations
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
                 .Include(t => t.FromBin)
                 .Include(t => t.ToBin)
                 .FirstOrDefaultAsync(
-                    t => t.transaction_Id == id
+                    t => t.Operation_Id == id
                 );
         }
 
-        public async Task<List<Transaction>> GetAllAsync()
+        public async Task<List<Operations>> GetAllAsync()
         {
-            return await db.Transactions
+            return await db.Operations
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
@@ -38,10 +38,10 @@ namespace whm.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Transaction>> GetByProductIdAsync(
+        public async Task<List<Operations>> GetByProductIdAsync(
             int productId)
         {
-            return await db.Transactions
+            return await db.Operations
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
@@ -52,10 +52,10 @@ namespace whm.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Transaction>> GetByBinIdAsync(
+        public async Task<List<Operations>> GetByBinIdAsync(
             int binId)
         {
-            return await db.Transactions
+            return await db.Operations
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
@@ -68,10 +68,10 @@ namespace whm.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Transaction>> GetByUserIdAsync(
+        public async Task<List<Operations>> GetByUserIdAsync(
             Guid userId)
         {
-            return await db.Transactions
+            return await db.Operations
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
@@ -82,30 +82,30 @@ namespace whm.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Transaction>> GetByTypeAsync(
-            TransactionType type)
+        public async Task<List<Operations>> GetByTypeAsync(
+            OperationType type)
         {
-            return await db.Transactions
+            return await db.Operations
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
                 .Include(t => t.FromBin)
                 .Include(t => t.ToBin)
-                .Where(t => t.TransactionType == type)
+                .Where(t => t.OperationType == type)
                 .OrderByDescending(t => t.CreateAt)
                 .ToListAsync();
         }
 
-        public async Task AddAsync(Transaction transaction)
+        public async Task AddAsync(Operations transaction)
         {
-            await db.Transactions.AddAsync(transaction);
+            await db.Operations.AddAsync(transaction);
         }
-        public async Task<List<Transaction>>
+        public async Task<List<Operations>>
     SearchBySiteAndDepartmentAsync(
         int? siteId,
         int? departmentId)
         {
-            var query = db.Transactions
+            var query = db.Operations
                 .AsNoTracking()
                 .Include(t => t.Product)
                     .ThenInclude(p => p.Category)

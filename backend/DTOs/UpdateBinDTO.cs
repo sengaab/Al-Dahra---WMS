@@ -14,6 +14,6 @@ namespace whm.DTOs
         [MaxLength(500)]
         public string? Bin_Description { get; set; }
 
-        public bool IsActive { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

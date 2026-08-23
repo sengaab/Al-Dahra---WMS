@@ -4,19 +4,19 @@ namespace whm.Repositories.Interfaces
 {
     public interface ITransactionRepository
     {
-        Task<Transaction?> GetByIdAsync(int id);
+        Task<Operations?> GetByIdAsync(int id);
 
-        Task<List<Transaction>> GetAllAsync();
+        Task<List<Operations>> GetAllAsync();
 
-        Task<List<Transaction>> GetByProductIdAsync(int productId);
+        Task<List<Operations>> GetByProductIdAsync(int productId);
 
-        Task<List<Transaction>> GetByBinIdAsync(int binId);
+        Task<List<Operations>> GetByBinIdAsync(int binId);
 
-        Task<List<Transaction>> GetByUserIdAsync(Guid userId);
+        Task<List<Operations>> GetByUserIdAsync(Guid userId);
 
-        Task<List<Transaction>> GetByTypeAsync(TransactionType type);
+        Task<List<Operations>> GetByTypeAsync(OperationType type);
 
-        Task AddAsync(Transaction transaction);
-        Task<List<Transaction>> SearchBySiteAndDepartmentAsync( int? siteId, int? departmentId);
+        Task AddAsync(Operations transaction);
+        Task<List<Operations>> SearchBySiteAndDepartmentAsync( int? siteId, int? departmentId);
     }
 }

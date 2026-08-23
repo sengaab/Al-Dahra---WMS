@@ -30,6 +30,7 @@ namespace whm.UnitOfWork
         public IStockRepository Stocks { get; }
         public ISiteRepository Sites { get; }
         public IDepartmentRepository Departments { get; }
+        public IDashboardRepository Dashboard { get; }
 
 
         public UnitOfWork(DataBaseContext db)
@@ -58,6 +59,7 @@ namespace whm.UnitOfWork
             Stocks = new StockRepository(db);
             Sites = new SiteRepository(db);
             Departments = new DepartmentRepository(db);
+            Dashboard = new DashboardRepository(db);
         }
 
 
