@@ -15,6 +15,7 @@ namespace whm.Repositories.Interfaces
         Task<Product?> GetByQRValueAsync(string qrValue);
 
         Task<List<Product>> SearchAsync(string search);
+        Task<List<string>> GetAllSKUsAsync();
 
         Task<bool> SKUExistsAsync(
             string sku,
@@ -33,5 +34,6 @@ namespace whm.Repositories.Interfaces
         Task<List<Product>> SearchBySiteAndDepartmentAsync(
        int? siteId,
        int? departmentId);
+
     }
 }

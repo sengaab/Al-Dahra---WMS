@@ -258,5 +258,110 @@ namespace whm.Controllers
                 message = "Category deactivated successfully."
             });
         }
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchCategories(
+    int? siteId,
+    int? departmentId)
+        {
+            if (!siteId.HasValue && !departmentId.HasValue)
+            {
+                return BadRequest(
+                    "Please provide SiteId or DepartmentId.");
+            }
+
+
+            // =====================================================
+            // CHECK SITE
+            // =====================================================
+
+            if (siteId.HasValue)
+            {
+                var site =
+                    await unitOfWork.Sites
+                        .GetByIdAsync(siteId.Value);
+
+                if (site == null)
+                {
+                    return NotFound(
+                        "Site not found.");
+                }
+            }
+
+
+            // =====================================================
+            // CHECK DEPARTMENT
+            // =====================================================
+
+            if (departmentId.HasValue)
+            {
+                var department =
+                    await unitOfWork.Departments
+                        .GetByIdAsync(
+                            departmentId.Value);
+
+                if (department == null)
+                {
+                    return NotFound(
+                        "Department not found.");
+                }
+            }
+
+
+            // =====================================================
+            // SEARCH
+            // =====================================================
+
+            var categories =
+                await unitOfWork.Categories
+                    .SearchBySiteAndDepartmentAsync(
+                        siteId,
+                        departmentId);
+
+
+            if (!categories.Any())
+            {
+                return NotFound(
+                    "No categories found matching the specified filters.");
+            }
+
+
+            // =====================================================
+            // RESPONSE
+            // =====================================================
+
+            var result = categories.Select(c => new
+            {
+                categoryId = c.Category_Id,
+
+                categoryName = c.Category_Name,
+
+                description = c.Description,
+
+                departmentId = c.Department_Id,
+
+                departmentName =
+                    c.Department?.Department_Name,
+
+                isActive = c.IsActive,
+
+                createdAt = c.CreatedAt,
+
+                updatedAt = c.UpdatedAt
+            });
+
+
+            return Ok(new
+            {
+                count = result.Count(),
+
+                filters = new
+                {
+                    siteId,
+                    departmentId
+                },
+
+                categories = result
+            });
+        }
     }
 }

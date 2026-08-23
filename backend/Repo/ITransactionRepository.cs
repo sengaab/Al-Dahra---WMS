@@ -17,5 +17,6 @@ namespace whm.Repositories.Interfaces
         Task<List<Transaction>> GetByTypeAsync(TransactionType type);
 
         Task AddAsync(Transaction transaction);
+        Task<List<Transaction>> SearchBySiteAndDepartmentAsync( int? siteId, int? departmentId);
     }
 }

@@ -801,5 +801,153 @@ namespace whm.Controllers
 
             return Ok(result);
         }
+        [HttpGet("Search")]
+        public async Task<IActionResult> SearchTransactions(
+    int? siteId,
+    int? departmentId)
+        {
+            if (!siteId.HasValue && !departmentId.HasValue)
+            {
+                return BadRequest(
+                    "Please provide SiteId or DepartmentId.");
+            }
+
+
+            // =====================================================
+            // CHECK SITE
+            // =====================================================
+
+            if (siteId.HasValue)
+            {
+                var site = await unitOfWork.Sites
+                    .GetByIdAsync(siteId.Value);
+
+                if (site == null)
+                {
+                    return NotFound("Site not found.");
+                }
+            }
+
+
+            // =====================================================
+            // CHECK DEPARTMENT
+            // =====================================================
+
+            if (departmentId.HasValue)
+            {
+                var department =
+                    await unitOfWork.Departments
+                        .GetByIdAsync(departmentId.Value);
+
+                if (department == null)
+                {
+                    return NotFound("Department not found.");
+                }
+            }
+
+
+            // =====================================================
+            // SEARCH
+            // =====================================================
+
+            var transactions =
+                await unitOfWork.Transactions
+                    .SearchBySiteAndDepartmentAsync(
+                        siteId,
+                        departmentId);
+
+
+            if (!transactions.Any())
+            {
+                return NotFound(
+                    "No transactions found matching the specified filters.");
+            }
+
+
+            // =====================================================
+            // RESPONSE
+            // =====================================================
+
+            var result = transactions.Select(t => new
+            {
+                transactionId = t.transaction_Id,
+
+                transactionType = t.TransactionType,
+
+                quantity = t.Quantity,
+
+                notes = t.Notes,
+
+                createAt = t.CreateAt,
+
+
+                // =================================================
+                // PRODUCT
+                // =================================================
+
+                productId = t.Product_Id,
+
+                productName = t.Product?.ProductName,
+
+                sku = t.Product?.SKU,
+
+                barcode = t.Product?.Barcode,
+
+                categoryId = t.Product?.CategoryId,
+
+                categoryName =
+                    t.Product?.Category?.Category_Name,
+
+
+                // =================================================
+                // UNIT
+                // =================================================
+
+                unitId = t.Unit_Id,
+
+                unitName = t.Unit?.Unit_Name,
+
+
+                // =================================================
+                // USER
+                // =================================================
+
+                userId = t.User_Id,
+
+                userName = t.User?.User_Name,
+
+
+                // =================================================
+                // FROM BIN
+                // =================================================
+
+                fromBinId = t.FromBinId,
+
+                fromBinName = t.FromBin?.Bin_Name,
+
+
+                // =================================================
+                // TO BIN
+                // =================================================
+
+                toBinId = t.ToBinId,
+
+                toBinName = t.ToBin?.Bin_Name
+            });
+
+
+            return Ok(new
+            {
+                count = result.Count(),
+
+                filters = new
+                {
+                    siteId,
+                    departmentId
+                },
+
+                transactions = result
+            });
+        }
     }
 }

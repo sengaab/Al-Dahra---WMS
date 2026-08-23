@@ -1041,5 +1041,82 @@ namespace whm.Controllers
                 products = result
             });
         }
+        // =========================================================
+        // SEARCH PRODUCTS BY SITE AND/OR DEPARTMENT
+        //
+        // Examples:
+        //
+        // /api/Products/SearchBySiteAndDepartment?siteId=1
+        //
+        // /api/Products/SearchBySiteAndDepartment?departmentId=2
+        //
+        // /api/Products/SearchBySiteAndDepartment?siteId=1&departmentId=2
+        //
+        // =========================================================
+
+        [HttpGet("SearchBySiteAndDepartment")]
+        public async Task<IActionResult> SearchBySiteAndDepartment(
+            int? siteId,
+            int? departmentId)
+        {
+            if (!siteId.HasValue && !departmentId.HasValue)
+            {
+                return BadRequest(
+                    "SiteId or DepartmentId is required.");
+            }
+
+            var products =
+                await unitOfWork.Products
+                    .SearchBySiteAndDepartmentAsync(
+                        siteId,
+                        departmentId);
+
+            if (products == null || !products.Any())
+            {
+                return NotFound(
+                    "No products found.");
+            }
+
+            var result = products.Select(product => new
+            {
+                productId = product.ProductId,
+
+                productName = product.ProductName,
+
+                sku = product.SKU,
+
+                barcode = product.Barcode,
+
+                qrValue = product.QRValue,
+
+                categoryId = product.CategoryId,
+
+                categoryName = product.Category != null
+                    ? product.Category.Category_Name
+                    : null,
+
+                departmentId = product.Category != null
+                    ? product.Category.Department_Id
+                    : (int?)null,
+
+                unitId = product.UnitId,
+
+                unitName = product.Units != null
+                    ? product.Units.Unit_Name
+                    : null,
+
+                unitPrice = product.UnitPrice,
+
+                minimumStock = product.MinimumStock,
+
+                status = product.Status,
+
+                createdAt = product.CreatedAt,
+
+                updatedAt = product.UpdatedAt
+            });
+
+            return Ok(result);
+        }
     }
 }
