@@ -322,7 +322,7 @@ namespace whm.Controllers
             // CREATE TRANSACTION RECORD
             // =====================================================
 
-            var transaction = new Transaction
+            var transaction = new Operations
             {
                 Product_Id = dto.Product_Id,
 
@@ -330,8 +330,8 @@ namespace whm.Controllers
 
                 Unit_Id = dto.Unit_Id,
 
-                TransactionType =
-                    (TransactionType)dto.TransactionType,
+                OperationType =
+                    (OperationType)dto.TransactionType,
 
                 FromBinId = dto.FromBinId,
 
@@ -357,7 +357,7 @@ namespace whm.Controllers
                 message = "Transaction created successfully.",
 
                 transactionId =
-                    transaction.transaction_Id,
+                    transaction.Operation_Id,
 
                 productId =
                     transaction.Product_Id,
@@ -369,7 +369,7 @@ namespace whm.Controllers
                     transaction.Unit_Id,
 
                 transactionType =
-                    transaction.TransactionType,
+                    transaction.OperationType,
 
                 fromBinId =
                     transaction.FromBinId,
@@ -401,7 +401,7 @@ namespace whm.Controllers
             var result = transactions
                 .Select(t => new
                 {
-                    transactionId = t.transaction_Id,
+                    transactionId = t.Operation_Id,
 
                     productId = t.Product_Id,
                     productName = t.Product?.ProductName,
@@ -411,7 +411,7 @@ namespace whm.Controllers
                     unitId = t.Unit_Id,
                     unitName = t.Unit?.Unit_Name,
 
-                    transactionType = t.TransactionType,
+                    transactionType = t.OperationType,
 
                     fromBinId = t.FromBinId,
                     fromBinName = t.FromBin?.Bin_Name,
@@ -451,7 +451,7 @@ namespace whm.Controllers
             return Ok(new
             {
                 transactionId =
-                    transaction.transaction_Id,
+                    transaction.Operation_Id,
 
                 productId =
                     transaction.Product_Id,
@@ -469,7 +469,7 @@ namespace whm.Controllers
                     transaction.Unit?.Unit_Name,
 
                 transactionType =
-                    transaction.TransactionType,
+                    transaction.OperationType,
 
                 fromBinId =
                     transaction.FromBinId,
@@ -521,7 +521,7 @@ namespace whm.Controllers
 
             return Ok(transactions.Select(t => new
             {
-                transactionId = t.transaction_Id,
+                transactionId = t.Operation_Id,
 
                 productId = t.Product_Id,
                 productName = t.Product?.ProductName,
@@ -531,7 +531,7 @@ namespace whm.Controllers
                 unitId = t.Unit_Id,
                 unitName = t.Unit?.Unit_Name,
 
-                transactionType = t.TransactionType,
+                transactionType = t.OperationType,
 
                 fromBinId = t.FromBinId,
                 toBinId = t.ToBinId,
@@ -569,7 +569,7 @@ namespace whm.Controllers
 
             return Ok(transactions.Select(t => new
             {
-                transactionId = t.transaction_Id,
+                transactionId = t.Operation_Id,
 
                 productId = t.Product_Id,
                 productName = t.Product?.ProductName,
@@ -579,7 +579,7 @@ namespace whm.Controllers
                 unitId = t.Unit_Id,
                 unitName = t.Unit?.Unit_Name,
 
-                transactionType = t.TransactionType,
+                transactionType = t.OperationType,
 
                 fromBinId = t.FromBinId,
                 toBinId = t.ToBinId,
@@ -617,7 +617,7 @@ namespace whm.Controllers
 
             return Ok(transactions.Select(t => new
             {
-                transactionId = t.transaction_Id,
+                transactionId = t.Operation_Id,
 
                 productId = t.Product_Id,
                 productName = t.Product?.ProductName,
@@ -627,7 +627,7 @@ namespace whm.Controllers
                 unitId = t.Unit_Id,
                 unitName = t.Unit?.Unit_Name,
 
-                transactionType = t.TransactionType,
+                transactionType = t.OperationType,
 
                 fromBinId = t.FromBinId,
                 toBinId = t.ToBinId,
@@ -661,11 +661,11 @@ namespace whm.Controllers
             var transactions =
                 await unitOfWork.Transactions
                     .GetByTypeAsync(
-                        (TransactionType)type);
+                        (OperationType)type);
 
             return Ok(transactions.Select(t => new
             {
-                transactionId = t.transaction_Id,
+                transactionId = t.Operation_Id,
 
                 productId = t.Product_Id,
                 productName = t.Product?.ProductName,
@@ -675,7 +675,7 @@ namespace whm.Controllers
                 unitId = t.Unit_Id,
                 unitName = t.Unit?.Unit_Name,
 
-                transactionType = t.TransactionType,
+                transactionType = t.OperationType,
 
                 fromBinId = t.FromBinId,
                 toBinId = t.ToBinId,
@@ -705,7 +705,7 @@ namespace whm.Controllers
             DateTimeOffset? fromDate,
             DateTimeOffset? toDate)
         {
-            var query = db.Transactions
+            var query = db.Operations
                 .Include(t => t.Product)
                 .Include(t => t.Unit)
                 .Include(t => t.User)
@@ -738,8 +738,8 @@ namespace whm.Controllers
                 }
 
                 query = query.Where(
-                    t => t.TransactionType ==
-                        (TransactionType)transactionType.Value);
+                    t => t.OperationType ==
+                        (OperationType)transactionType.Value);
             }
 
             // From Bin
@@ -774,7 +774,7 @@ namespace whm.Controllers
                 .OrderByDescending(t => t.CreateAt)
                 .Select(t => new
                 {
-                    transactionId = t.transaction_Id,
+                    transactionId = t.Operation_Id,
 
                     productId = t.Product_Id,
                     productName = t.Product.ProductName,
@@ -784,7 +784,7 @@ namespace whm.Controllers
                     unitId = t.Unit_Id,
                     unitName = t.Unit.Unit_Name,
 
-                    transactionType = t.TransactionType,
+                    transactionType = t.OperationType,
 
                     fromBinId = t.FromBinId,
 
@@ -870,9 +870,9 @@ namespace whm.Controllers
 
             var result = transactions.Select(t => new
             {
-                transactionId = t.transaction_Id,
+                transactionId = t.Operation_Id,
 
-                transactionType = t.TransactionType,
+                transactionType = t.OperationType,
 
                 quantity = t.Quantity,
 

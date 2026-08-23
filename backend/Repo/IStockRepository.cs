@@ -8,15 +8,22 @@ namespace whm.Repositories.Interfaces
 
         Task<Stock?> GetByIdAsync(int id);
 
-        Task<IEnumerable<Stock>> GetByProductIdAsync(int productId);
+        Task<IEnumerable<Stock>> GetByProductIdAsync(
+            int productId);
 
-        Task<IEnumerable<Stock>> GetByBinIdAsync(int binId);
+        Task<IEnumerable<Stock>> GetByBinIdAsync(
+            int binId);
+
+        Task<List<Stock>> SearchBySiteAndDepartmentAsync(
+            int? siteId,
+            int? departmentId);
+
+        Task<IEnumerable<Stock>> GetInventoryAsync();
 
         Task AddAsync(Stock stock);
 
         void Update(Stock stock);
 
         void Delete(Stock stock);
-        Task<List<Stock>> SearchBySiteAndDepartmentAsync( int? siteId,int? departmentId);
     }
 }

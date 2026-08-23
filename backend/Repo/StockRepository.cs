@@ -20,8 +20,11 @@ namespace whm.Repositories
         public async Task<IEnumerable<Stock>> GetAllAsync()
         {
             return await _context.Stocks
+                .AsNoTracking()
                 .Include(s => s.Product)
                 .Include(s => s.Bin)
+                .Include(s => s.Units)
+                .OrderByDescending(s => s.Stock_Id)
                 .ToListAsync();
         }
 
@@ -33,10 +36,11 @@ namespace whm.Repositories
         public async Task<Stock?> GetByIdAsync(int id)
         {
             return await _context.Stocks
+                .AsNoTracking()
                 .Include(s => s.Product)
                 .Include(s => s.Bin)
-                .FirstOrDefaultAsync(
-                    s => s.Stock_Id == id);
+                .Include(s => s.Units)
+                .FirstOrDefaultAsync(s => s.Stock_Id == id);
         }
 
 
@@ -44,13 +48,16 @@ namespace whm.Repositories
         // GET BY PRODUCT ID
         // =========================================================
 
-        public async Task<IEnumerable<Stock>>
-            GetByProductIdAsync(int productId)
+        public async Task<IEnumerable<Stock>> GetByProductIdAsync(
+            int productId)
         {
             return await _context.Stocks
+                .AsNoTracking()
                 .Include(s => s.Product)
                 .Include(s => s.Bin)
+                .Include(s => s.Units)
                 .Where(s => s.ProductId == productId)
+                .OrderByDescending(s => s.Stock_Id)
                 .ToListAsync();
         }
 
@@ -59,40 +66,27 @@ namespace whm.Repositories
         // GET BY BIN ID
         // =========================================================
 
-        public async Task<IEnumerable<Stock>>
-            GetByBinIdAsync(int binId)
+        public async Task<IEnumerable<Stock>> GetByBinIdAsync(
+            int binId)
         {
             return await _context.Stocks
+                .AsNoTracking()
                 .Include(s => s.Product)
                 .Include(s => s.Bin)
+                .Include(s => s.Units)
                 .Where(s => s.Bin_Id == binId)
+                .OrderByDescending(s => s.Stock_Id)
                 .ToListAsync();
         }
 
 
         // =========================================================
-        // SEARCH BY SITE AND/OR DEPARTMENT
-        //
-        // Site:
-        // Stock
-        // → Bin
-        // → Shelf
-        // → Row
-        // → Room
-        // → Warehouse
-        // → Site
-        //
-        // Department:
-        // Stock
-        // → Product
-        // → Category
-        // → Department
+        // SEARCH BY SITE AND DEPARTMENT
         // =========================================================
 
-        public async Task<List<Stock>>
-            SearchBySiteAndDepartmentAsync(
-                int? siteId,
-                int? departmentId)
+        public async Task<List<Stock>> SearchBySiteAndDepartmentAsync(
+            int? siteId,
+            int? departmentId)
         {
             var query = _context.Stocks
                 .AsNoTracking()
@@ -100,9 +94,10 @@ namespace whm.Repositories
                     .ThenInclude(p => p.Category)
                 .Include(s => s.Bin)
                     .ThenInclude(b => b.Shelf)
-                        .ThenInclude(s => s.Row)
+                        .ThenInclude(sh => sh.Row)
                             .ThenInclude(r => r.Room)
                                 .ThenInclude(r => r.Warehouse)
+                .Include(s => s.Units)
                 .AsQueryable();
 
 
@@ -113,8 +108,13 @@ namespace whm.Repositories
             if (siteId.HasValue)
             {
                 query = query.Where(stock =>
+                    stock.Bin != null &&
+                    stock.Bin.Shelf != null &&
+                    stock.Bin.Shelf.Row != null &&
+                    stock.Bin.Shelf.Row.Room != null &&
+                    stock.Bin.Shelf.Row.Room.Warehouse != null &&
                     stock.Bin.Shelf.Row.Room.Warehouse.Site_Id
-                        == siteId.Value);
+                    == siteId.Value);
             }
 
 
@@ -125,17 +125,35 @@ namespace whm.Repositories
             if (departmentId.HasValue)
             {
                 query = query.Where(stock =>
+                    stock.Product != null &&
+                    stock.Product.Category != null &&
                     stock.Product.Category.Department_Id
-                        == departmentId.Value);
+                    == departmentId.Value);
             }
 
 
-            // =====================================================
-            // RETURN
-            // =====================================================
-
             return await query
-                .OrderBy(stock => stock.Stock_Id)
+                .OrderByDescending(s => s.Stock_Id)
+                .ToListAsync();
+        }
+
+
+        // =========================================================
+        // GET INVENTORY
+        // =========================================================
+
+        public async Task<IEnumerable<Stock>> GetInventoryAsync()
+        {
+            return await _context.Stocks
+                .AsNoTracking()
+                .Include(s => s.Product)
+                .Include(s => s.Bin)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(sh => sh.Row)
+                            .ThenInclude(r => r.Room)
+                                .ThenInclude(r => r.Warehouse)
+                .Include(s => s.Units)
+                .OrderByDescending(s => s.LastUpdatedAt)
                 .ToListAsync();
         }
 

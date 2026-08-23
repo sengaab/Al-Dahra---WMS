@@ -12,8 +12,6 @@ namespace whm.DTOs
         [Required]
         public int CategoryId { get; set; }
 
-        [Required]
-        public int UnitId { get; set; }
         public int subCategoryId { get; set; }
 
         [Required]
@@ -38,6 +36,8 @@ namespace whm.DTOs
 
         [Required]
         public int CategoryId { get; set; }
+        [Required]
+        public int subCategoryId { get; set; }
 
         [Required]
         public int UnitId { get; set; }
@@ -56,11 +56,12 @@ namespace whm.DTOs
         [StringLength(100)]
         public string? Barcode { get; set; }
 
+
         
     }
     public class UpdateProductStatusDTO
     {
-        [Required]
-        public ProductStatus Status { get; set; }
+        //[Required]
+        //public ProductStatus Status { get; set; }
     }
 }

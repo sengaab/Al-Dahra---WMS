@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace whm.Models
 {
@@ -10,18 +9,22 @@ namespace whm.Models
         {
         }
 
-        // =========================
+        // =====================================================
         // DbSets
-        // =========================
+        // =====================================================
 
         public DbSet<Users> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
 
         public DbSet<Department> Departments { get; set; }
         public DbSet<Categories> Categories { get; set; }
+        public DbSet<SubCategory> SubCategories { get; set; }
+
         public DbSet<Product> Products { get; set; }
+        public DbSet<Alias> Aliases { get; set; }
         public DbSet<Unit> Units { get; set; }
 
+        public DbSet<Site> Sites { get; set; }
         public DbSet<Warehouse> Warehouses { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Row> Rows { get; set; }
@@ -29,14 +32,17 @@ namespace whm.Models
         public DbSet<Bin> Bins { get; set; }
 
         public DbSet<Stock> Stocks { get; set; }
-        public DbSet<Transaction> Transactions { get; set; }
+
+        public DbSet<Operations> Operations { get; set; }
+
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
 
         public DbSet<Report> Reports { get; set; }
         public DbSet<ReportSchedule> ReportSchedules { get; set; }
 
         public DbSet<AuditLog> AuditLogs { get; set; }
-        public DbSet<SubCategory> SubCategories { get; set; }
-        public DbSet<Site> Sites { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,7 +51,52 @@ namespace whm.Models
 
 
             // =====================================================
-            // Roles
+            // ENUMS → TEXT
+            // =====================================================
+
+            //modelBuilder.Entity<Product>()
+            //    .Property(p => p.Status)
+            //    .HasConversion<string>();
+
+            modelBuilder.Entity<Stock>()
+                .Property(s => s.StockStatus)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Stock>()
+                .Property(s => s.DeliveryStatus)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Operations>()
+                .Property(o => o.OperationType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Report>()
+                .Property(r => r.ReportType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<ReportSchedule>()
+                .Property(r => r.ReportType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<ReportSchedule>()
+                .Property(r => r.Frequency)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Supplier>()
+                .Property(s => s.Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Status)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Priority)
+                .HasConversion<string>();
+
+
+            // =====================================================
+            // ROLE
             // =====================================================
 
             modelBuilder.Entity<Role>()
@@ -54,7 +105,7 @@ namespace whm.Models
 
 
             // =====================================================
-            // Roles Seed Data
+            // ROLE SEED DATA
             // =====================================================
 
             modelBuilder.Entity<Role>().HasData(
@@ -87,7 +138,6 @@ namespace whm.Models
                         TimeSpan.Zero)
                 },
 
-
                 new Role
                 {
                     Role_Id = 3,
@@ -105,24 +155,56 @@ namespace whm.Models
 
 
             // =====================================================
-            // Decimal Precision
+            // DECIMAL PRECISION
             // =====================================================
-
-            modelBuilder.Entity<Product>()
-                .Property(p => p.UnitPrice)
-                .HasPrecision(18, 2);
 
             modelBuilder.Entity<Stock>()
                 .Property(s => s.Quantity)
                 .HasPrecision(18, 3);
 
-            modelBuilder.Entity<Transaction>()
-                .Property(t => t.Quantity)
+            modelBuilder.Entity<Stock>()
+                .Property(s => s.UnitPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Operations>()
+                .Property(o => o.Quantity)
                 .HasPrecision(18, 3);
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(o => o.Quantity)
+                .HasPrecision(18, 3);
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(o => o.UnitPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(o => o.TaxRate)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(o => o.TotalPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(o => o.ReceivedQuantity)
+                .HasPrecision(18, 3);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Subtotal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TaxAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalAmount)
+                .HasPrecision(18, 2);
 
 
             // =====================================================
-            // Users → Role
+            // USERS → ROLE
             // One Role → Many Users
             // =====================================================
 
@@ -134,7 +216,7 @@ namespace whm.Models
 
 
             // =====================================================
-            // User Email Unique
+            // USER EMAIL UNIQUE
             // =====================================================
 
             modelBuilder.Entity<Users>()
@@ -143,7 +225,7 @@ namespace whm.Models
 
 
             // =====================================================
-            // Department → Category
+            // DEPARTMENT → CATEGORY
             // One Department → Many Categories
             // =====================================================
 
@@ -155,7 +237,7 @@ namespace whm.Models
 
 
             // =====================================================
-            // Category → Product
+            // CATEGORY → PRODUCT
             // One Category → Many Products
             // =====================================================
 
@@ -166,47 +248,55 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-           
-// =====================================================
-// Category → SubCategory
-// One Category → Many SubCategories
-// =====================================================
-
-     modelBuilder.Entity<SubCategory>()
-    .HasOne(sc => sc.Category)
-    .WithMany(c => c.SubCategories)
-    .HasForeignKey(sc => sc.CategoryId)
-    .OnDelete(DeleteBehavior.Restrict);
-
-            //Site → Warehouse
-            modelBuilder.Entity<Site>()
-           .HasMany(s => s.Warehouses)
-           .WithOne(w => w.Site)
-           .HasForeignKey(w => w.Site_Id)
-           .OnDelete(DeleteBehavior.Restrict);
-
-
-
-
-
-
-
-
-
             // =====================================================
-            // Unit → Product
-            // One Unit → Many Products
+            // CATEGORY → SUBCATEGORY
+            // One Category → Many SubCategories
             // =====================================================
 
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Units)
-                .WithMany(u => u.Products)
-                .HasForeignKey(p => p.UnitId)
+            modelBuilder.Entity<SubCategory>()
+                .HasOne(sc => sc.Category)
+                .WithMany(c => c.SubCategories)
+                .HasForeignKey(sc => sc.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             // =====================================================
-            // Warehouse → Room
+            // SUBCATEGORY → PRODUCT
+            // One SubCategory → Many Products
+            // =====================================================
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.SubCategory)
+                .WithMany(sc => sc.Products)
+                .HasForeignKey(p => p.SubCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // UNIT → PRODUCT
+            // One Unit → Many Products
+            // =====================================================
+
+            // ملاحظة:
+            // الـ Product الحالي اللي بعتّه لا يحتوي UnitId.
+            // لذلك لا نضيف علاقة Product → Unit هنا.
+
+
+            // =====================================================
+            // SITE → WAREHOUSE
+            // One Site → Many Warehouses
+            // =====================================================
+
+            modelBuilder.Entity<Warehouse>()
+                .HasOne(w => w.Site)
+                .WithMany(s => s.Warehouses)
+                .HasForeignKey(w => w.Site_Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // WAREHOUSE → ROOM
+            // One Warehouse → Many Rooms
             // =====================================================
 
             modelBuilder.Entity<Room>()
@@ -217,7 +307,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // Room → Row
+            // ROOM → ROW
+            // One Room → Many Rows
             // =====================================================
 
             modelBuilder.Entity<Row>()
@@ -228,7 +319,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // Row → Shelf
+            // ROW → SHELF
+            // One Row → Many Shelves
             // =====================================================
 
             modelBuilder.Entity<Shelf>()
@@ -239,7 +331,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // Shelf → Bin
+            // SHELF → BIN
+            // One Shelf → Many Bins
             // =====================================================
 
             modelBuilder.Entity<Bin>()
@@ -250,7 +343,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // Product → Stock
+            // PRODUCT → STOCK
+            // One Product → Many Stocks
             // =====================================================
 
             modelBuilder.Entity<Stock>()
@@ -261,7 +355,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // Bin → Stock
+            // BIN → STOCK
+            // One Bin → Many Stocks
             // =====================================================
 
             modelBuilder.Entity<Stock>()
@@ -272,62 +367,164 @@ namespace whm.Models
 
 
             // =====================================================
-            // Transaction → Product
+            // UNIT → STOCK
+            // One Unit → Many Stocks
             // =====================================================
 
-            modelBuilder.Entity<Transaction>()
-                .HasOne(t => t.Product)
-                .WithMany(p => p.transactions)
-                .HasForeignKey(t => t.Product_Id)
+            modelBuilder.Entity<Stock>()
+                .HasOne(s => s.Units)
+                .WithMany(u => u.Stocks)
+                .HasForeignKey(s => s.UnitId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             // =====================================================
-            // Transaction → Unit
+            // PRODUCT → ALIAS
+            // One Product → Many Aliases
             // =====================================================
 
-            modelBuilder.Entity<Transaction>()
-                .HasOne(t => t.Unit)
-                .WithMany(u => u.transactions)
-                .HasForeignKey(t => t.Unit_Id)
+            modelBuilder.Entity<Alias>()
+                .HasOne(a => a.Product)
+                .WithMany(p => p.Aliases)
+                .HasForeignKey(a => a.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             // =====================================================
-            // Transaction → User
+            // OPERATIONS → PRODUCT
+            // One Product → Many Operations
             // =====================================================
 
-            modelBuilder.Entity<Transaction>()
-                .HasOne(t => t.User)
-                .WithMany(u => u.transactions)
-                .HasForeignKey(t => t.User_Id)
+            modelBuilder.Entity<Operations>()
+                .HasOne(o => o.Product)
+                .WithMany(p => p.Operations)
+                .HasForeignKey(o => o.Product_Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             // =====================================================
-            // Transaction → From Bin
+            // OPERATIONS → UNIT
+            // One Unit → Many Operations
             // =====================================================
 
-            modelBuilder.Entity<Transaction>()
-                .HasOne(t => t.FromBin)
-                .WithMany(b => b.Fromtransactions)
-                .HasForeignKey(t => t.FromBinId)
+            modelBuilder.Entity<Operations>()
+                .HasOne(o => o.Unit)
+                .WithMany(u => u.operations)
+                .HasForeignKey(o => o.Unit_Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             // =====================================================
-            // Transaction → To Bin
+            // OPERATIONS → USER
+            // One User → Many Operations
             // =====================================================
 
-            modelBuilder.Entity<Transaction>()
-                .HasOne(t => t.ToBin)
-                .WithMany(b => b.Totransactions)
-                .HasForeignKey(t => t.ToBinId)
+            modelBuilder.Entity<Operations>()
+                .HasOne(o => o.User)
+                .WithMany(u => u.Operations)
+                .HasForeignKey(o => o.User_Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
             // =====================================================
-            // Report → User
+            // OPERATIONS → FROM BIN
+            // One Bin → Many Operations
+            // =====================================================
+
+            modelBuilder.Entity<Operations>()
+                .HasOne(o => o.FromBin)
+                .WithMany(b => b.FromOperation)
+                .HasForeignKey(o => o.FromBinId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // OPERATIONS → TO BIN
+            // One Bin → Many Operations
+            // =====================================================
+
+            modelBuilder.Entity<Operations>()
+                .HasOne(o => o.ToBin)
+                .WithMany(b => b.ToOperation)
+                .HasForeignKey(o => o.ToBinId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // SUPPLIER → ORDER
+            // One Supplier → Many Orders
+            // =====================================================
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Supplier)
+                .WithMany(s => s.Orders)
+                .HasForeignKey(o => o.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // WAREHOUSE → ORDER
+            // One Warehouse → Many Orders
+            // =====================================================
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Warehouse)
+                .WithMany()
+                .HasForeignKey(o => o.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // ORDER → CREATED BY USER
+            // One User → Many Orders
+            // =====================================================
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(o => o.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // ORDER → APPROVED BY USER
+            // One User → Many Approved Orders
+            // =====================================================
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.ApprovedByUser)
+                .WithMany()
+                .HasForeignKey(o => o.ApprovedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // ORDER → ORDER ITEMS
+            // One Order → Many OrderItems
+            // =====================================================
+
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Order)
+                .WithMany(o => o.OrderItems)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            // =====================================================
+            // PRODUCT → ORDER ITEMS
+            // One Product → Many OrderItems
+            // =====================================================
+
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Product)
+                .WithMany()
+                .HasForeignKey(oi => oi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // REPORT → USER
+            // One User → Many Reports
             // =====================================================
 
             modelBuilder.Entity<Report>()
@@ -338,7 +535,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // Report → Warehouse
+            // REPORT → WAREHOUSE
+            // One Warehouse → Many Reports
             // =====================================================
 
             modelBuilder.Entity<Report>()
@@ -349,7 +547,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // Report → Product
+            // REPORT → PRODUCT
+            // One Product → Many Reports
             // =====================================================
 
             modelBuilder.Entity<Report>()
@@ -360,7 +559,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // ReportSchedule → User
+            // REPORT SCHEDULE → USER
+            // One User → Many ReportSchedules
             // =====================================================
 
             modelBuilder.Entity<ReportSchedule>()
@@ -371,7 +571,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // ReportSchedule → Warehouse
+            // REPORT SCHEDULE → WAREHOUSE
+            // One Warehouse → Many ReportSchedules
             // =====================================================
 
             modelBuilder.Entity<ReportSchedule>()
@@ -382,7 +583,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // ReportSchedule → Product
+            // REPORT SCHEDULE → PRODUCT
+            // One Product → Many ReportSchedules
             // =====================================================
 
             modelBuilder.Entity<ReportSchedule>()
@@ -393,7 +595,8 @@ namespace whm.Models
 
 
             // =====================================================
-            // AuditLog → User
+            // AUDIT LOG → USER
+            // One User → Many AuditLogs
             // =====================================================
 
             modelBuilder.Entity<AuditLog>()
@@ -401,29 +604,39 @@ namespace whm.Models
                 .WithMany(u => u.auditLog)
                 .HasForeignKey(a => a.User_Id)
                 .OnDelete(DeleteBehavior.Restrict);
-            //Convert status from int to string
+
+
+            // =====================================================
+            // UNIQUE INDEXES
+            // =====================================================
 
             modelBuilder.Entity<Product>()
-             .Property(p => p.Status)
-           .HasConversion<string>();
+                .HasIndex(p => p.SKU)
+                .IsUnique();
+
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.QRValue)
+                .IsUnique();
+
+            modelBuilder.Entity<Alias>()
+                .HasIndex(a => new
+                {
+                    a.ProductId,
+                    a.AliasName
+                })
+                .IsUnique();
+
+            modelBuilder.Entity<Supplier>()
+                .HasIndex(s => s.SupplierCode)
+                .IsUnique();
+
+            modelBuilder.Entity<Order>()
+                .HasIndex(o => o.OrderNumber)
+                .IsUnique();
 
             modelBuilder.Entity<Stock>()
-           .Property(s => s.StockStatue)
-            .HasConversion<string>();
-
-            modelBuilder.Entity<Report>()
-           .Property(r => r.ReportType)
-           .HasConversion<string>();
-
-            modelBuilder.Entity<ReportSchedule>()
-            .Property(r => r.Frequency)
-             .HasConversion<string>();
-
-            modelBuilder.Entity<Transaction>()
-           .Property(t => t.TransactionType)
-           .HasConversion<string>();
-
-            
+                .HasIndex(s => s.StockCode)
+                .IsUnique();
         }
     }
 }

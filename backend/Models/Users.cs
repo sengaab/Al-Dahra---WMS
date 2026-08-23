@@ -42,8 +42,8 @@ namespace whm.Models
         public List<ReportSchedule> reportSchedules { get; set; }
             = new List<ReportSchedule>();
 
-        public List<Transaction> transactions { get; set; }
-            = new List<Transaction>();
+        public List<Operations> Operations { get; set; }
+            = new List<Operations>();
 
         public List<AuditLog> auditLog { get; set; }
             = new List<AuditLog>();

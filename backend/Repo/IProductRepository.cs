@@ -15,6 +15,7 @@ namespace whm.Repositories.Interfaces
         Task<Product?> GetByQRValueAsync(string qrValue);
 
         Task<List<Product>> SearchAsync(string search);
+
         Task<List<string>> GetAllSKUsAsync();
 
         Task<bool> SKUExistsAsync(
@@ -24,16 +25,22 @@ namespace whm.Repositories.Interfaces
         Task<bool> BarcodeExistsAsync(
             string barcode,
             int? excludeProductId = null);
-        Task<string?> GetLastSKUByPrefixAsync(string prefix);
+
+        Task<bool> QRValueExistsAsync(
+            string qrValue,
+            int? excludeProductId = null);
+
+        Task<string?> GetLastSKUByPrefixAsync(
+            string prefix);
 
         Task AddAsync(Product product);
 
         void Update(Product product);
 
         void Delete(Product product);
-        Task<List<Product>> SearchBySiteAndDepartmentAsync(
-       int? siteId,
-       int? departmentId);
 
+        Task<List<Product>> SearchBySiteAndDepartmentAsync(
+            int? siteId,
+            int? departmentId);
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using whm.Models;
@@ -11,9 +12,11 @@ using whm.Models;
 namespace whm.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260823114607_UpdateDatabaseModels")]
+    partial class UpdateDatabaseModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -401,6 +404,10 @@ namespace whm.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("SubCategoryId")
                         .HasColumnType("integer");
 
@@ -723,7 +730,7 @@ namespace whm.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Stock_Id"));
 
-                    b.Property<int?>("Bin_Id")
+                    b.Property<int>("Bin_Id")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreateAt")
@@ -732,9 +739,6 @@ namespace whm.Migrations
                     b.Property<string>("DeliveryStatus")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -765,6 +769,7 @@ namespace whm.Migrations
                         .HasColumnType("text");
 
                     b.Property<int?>("UnitId")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<decimal>("UnitPrice")
@@ -1238,7 +1243,8 @@ namespace whm.Migrations
                     b.HasOne("whm.Models.Bin", "Bin")
                         .WithMany("Stocks")
                         .HasForeignKey("Bin_Id")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("whm.Models.Product", "Product")
                         .WithMany("Stock")
@@ -1249,7 +1255,8 @@ namespace whm.Migrations
                     b.HasOne("whm.Models.Unit", "Units")
                         .WithMany("Stocks")
                         .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Bin");
 

@@ -4,7 +4,6 @@ using whm.DTOs;
 using whm.Models;
 using whm.Services;
 using whm.UnitOfWork;
-using ClosedXML.Excel;
 
 namespace whm.Controllers
 {
@@ -27,6 +26,34 @@ namespace whm.Controllers
             this.barcodeService = barcodeService;
         }
 
+        // =====================================================
+        // Helper
+        // =====================================================
+
+        private object ProductResponse(Product product)
+        {
+            return new
+            {
+                productId = product.ProductId,
+                productName = product.ProductName,
+
+                sku = product.SKU,
+                barcode = product.Barcode,
+                qrValue = product.QRValue,
+
+                categoryId = product.CategoryId,
+                categoryName = product.Category?.Category_Name,
+
+                subCategoryId = product.SubCategoryId,
+                subCategoryName =
+                    product.SubCategory?.SubCategory_Name,
+
+               /* status = product.Status*/
+
+                createdAt = product.CreatedAt,
+                updatedAt = product.UpdatedAt
+            };
+        }
 
         // =====================================================
         // 1. CREATE PRODUCT
@@ -35,73 +62,62 @@ namespace whm.Controllers
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateProduct(
-     CreateProductDTO dto)
+            [FromBody] CreateProductDTO dto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
-
 
             // =================================================
             // CHECK CATEGORY
             // =================================================
 
-            var categoryExists =
+            var category =
                 await unitOfWork.Categories
                     .GetByIdAsync(dto.CategoryId);
 
-            if (categoryExists == null)
+            if (category == null)
             {
-                return BadRequest("Category not found.");
+                return BadRequest(new
+                {
+                    message = "Category not found."
+                });
             }
-
 
             // =================================================
             // CHECK SUB CATEGORY
             // =================================================
 
-            var subCategoryExists =
+            var subCategory =
                 await unitOfWork.SubCategories
                     .GetByIdAsync(dto.subCategoryId);
 
-            if (subCategoryExists == null)
+            if (subCategory == null)
             {
-                return BadRequest("SubCategory not found.");
+                return BadRequest(new
+                {
+                    message = "SubCategory not found."
+                });
             }
-
 
             // =================================================
             // CHECK SUB CATEGORY BELONGS TO CATEGORY
             // =================================================
 
-            if (subCategoryExists.CategoryId != dto.CategoryId)
+            if (subCategory.CategoryId != dto.CategoryId)
             {
-                return BadRequest(
-                    "SubCategory does not belong to the selected Category.");
+                return BadRequest(new
+                {
+                    message =
+                        "SubCategory does not belong to the selected Category."
+                });
             }
 
-
             // =================================================
-            // CHECK UNIT
-            // =================================================
-
-            var unitExists =
-                await unitOfWork.Units
-                    .GetByIdAsync(dto.UnitId);
-
-            if (unitExists == null)
-            {
-                return BadRequest("Unit not found.");
-            }
-
-
-            // =================================================
-            // GENERATE CATEGORY PREFIX
+            // GENERATE SKU
             // =================================================
 
             var categoryName =
-                categoryExists.Category_Name
+                category.Category_Name
                     .Trim()
                     .ToUpper();
 
@@ -110,19 +126,9 @@ namespace whm.Controllers
                     ? categoryName[..3]
                     : categoryName;
 
-
-            // =================================================
-            // GET LAST SKU FOR THIS CATEGORY
-            // =================================================
-
             var lastSKU =
                 await unitOfWork.Products
                     .GetLastSKUByPrefixAsync(prefix);
-
-
-            // =================================================
-            // GENERATE NEXT NUMBER
-            // =================================================
 
             int nextNumber = 1;
 
@@ -135,25 +141,28 @@ namespace whm.Controllers
                     numberPart,
                     out int lastNumber))
                 {
-                    nextNumber =
-                        lastNumber + 1;
+                    nextNumber = lastNumber + 1;
                 }
             }
-
-
-            // =================================================
-            // GENERATE PRODUCT CODE
-            // Example:
-            // Machine -> MAC001
-            // Machine -> MAC002
-            // =================================================
 
             var productCode =
                 $"{prefix}{nextNumber:D6}";
 
+            // =================================================
+            // MAKE SURE SKU IS UNIQUE
+            // =================================================
+
+            while (await unitOfWork.Products
+                .SKUExistsAsync(productCode))
+            {
+                nextNumber++;
+
+                productCode =
+                    $"{prefix}{nextNumber:D6}";
+            }
 
             // =================================================
-            // CREATE PRODUCT
+            // MAKE PRODUCT
             // =================================================
 
             var product = new Product
@@ -167,26 +176,17 @@ namespace whm.Controllers
                 SubCategoryId =
                     dto.subCategoryId,
 
-                UnitId =
-                    dto.UnitId,
-
-                UnitPrice =
-                    dto.UnitPrice,
-
-                MinimumStock =
-                    dto.MinimumStock,
-
-                // SAME VALUE
                 SKU =
                     productCode,
 
-                // SAME VALUE
                 Barcode =
                     productCode,
 
-                // SAME VALUE
                 QRValue =
                     productCode,
+
+                //Status =
+                //    ProductStatus.Available,
 
                 CreatedAt =
                     DateTimeOffset.UtcNow,
@@ -195,9 +195,8 @@ namespace whm.Controllers
                     null
             };
 
-
             // =================================================
-            // SAVE PRODUCT
+            // SAVE
             // =================================================
 
             await unitOfWork.Products
@@ -205,24 +204,21 @@ namespace whm.Controllers
 
             await unitOfWork.SaveAsync();
 
-
             // =================================================
-            // GENERATE QR IMAGE
+            // GENERATE QR
             // =================================================
 
             var qrImage =
                 qrCodeService.GenerateQRCode(
                     product.QRValue);
 
-
             // =================================================
-            // GENERATE BARCODE IMAGE
+            // GENERATE BARCODE
             // =================================================
 
             var barcodeImage =
                 barcodeService.GenerateBarcode(
                     product.Barcode);
-
 
             // =================================================
             // RESPONSE
@@ -239,45 +235,31 @@ namespace whm.Controllers
                 productName =
                     product.ProductName,
 
+                sku =
+                    product.SKU,
+
+                barcode =
+                    product.Barcode,
+
+                qrValue =
+                    product.QRValue,
+
                 categoryId =
                     product.CategoryId,
 
                 subCategoryId =
                     product.SubCategoryId,
 
-                unitId =
-                    product.UnitId,
+                //status =
+                //    product.Status,
 
-                unitPrice =
-                    product.UnitPrice,
-
-                minimumStock =
-                    product.MinimumStock,
-
-                // Same generated code
-                sku =
-                    product.SKU,
-
-                // Same generated code
-                barcode =
-                    product.Barcode,
-
-                // Same generated code
-                qrValue =
-                    product.QRValue,
-
-                // QR image
                 qrCode =
                     $"data:image/png;base64," +
                     Convert.ToBase64String(qrImage),
 
-                // Barcode image
                 barcodeImage =
                     $"data:image/png;base64," +
                     Convert.ToBase64String(barcodeImage),
-
-                status =
-                    product.Status,
 
                 createdAt =
                     product.CreatedAt
@@ -294,37 +276,12 @@ namespace whm.Controllers
         {
             try
             {
-                var products = await unitOfWork.Products.GetAllAsync();
+                var products =
+                    await unitOfWork.Products
+                        .GetAllAsync();
 
-                var result = products.Select(p => new
-                {
-                    productId = p.ProductId,
-                    productName = p.ProductName,
-                    sku = p.SKU,
-                    barcode = p.Barcode,
-                    qrValue = p.QRValue,
-
-                    categoryId = p.CategoryId,
-                    categoryName = p.Category != null
-                        ? p.Category.Category_Name
-                        : null,
-
-                    subCategoryId = p.SubCategoryId,
-                    subCategoryName = p.SubCategory != null
-                        ? p.SubCategory.SubCategory_Name
-                        : null,
-
-                    unitId = p.UnitId,
-                    unitName = p.Units != null
-                        ? p.Units.Unit_Name
-                        : null,
-
-                    unitPrice = p.UnitPrice,
-                    minimumStock = p.MinimumStock,
-                    status = p.Status,
-                    createdAt = p.CreatedAt,
-                    updatedAt = p.UpdatedAt
-                });
+                var result =
+                    products.Select(ProductResponse);
 
                 return Ok(result);
             }
@@ -333,11 +290,11 @@ namespace whm.Controllers
                 return StatusCode(500, new
                 {
                     message = ex.Message,
-                    innerException = ex.InnerException?.Message
+                    innerException =
+                        ex.InnerException?.Message
                 });
             }
         }
-
 
         // =====================================================
         // 3. GET PRODUCT BY ID
@@ -354,174 +311,83 @@ namespace whm.Controllers
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
-            return Ok(new
-            {
-                productId =
-                    product.ProductId,
-
-                productName =
-                    product.ProductName,
-
-                sku =
-                    product.SKU,
-
-                barcode =
-                    product.Barcode,
-
-                qrValue =
-                    product.QRValue,
-
-                categoryId =
-                    product.CategoryId,
-
-                categoryName =
-                    product.Category != null
-                        ? product.Category.Category_Name
-                        : null,
-
-                unitId =
-                    product.UnitId,
-
-                unitName =
-                    product.Units != null
-                        ? product.Units.Unit_Name
-                        : null,
-
-                unitPrice =
-                    product.UnitPrice,
-
-                minimumStock =
-                    product.MinimumStock,
-
-                status =
-                    product.Status,
-
-                createdAt =
-                    product.CreatedAt,
-
-                updatedAt =
-                    product.UpdatedAt
-            });
+            return Ok(ProductResponse(product));
         }
 
-
         // =====================================================
-        // 4. GET BY SKU
-        // GET: api/Products/SKU/{sku}
+        // 4. GET PRODUCT BY SKU
+        // GET: api/Products/GetbySKU/{sku}
         // =====================================================
 
         [HttpGet("GetbySKU/{sku}")]
-        public async Task<IActionResult> GetProductBySKU(string sku)
+        public async Task<IActionResult> GetProductBySKU(
+            string sku)
         {
             if (string.IsNullOrWhiteSpace(sku))
             {
-                return BadRequest("SKU is required.");
+                return BadRequest(new
+                {
+                    message = "SKU is required."
+                });
             }
 
-            var product = await unitOfWork.Products
-                .GetBySKUAsync(sku.Trim());
+            var product =
+                await unitOfWork.Products
+                    .GetBySKUAsync(sku.Trim());
 
             if (product == null)
             {
-                return NotFound("Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
-            return Ok(new
-            {
-                productId = product.ProductId,
-                productName = product.ProductName,
-
-                sku = product.SKU,
-                barcode = product.Barcode,
-                qrValue = product.QRValue,
-
-                categoryId = product.CategoryId,
-                categoryName = product.Category != null
-                    ? product.Category.Category_Name
-                    : null,
-
-                subCategoryId = product.SubCategoryId,
-                subCategoryName = product.SubCategory != null
-                    ? product.SubCategory.SubCategory_Name
-                    : null,
-
-                unitId = product.UnitId,
-                unitName = product.Units != null
-                    ? product.Units.Unit_Name
-                    : null,
-
-                unitPrice = product.UnitPrice,
-                minimumStock = product.MinimumStock,
-
-                status = product.Status,
-
-                createdAt = product.CreatedAt,
-                updatedAt = product.UpdatedAt
-            });
+            return Ok(ProductResponse(product));
         }
 
+        // =====================================================
+        // 5. GET PRODUCT BY BARCODE
+        // GET: api/Products/GetbyBarcode/{barcode}
+        // =====================================================
 
-        // =====================================================
-        // 5. GET BY BARCODE
-        // GET: api/Products/Barcode/{barcode}
-        // =====================================================
         [HttpGet("GetbyBarcode/{barcode}")]
-        public async Task<IActionResult> GetProductByBarcode(string barcode)
+        public async Task<IActionResult> GetProductByBarcode(
+            string barcode)
         {
             if (string.IsNullOrWhiteSpace(barcode))
             {
-                return BadRequest("Barcode is required.");
+                return BadRequest(new
+                {
+                    message = "Barcode is required."
+                });
             }
 
-            var product = await unitOfWork.Products
-                .GetByBarcodeAsync(barcode.Trim());
+            var product =
+                await unitOfWork.Products
+                    .GetByBarcodeAsync(
+                        barcode.Trim());
 
             if (product == null)
             {
-                return NotFound("Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
-            return Ok(new
-            {
-                productId = product.ProductId,
-                productName = product.ProductName,
-
-                sku = product.SKU,
-                barcode = product.Barcode,
-                qrValue = product.QRValue,
-
-                categoryId = product.CategoryId,
-                categoryName = product.Category != null
-                    ? product.Category.Category_Name
-                    : null,
-
-                subCategoryId = product.SubCategoryId,
-                subCategoryName = product.SubCategory != null
-                    ? product.SubCategory.SubCategory_Name
-                    : null,
-
-                unitId = product.UnitId,
-                unitName = product.Units != null
-                    ? product.Units.Unit_Name
-                    : null,
-
-                unitPrice = product.UnitPrice,
-                minimumStock = product.MinimumStock,
-
-                status = product.Status,
-
-                createdAt = product.CreatedAt,
-                updatedAt = product.UpdatedAt
-            });
+            return Ok(ProductResponse(product));
         }
 
         // =====================================================
-        // 6. GET BY QR
-        // GET: api/Products/QR/{qrValue}
+        // 6. GET PRODUCT BY QR
+        // GET: api/Products/GetbyQR/{qrValue}
         // =====================================================
 
         [HttpGet("GetbyQR/{qrValue}")]
@@ -530,8 +396,10 @@ namespace whm.Controllers
         {
             if (string.IsNullOrWhiteSpace(qrValue))
             {
-                return BadRequest(
-                    "QR value is required.");
+                return BadRequest(new
+                {
+                    message = "QR value is required."
+                });
             }
 
             var product =
@@ -541,82 +409,53 @@ namespace whm.Controllers
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
-            return Ok(new
-            {
-                productId =
-                    product.ProductId,
-
-                productName =
-                    product.ProductName,
-
-                sku =
-                    product.SKU,
-
-                barcode =
-                    product.Barcode,
-
-                qrValue =
-                    product.QRValue,
-
-                categoryId =
-                    product.CategoryId,
-
-                unitId =
-                    product.UnitId,
-
-                unitPrice =
-                    product.UnitPrice,
-
-                minimumStock =
-                    product.MinimumStock,
-
-                status =
-                    product.Status
-            });
+            return Ok(ProductResponse(product));
         }
 
-
         // =====================================================
-        // 7. SEARCH
-        // GET: api/Products/Search?search=laptop
+        // 7. SEARCH PRODUCTS
+        // GET: api/Products/Searchproducts?search=laptop
         // =====================================================
 
         [HttpGet("Searchproducts")]
         public async Task<IActionResult> SearchProducts(
-            string search)
+            [FromQuery] string search)
         {
             if (string.IsNullOrWhiteSpace(search))
             {
-                return BadRequest(
-                    "Search value is required.");
+                return BadRequest(new
+                {
+                    message =
+                        "Search value is required."
+                });
             }
 
             var products =
                 await unitOfWork.Products
-                    .SearchAsync(search);
+                    .SearchAsync(search.Trim());
 
-            return Ok(products);
+            return Ok(
+                products.Select(ProductResponse));
         }
-
 
         // =====================================================
         // 8. UPDATE PRODUCT
-        // PUT: api/Products/{id}
+        // PUT: api/Products/Update/1
         // =====================================================
 
-        [HttpPut("Update{id:int}")]
+        [HttpPut("Update/{id:int}")]
         public async Task<IActionResult> UpdateProduct(
             int id,
-            UpdateProductDTO dto)
+            [FromBody] UpdateProductDTO dto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             var product =
                 await unitOfWork.Products
@@ -624,40 +463,56 @@ namespace whm.Controllers
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
-
 
             // =================================================
             // CHECK CATEGORY
             // =================================================
 
-            var categoryExists =
+            var category =
                 await unitOfWork.Categories
                     .GetByIdAsync(dto.CategoryId);
 
-            if (categoryExists == null)
+            if (category == null)
             {
-                return BadRequest(
-                    "Category not found.");
+                return BadRequest(new
+                {
+                    message = "Category not found."
+                });
             }
 
-
             // =================================================
-            // CHECK UNIT
+            // CHECK SUB CATEGORY
             // =================================================
 
-            var unitExists =
-                await unitOfWork.Units
-                    .GetByIdAsync(dto.UnitId);
+            var subCategory =
+                await unitOfWork.SubCategories
+                    .GetByIdAsync(dto.subCategoryId);
 
-            if (unitExists == null)
+            if (subCategory == null)
             {
-                return BadRequest(
-                    "Unit not found.");
+                return BadRequest(new
+                {
+                    message = "SubCategory not found."
+                });
             }
 
+            // =================================================
+            // CHECK SUB CATEGORY RELATION
+            // =================================================
+
+            if (subCategory.CategoryId != dto.CategoryId)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "SubCategory does not belong to the selected Category."
+                });
+            }
 
             // =================================================
             // CHECK SKU
@@ -665,21 +520,22 @@ namespace whm.Controllers
 
             if (!string.IsNullOrWhiteSpace(dto.SKU))
             {
-                var sku =
-                    dto.SKU.Trim();
+                var sku = dto.SKU.Trim();
 
                 if (await unitOfWork.Products
                     .SKUExistsAsync(
                         sku,
                         id))
                 {
-                    return Conflict(
-                        "SKU already exists.");
+                    return Conflict(new
+                    {
+                        message =
+                            "SKU already exists."
+                    });
                 }
 
                 product.SKU = sku;
             }
-
 
             // =================================================
             // CHECK BARCODE
@@ -695,19 +551,22 @@ namespace whm.Controllers
                         barcode,
                         id))
                 {
-                    return Conflict(
-                        "Barcode already exists.");
+                    return Conflict(new
+                    {
+                        message =
+                            "Barcode already exists."
+                    });
                 }
 
-                product.Barcode = barcode;
+                product.Barcode =
+                    barcode;
 
-                // QR must always equal Barcode
-                product.QRValue = barcode;
+                product.QRValue =
+                    barcode;
             }
 
-
             // =================================================
-            // UPDATE PRODUCT DATA
+            // UPDATE PRODUCT
             // =================================================
 
             product.ProductName =
@@ -716,24 +575,16 @@ namespace whm.Controllers
             product.CategoryId =
                 dto.CategoryId;
 
-            product.UnitId =
-                dto.UnitId;
-
-            product.UnitPrice =
-                dto.UnitPrice;
-
-            product.MinimumStock =
-                dto.MinimumStock;
+            product.SubCategoryId =
+                dto.subCategoryId;
 
             product.UpdatedAt =
                 DateTimeOffset.UtcNow;
-
 
             unitOfWork.Products
                 .Update(product);
 
             await unitOfWork.SaveAsync();
-
 
             return Ok(new
             {
@@ -758,27 +609,20 @@ namespace whm.Controllers
                 categoryId =
                     product.CategoryId,
 
-                unitId =
-                    product.UnitId,
+                subCategoryId =
+                    product.SubCategoryId,
 
-                unitPrice =
-                    product.UnitPrice,
-
-                minimumStock =
-                    product.MinimumStock,
-
-                status =
-                    product.Status,
+                //status =
+                //    product.Status,
 
                 updatedAt =
                     product.UpdatedAt
             });
         }
 
-
         // =====================================================
         // 9. DELETE PRODUCT
-        // DELETE: api/Products/{id}
+        // DELETE: api/Products/1
         // =====================================================
 
         [HttpDelete("{id:int}")]
@@ -791,8 +635,10 @@ namespace whm.Controllers
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
             unitOfWork.Products
@@ -804,8 +650,11 @@ namespace whm.Controllers
             }
             catch
             {
-                return BadRequest(
-                    "Product cannot be deleted because it is used in other records.");
+                return BadRequest(new
+                {
+                    message =
+                        "Product cannot be deleted because it is used in other records."
+                });
             }
 
             return Ok(new
@@ -813,15 +662,13 @@ namespace whm.Controllers
                 message =
                     "Product deleted successfully.",
 
-                productId =
-                    id
+                productId = id
             });
         }
 
-
         // =====================================================
         // 10. GET QR CODE IMAGE
-        // GET: api/Products/{id}/GetQRCode
+        // GET: api/Products/1/GetQRCodeImage
         // =====================================================
 
         [HttpGet("{id:int}/GetQRCodeImage")]
@@ -834,14 +681,20 @@ namespace whm.Controllers
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
-            if (string.IsNullOrWhiteSpace(product.QRValue))
+            if (string.IsNullOrWhiteSpace(
+                product.QRValue))
             {
-                return BadRequest(
-                    "This product does not have a QR value.");
+                return BadRequest(new
+                {
+                    message =
+                        "This product does not have a QR value."
+                });
             }
 
             var qrImage =
@@ -854,14 +707,14 @@ namespace whm.Controllers
                 $"Product-{product.ProductId}-QR.png");
         }
 
-
         // =====================================================
         // 11. GET BARCODE IMAGE
-        // GET: api/Products/{id}/barcode
+        // GET: api/Products/1/barcodeImage
         // =====================================================
 
         [HttpGet("{id:int}/barcodeImage")]
-        public async Task<IActionResult> GetProductBarcode(int id)
+        public async Task<IActionResult> GetProductBarcode(
+            int id)
         {
             var product =
                 await unitOfWork.Products
@@ -869,14 +722,20 @@ namespace whm.Controllers
 
             if (product == null)
             {
-                return NotFound(
-                    "Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
-            if (string.IsNullOrWhiteSpace(product.Barcode))
+            if (string.IsNullOrWhiteSpace(
+                product.Barcode))
             {
-                return BadRequest(
-                    "This product does not have a barcode.");
+                return BadRequest(new
+                {
+                    message =
+                        "This product does not have a barcode."
+                });
             }
 
             var image =
@@ -888,81 +747,123 @@ namespace whm.Controllers
                 "image/png",
                 $"Product-{product.ProductId}-Barcode.png");
         }
-        [HttpPut("UpdateStatus/{id}")]
+
+        // =====================================================
+        // 12. UPDATE PRODUCT STATUS
+        // PUT: api/Products/UpdateStatus/1
+        // =====================================================
+
+        [HttpPut("UpdateStatus/{id:int}")]
         public async Task<IActionResult> UpdateProductStatus(
-    int id,
-    UpdateProductStatusDTO dto)
+            int id,
+            [FromBody] UpdateProductStatusDTO dto)
         {
-            var product = await unitOfWork.Products.GetByIdAsync(id);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var product =
+                await unitOfWork.Products
+                    .GetByIdAsync(id);
 
             if (product == null)
             {
-                return NotFound("Product not found.");
+                return NotFound(new
+                {
+                    message = "Product not found."
+                });
             }
 
-            product.Status = dto.Status;
-            product.UpdatedAt = DateTimeOffset.UtcNow;
+            //product.Status =
+            //    dto.Status;
 
-            unitOfWork.Products.Update(product);
+            product.UpdatedAt =
+                DateTimeOffset.UtcNow;
+
+            unitOfWork.Products
+                .Update(product);
 
             await unitOfWork.SaveAsync();
 
             return Ok(new
             {
-                message = "Product status updated successfully.",
-                productId = product.ProductId,
-                status = product.Status,
-                updatedAt = product.UpdatedAt
+                message =
+                    "Product status updated successfully.",
+
+                productId =
+                    product.ProductId,
+
+                //status =
+                //    product.Status,
+
+                updatedAt =
+                    product.UpdatedAt
             });
         }
-        [HttpGet("Search")]
-        public async Task<IActionResult> SearchProducts(
-    int? siteId,
-    int? departmentId)
+
+        // =====================================================
+        // 13. SEARCH BY SITE / DEPARTMENT
+        // =====================================================
+
+        [HttpGet("SearchBySiteAndDepartment")]
+        public async Task<IActionResult>
+            SearchBySiteAndDepartment(
+                [FromQuery] int? siteId,
+                [FromQuery] int? departmentId)
         {
-            if (!siteId.HasValue && !departmentId.HasValue)
+            if (!siteId.HasValue &&
+                !departmentId.HasValue)
             {
-                return BadRequest(
-                    "Please provide SiteId or DepartmentId.");
+                return BadRequest(new
+                {
+                    message =
+                        "SiteId or DepartmentId is required."
+                });
             }
 
-
-            // =====================================================
+            // =================================================
             // CHECK SITE
-            // =====================================================
+            // =================================================
 
             if (siteId.HasValue)
             {
-                var site = await unitOfWork.Sites
-                    .GetByIdAsync(siteId.Value);
+                var site =
+                    await unitOfWork.Sites
+                        .GetByIdAsync(
+                            siteId.Value);
 
                 if (site == null)
                 {
-                    return NotFound("Site not found.");
+                    return NotFound(new
+                    {
+                        message = "Site not found."
+                    });
                 }
             }
 
-
-            // =====================================================
+            // =================================================
             // CHECK DEPARTMENT
-            // =====================================================
+            // =================================================
 
             if (departmentId.HasValue)
             {
                 var department =
                     await unitOfWork.Departments
-                        .GetByIdAsync(departmentId.Value);
+                        .GetByIdAsync(
+                            departmentId.Value);
 
                 if (department == null)
                 {
-                    return NotFound("Department not found.");
+                    return NotFound(new
+                    {
+                        message =
+                            "Department not found."
+                    });
                 }
             }
 
-
-            // =====================================================
+            // =================================================
             // SEARCH
-            // =====================================================
+            // =================================================
 
             var products =
                 await unitOfWork.Products
@@ -970,67 +871,22 @@ namespace whm.Controllers
                         siteId,
                         departmentId);
 
-
-            if (!products.Any())
+            if (products == null ||
+                !products.Any())
             {
-                return NotFound(
-                    "No products found matching the specified filters.");
+                return NotFound(new
+                {
+                    message =
+                        "No products found."
+                });
             }
 
-
-            // =====================================================
-            // RESPONSE
-            // =====================================================
-
-            var result = products.Select(product => new
-            {
-                productId = product.ProductId,
-
-                productName = product.ProductName,
-
-                sku = product.SKU,
-
-                barcode = product.Barcode,
-
-                qrValue = product.QRValue,
-
-                categoryId = product.CategoryId,
-
-                categoryName =
-                    product.Category?.Category_Name,
-
-                subCategoryId =
-                    product.SubCategoryId,
-
-                subCategoryName =
-                    product.SubCategory?.SubCategory_Name,
-
-                unitId =
-                    product.UnitId,
-
-                unitName =
-                    product.Units?.Unit_Name,
-
-                unitPrice =
-                    product.UnitPrice,
-
-                minimumStock =
-                    product.MinimumStock,
-
-                status =
-                    product.Status,
-
-                createdAt =
-                    product.CreatedAt,
-
-                updatedAt =
-                    product.UpdatedAt
-            });
-
+            var result =
+                products.Select(ProductResponse);
 
             return Ok(new
             {
-                count = result.Count(),
+                count = products.Count,
 
                 filters = new
                 {
@@ -1040,83 +896,6 @@ namespace whm.Controllers
 
                 products = result
             });
-        }
-        // =========================================================
-        // SEARCH PRODUCTS BY SITE AND/OR DEPARTMENT
-        //
-        // Examples:
-        //
-        // /api/Products/SearchBySiteAndDepartment?siteId=1
-        //
-        // /api/Products/SearchBySiteAndDepartment?departmentId=2
-        //
-        // /api/Products/SearchBySiteAndDepartment?siteId=1&departmentId=2
-        //
-        // =========================================================
-
-        [HttpGet("SearchBySiteAndDepartment")]
-        public async Task<IActionResult> SearchBySiteAndDepartment(
-            int? siteId,
-            int? departmentId)
-        {
-            if (!siteId.HasValue && !departmentId.HasValue)
-            {
-                return BadRequest(
-                    "SiteId or DepartmentId is required.");
-            }
-
-            var products =
-                await unitOfWork.Products
-                    .SearchBySiteAndDepartmentAsync(
-                        siteId,
-                        departmentId);
-
-            if (products == null || !products.Any())
-            {
-                return NotFound(
-                    "No products found.");
-            }
-
-            var result = products.Select(product => new
-            {
-                productId = product.ProductId,
-
-                productName = product.ProductName,
-
-                sku = product.SKU,
-
-                barcode = product.Barcode,
-
-                qrValue = product.QRValue,
-
-                categoryId = product.CategoryId,
-
-                categoryName = product.Category != null
-                    ? product.Category.Category_Name
-                    : null,
-
-                departmentId = product.Category != null
-                    ? product.Category.Department_Id
-                    : (int?)null,
-
-                unitId = product.UnitId,
-
-                unitName = product.Units != null
-                    ? product.Units.Unit_Name
-                    : null,
-
-                unitPrice = product.UnitPrice,
-
-                minimumStock = product.MinimumStock,
-
-                status = product.Status,
-
-                createdAt = product.CreatedAt,
-
-                updatedAt = product.UpdatedAt
-            });
-
-            return Ok(result);
         }
     }
 }
