@@ -126,4 +126,26 @@ namespace whm.DTOs.Stock
 
         public DateTime LastUpdated { get; set; }
     }
+    public class UpdateInventoryStockDto
+    {
+        public int? Quantity { get; set; }
+
+        public int? ReservedQuantity { get; set; }
+
+        public decimal? UnitPrice { get; set; }
+
+        public int? MinimumStock { get; set; }
+
+        public int? UnitId { get; set; }
+
+        public int? Bin_Id { get; set; }
+
+        public DateTime? ExpiryDate { get; set; }
+
+        public StockStatus? StockStatus { get; set; }
+
+        public DeliveryStatus? DeliveryStatus { get; set; }
+
+        public bool? IsActive { get; set; }
+    }
 }

@@ -527,6 +527,267 @@ namespace whm.Controllers
                 stocks = result
             });
         }
+        // =====================================================
+        // 6. UPDATE INVENTORY STOCK
+        // PUT: api/Stock/inventory/{id}
+        // =====================================================
+
+        [HttpPut("inventory/{id:int}")]
+        public async Task<IActionResult> UpdateInventoryStock(
+            int id,
+            UpdateInventoryStockDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // =================================================
+            // GET STOCK
+            // =================================================
+
+            var stock =
+                await unitOfWork.Stocks
+                    .GetByIdAsync(id);
+
+            if (stock == null)
+            {
+                return NotFound("Stock not found.");
+            }
+
+            // =================================================
+            // VALIDATION
+            // =================================================
+
+            if (dto.Quantity.HasValue &&
+                dto.Quantity.Value < 0)
+            {
+                return BadRequest(
+                    "Quantity cannot be negative.");
+            }
+
+            if (dto.ReservedQuantity.HasValue &&
+                dto.ReservedQuantity.Value < 0)
+            {
+                return BadRequest(
+                    "Reserved quantity cannot be negative.");
+            }
+
+            if (dto.UnitPrice.HasValue &&
+                dto.UnitPrice.Value < 0)
+            {
+                return BadRequest(
+                    "Unit price cannot be negative.");
+            }
+
+            if (dto.MinimumStock.HasValue &&
+                dto.MinimumStock.Value < 0)
+            {
+                return BadRequest(
+                    "Minimum stock cannot be negative.");
+            }
+
+            // =================================================
+            // CHECK RESERVED QUANTITY
+            // =================================================
+
+            var newQuantity =
+                dto.Quantity ??
+                stock.Quantity;
+
+            var newReservedQuantity =
+                dto.ReservedQuantity ??
+                stock.ReservedQuantity;
+
+            if (newReservedQuantity > newQuantity)
+            {
+                return BadRequest(
+                    "Reserved quantity cannot be greater than quantity.");
+            }
+
+            // =================================================
+            // CHECK UNIT
+            // =================================================
+
+            if (dto.UnitId.HasValue)
+            {
+                var unit =
+                    await unitOfWork.Units
+                        .GetByIdAsync(dto.UnitId.Value);
+
+                if (unit == null)
+                {
+                    return BadRequest(
+                        "Unit not found.");
+                }
+            }
+
+            // =================================================
+            // CHECK BIN
+            // =================================================
+
+            if (dto.Bin_Id.HasValue)
+            {
+                var bin =
+                    await unitOfWork.Bins
+                        .GetByIdAsync(dto.Bin_Id.Value);
+
+                if (bin == null)
+                {
+                    return BadRequest(
+                        "Bin not found.");
+                }
+            }
+
+            // =================================================
+            // UPDATE PROVIDED VALUES ONLY
+            // =================================================
+
+            if (dto.Quantity.HasValue)
+            {
+                stock.Quantity =
+                    dto.Quantity.Value;
+            }
+
+            if (dto.ReservedQuantity.HasValue)
+            {
+                stock.ReservedQuantity =
+                    dto.ReservedQuantity.Value;
+            }
+
+            if (dto.UnitPrice.HasValue)
+            {
+                stock.UnitPrice =
+                    dto.UnitPrice.Value;
+            }
+
+            if (dto.MinimumStock.HasValue)
+            {
+                stock.MinimumStock =
+                    dto.MinimumStock.Value;
+            }
+
+            if (dto.UnitId.HasValue)
+            {
+                stock.UnitId =
+                    dto.UnitId.Value;
+            }
+
+            if (dto.Bin_Id.HasValue)
+            {
+                stock.Bin_Id =
+                    dto.Bin_Id.Value;
+            }
+
+            if (dto.ExpiryDate.HasValue)
+            {
+                stock.ExpiryDate =
+                    dto.ExpiryDate.Value;
+            }
+
+            if (dto.StockStatus.HasValue)
+            {
+                stock.StockStatus =
+                    dto.StockStatus.Value;
+            }
+
+            if (dto.DeliveryStatus.HasValue)
+            {
+                stock.DeliveryStatus =
+                    dto.DeliveryStatus.Value;
+            }
+
+            if (dto.IsActive.HasValue)
+            {
+                stock.IsActive =
+                    dto.IsActive.Value;
+            }
+
+            // =================================================
+            // UPDATE DATE
+            // =================================================
+
+            stock.LastUpdatedAt =
+                DateTime.UtcNow;
+
+            // =================================================
+            // SAVE
+            // =================================================
+
+            unitOfWork.Stocks.Update(stock);
+
+            await unitOfWork.SaveAsync();
+
+            // =================================================
+            // RESPONSE
+            // =================================================
+
+            return Ok(new
+            {
+                message =
+                    "Inventory stock updated successfully.",
+
+                stockId =
+                    stock.Stock_Id,
+
+                stockCode =
+                    stock.StockCode,
+
+                sku =
+                    stock.Product?.SKU,
+
+                product =
+                    stock.Product?.ProductName,
+
+                category =
+                    stock.Product?.Category?.Category_Name,
+
+                expiryDate =
+                    stock.ExpiryDate,
+
+                location =
+                    stock.Bin?.Bin_Name,
+
+                warehouse =
+                    stock.Bin?
+                        .Shelf?
+                        .Row?
+                        .Room?
+                        .Warehouse?
+                        .Warehouse_Name,
+
+                quantity =
+                    stock.Quantity,
+
+                reserved =
+                    stock.ReservedQuantity,
+
+                available =
+                    stock.Quantity -
+                    stock.ReservedQuantity,
+
+                unitPrice =
+                    stock.UnitPrice,
+
+                unitId =
+                    stock.UnitId,
+
+                binId =
+                    stock.Bin_Id,
+
+                status =
+                    stock.StockStatus,
+
+                deliveryStatus =
+                    stock.DeliveryStatus,
+
+                isActive =
+                    stock.IsActive,
+
+                lastUpdated =
+                    stock.LastUpdatedAt
+            });
+        }
 
         // =====================================================
         // 6. CREATE STOCK
