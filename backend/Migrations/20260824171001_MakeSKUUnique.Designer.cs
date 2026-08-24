@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using whm.Models;
@@ -11,9 +12,11 @@ using whm.Models;
 namespace whm.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260824171001_MakeSKUUnique")]
+    partial class MakeSKUUnique
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -425,62 +428,6 @@ namespace whm.Migrations
                     b.HasIndex("Unit_Id");
 
                     b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("whm.Models.ProductItem", b =>
-                {
-                    b.Property<int>("ItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ItemId"));
-
-                    b.Property<string>("Barcode")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("ItemCode")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("QRValue")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("StockId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("ItemId");
-
-                    b.HasIndex("Barcode")
-                        .IsUnique();
-
-                    b.HasIndex("ItemCode")
-                        .IsUnique();
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("QRValue")
-                        .IsUnique();
-
-                    b.HasIndex("StockId");
-
-                    b.ToTable("ProductItems");
                 });
 
             modelBuilder.Entity("whm.Models.Report", b =>
@@ -1206,25 +1153,6 @@ namespace whm.Migrations
                     b.Navigation("SubCategory");
                 });
 
-            modelBuilder.Entity("whm.Models.ProductItem", b =>
-                {
-                    b.HasOne("whm.Models.Product", "Product")
-                        .WithMany("ProductItems")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("whm.Models.Stock", "Stock")
-                        .WithMany("ProductItems")
-                        .HasForeignKey("StockId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Stock");
-                });
-
             modelBuilder.Entity("whm.Models.Report", b =>
                 {
                     b.HasOne("whm.Models.Product", "Products")
@@ -1398,8 +1326,6 @@ namespace whm.Migrations
 
                     b.Navigation("Operations");
 
-                    b.Navigation("ProductItems");
-
                     b.Navigation("Stock");
 
                     b.Navigation("reportSchedules");
@@ -1430,11 +1356,6 @@ namespace whm.Migrations
             modelBuilder.Entity("whm.Models.Site", b =>
                 {
                     b.Navigation("Warehouses");
-                });
-
-            modelBuilder.Entity("whm.Models.Stock", b =>
-                {
-                    b.Navigation("ProductItems");
                 });
 
             modelBuilder.Entity("whm.Models.SubCategory", b =>

@@ -22,10 +22,36 @@ namespace whm.Repositories
             return await _context.Stocks
                 .AsNoTracking()
 
+                // =================================================
+                // PRODUCT
+                // =================================================
+
                 .Include(s => s.Product)
                     .ThenInclude(p => p.Category)
 
+                // =================================================
+                // LOCATION
+                //
+                // Bin
+                //   ↓
+                // Shelf
+                //   ↓
+                // Row
+                //   ↓
+                // Room
+                //   ↓
+                // Warehouse
+                // =================================================
+
                 .Include(s => s.Bin)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(sh => sh.Row)
+                            .ThenInclude(r => r.Room)
+                                .ThenInclude(room => room.Warehouse)
+
+                // =================================================
+                // UNIT
+                // =================================================
 
                 .Include(s => s.Units)
 
@@ -48,9 +74,25 @@ namespace whm.Repositories
                     .ThenInclude(p => p.Category)
 
                 .Include(s => s.Bin)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(sh => sh.Row)
+                            .ThenInclude(r => r.Room)
+                                .ThenInclude(room => room.Warehouse)
 
                 .Include(s => s.Units)
 
+                .FirstOrDefaultAsync(
+                    s => s.Stock_Id == id);
+        }
+
+
+        // =========================================================
+        // GET BY ID FOR UPDATE
+        // =========================================================
+
+        public async Task<Stock?> GetByIdForUpdateAsync(int id)
+        {
+            return await _context.Stocks
                 .FirstOrDefaultAsync(
                     s => s.Stock_Id == id);
         }
@@ -70,6 +112,10 @@ namespace whm.Repositories
                     .ThenInclude(p => p.Category)
 
                 .Include(s => s.Bin)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(sh => sh.Row)
+                            .ThenInclude(r => r.Room)
+                                .ThenInclude(room => room.Warehouse)
 
                 .Include(s => s.Units)
 
@@ -95,6 +141,10 @@ namespace whm.Repositories
                     .ThenInclude(p => p.Category)
 
                 .Include(s => s.Bin)
+                    .ThenInclude(b => b.Shelf)
+                        .ThenInclude(sh => sh.Row)
+                            .ThenInclude(r => r.Room)
+                                .ThenInclude(room => room.Warehouse)
 
                 .Include(s => s.Units)
 
@@ -117,14 +167,26 @@ namespace whm.Repositories
             var query = _context.Stocks
                 .AsNoTracking()
 
+                // =================================================
+                // PRODUCT
+                // =================================================
+
                 .Include(s => s.Product)
                     .ThenInclude(p => p.Category)
+
+                // =================================================
+                // LOCATION
+                // =================================================
 
                 .Include(s => s.Bin)
                     .ThenInclude(b => b.Shelf)
                         .ThenInclude(sh => sh.Row)
                             .ThenInclude(r => r.Room)
-                                .ThenInclude(r => r.Warehouse)
+                                .ThenInclude(room => room.Warehouse)
+
+                // =================================================
+                // UNIT
+                // =================================================
 
                 .Include(s => s.Units)
 
@@ -144,7 +206,7 @@ namespace whm.Repositories
                     stock.Bin.Shelf.Row.Room != null &&
                     stock.Bin.Shelf.Row.Room.Warehouse != null &&
                     stock.Bin.Shelf.Row.Room.Warehouse.Site_Id
-                    == siteId.Value);
+                        == siteId.Value);
             }
 
 
@@ -158,7 +220,7 @@ namespace whm.Repositories
                     stock.Product != null &&
                     stock.Product.Category != null &&
                     stock.Product.Category.Department_Id
-                    == departmentId.Value);
+                        == departmentId.Value);
             }
 
 
@@ -183,30 +245,24 @@ namespace whm.Repositories
                 // =================================================
                 // PRODUCT
                 // =================================================
+
                 .Include(s => s.Product)
                     .ThenInclude(p => p.Category)
 
                 // =================================================
                 // LOCATION
-                // Bin
-                //   ↓
-                // Shelf
-                //   ↓
-                // Row
-                //   ↓
-                // Room
-                //   ↓
-                // Warehouse
                 // =================================================
+
                 .Include(s => s.Bin)
                     .ThenInclude(b => b.Shelf)
                         .ThenInclude(sh => sh.Row)
                             .ThenInclude(r => r.Room)
-                                .ThenInclude(r => r.Warehouse)
+                                .ThenInclude(room => room.Warehouse)
 
                 // =================================================
                 // UNIT
                 // =================================================
+
                 .Include(s => s.Units)
 
                 .AsQueryable();
@@ -226,7 +282,6 @@ namespace whm.Repositories
 
             var stocks =
                 await query
-
                     .OrderByDescending(
                         s => s.LastUpdatedAt)
 

@@ -116,5 +116,11 @@ namespace whm.Models
 
         public List<Alias> Aliases { get; set; }
             = new List<Alias>();
+        // =========================
+        // Product Items
+        // =========================
+
+        public List<ProductItem> ProductItems { get; set; }
+            = new List<ProductItem>();
     }
 }

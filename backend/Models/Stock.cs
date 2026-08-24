@@ -151,5 +151,11 @@ namespace whm.Models
 
         public DateTime LastUpdatedAt { get; set; }
             = DateTime.UtcNow;
+        // =========================
+        // Product Items
+        // =========================
+
+        public List<ProductItem> ProductItems { get; set; }
+            = new List<ProductItem>();
     }
 }

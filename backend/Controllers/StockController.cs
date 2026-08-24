@@ -430,8 +430,12 @@ namespace whm.Controllers
                         // =================================================
 
                         Location =
-                            stock.Bin?.Bin_Name,
-
+    stock.Bin == null
+        ? null
+        : $" {stock.Bin.Bin_Name} / " +
+          $" {stock.Bin.Shelf?.Shelf_Name ?? "N/A"} / " +
+          $" {stock.Bin.Shelf?.Row?.Row_Name ?? "N/A"} / " +
+          $" {stock.Bin.Shelf?.Row?.Room?.Room_Name?? "N/A"}",
                         // =================================================
                         // WAREHOUSE
                         // =================================================
@@ -1346,15 +1350,10 @@ namespace whm.Controllers
         }
 
 
-        // =====================================================
-        // 9. UPDATE DELIVERY STATUS
-        // PATCH: api/Stock/1/delivery-status
-        // =====================================================
-
         [HttpPatch("Update{id:int}/delivery-status")]
         public async Task<IActionResult> UpdateDeliveryStatus(
-            int id,
-            UpdateDeliveryStatusDto dto)
+     int id,
+     UpdateDeliveryStatusDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -1363,12 +1362,11 @@ namespace whm.Controllers
 
             var stock =
                 await unitOfWork.Stocks
-                    .GetByIdAsync(id);
+                    .GetByIdForUpdateAsync(id);
 
             if (stock == null)
             {
-                return NotFound(
-                    "Stock not found.");
+                return NotFound("Stock not found.");
             }
 
             stock.DeliveryStatus =
@@ -1377,29 +1375,24 @@ namespace whm.Controllers
             stock.LastUpdatedAt =
                 DateTime.UtcNow;
 
-            unitOfWork.Stocks.Update(stock);
+            // لا تعمل Update هنا
+            // لأن stock بالفعل tracked
 
             await unitOfWork.SaveAsync();
 
             return Ok(new
             {
-                message =
-                    "Delivery status updated successfully.",
+                message = "Delivery status updated successfully.",
 
-                stockId =
-                    stock.Stock_Id,
+                stockId = stock.Stock_Id,
 
-                stockCode =
-                    stock.StockCode,
+                stockCode = stock.StockCode,
 
-                deliveryStatus =
-                    stock.DeliveryStatus,
+                deliveryStatus = stock.DeliveryStatus,
 
-                expiryDate =
-                    stock.ExpiryDate,
+                expiryDate = stock.ExpiryDate,
 
-                lastUpdatedAt =
-                    stock.LastUpdatedAt
+                lastUpdatedAt = stock.LastUpdatedAt
             });
         }
 
