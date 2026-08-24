@@ -24,7 +24,7 @@ namespace whm.Controllers
         // GET: api/Stock
         // =====================================================
 
-        [HttpGet]
+        [HttpGet("Getall")]
         public async Task<IActionResult> GetAll()
         {
             var stocks = await unitOfWork.Stocks.GetAllAsync();
@@ -80,7 +80,7 @@ namespace whm.Controllers
         // GET: api/Stock/1
         // =====================================================
 
-        [HttpGet("{id:int}")]
+        [HttpGet("Getbyid/{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var stock =
@@ -141,7 +141,7 @@ namespace whm.Controllers
         // GET: api/Stock/product/1
         // =====================================================
 
-        [HttpGet("product/{productId:int}")]
+        [HttpGet("GETSTOCKBYPRODUCT/{productId:int}")]
         public async Task<IActionResult> GetByProductId(
             int productId)
         {
@@ -312,20 +312,85 @@ namespace whm.Controllers
         // =====================================================
 
         [HttpGet("inventory")]
-        public async Task<IActionResult> GetInventoryStock()
+        public async Task<IActionResult> GetInventoryStock(
+    int page = 1,
+    int pageSize = 10)
         {
+            // =================================================
+            // VALIDATE PAGINATION
+            // =================================================
+
+            if (page < 1)
+            {
+                return BadRequest("Page must be greater than 0.");
+            }
+
+            if (pageSize < 1)
+            {
+                return BadRequest("PageSize must be greater than 0.");
+            }
+
+            // حد أقصى لحماية الـAPI
+            if (pageSize > 100)
+            {
+                return BadRequest(
+                    "PageSize cannot be greater than 100.");
+            }
+
+
+            // =================================================
+            // GET STOCK
+            // =================================================
+
             var stocks =
                 await unitOfWork.Stocks
                     .GetAllAsync();
 
             if (stocks == null || !stocks.Any())
             {
-                return NotFound(
-                    "No stock found.");
+                return Ok(new
+                {
+                    page,
+                    pageSize,
+                    totalItems = 0,
+                    totalPages = 0,
+                    hasPreviousPage = false,
+                    hasNextPage = false,
+                    stocks = new List<InventoryStockResponseDto>()
+                });
             }
 
+
+            // =================================================
+            // TOTAL ITEMS
+            // =================================================
+
+            var totalItems =
+                stocks.Count();
+
+
+            var totalPages =
+                (int)Math.Ceiling(
+                    totalItems / (double)pageSize);
+
+
+            // =================================================
+            // PAGINATION
+            // =================================================
+
+            var pagedStocks =
+                stocks
+                    .OrderByDescending(s => s.Stock_Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize);
+
+
+            // =================================================
+            // RESPONSE
+            // =================================================
+
             var result =
-                stocks.Select(stock =>
+                pagedStocks.Select(stock =>
                     new InventoryStockResponseDto
                     {
                         Stock_Id =
@@ -339,56 +404,136 @@ namespace whm.Controllers
                             stock.Product?.ProductName
                             ?? string.Empty,
 
+                        // =================================================
+                        // CATEGORY
+                        // =================================================
+
+                        Category =
+                            stock.Product?.Category?.Category_Name,
+
+                        // =================================================
+                        // EXPIRY DATE
+                        // =================================================
+
                         ExpiryDate =
                             stock.ExpiryDate,
 
-                        // Aliases مش موجودة حالياً
-                        // في الـ Stock/Product حسب الكود الحالي
+                        // =================================================
+                        // ALIASES
+                        // =================================================
+
                         Aliases =
                             new List<string>(),
+
+                        // =================================================
+                        // LOCATION
+                        // =================================================
 
                         Location =
                             stock.Bin?.Bin_Name,
 
+                        // =================================================
+                        // WAREHOUSE
+                        // =================================================
+
+                        Warehouse =
+                            stock.Bin?
+                                .Shelf?
+                                .Row?
+                                .Room?
+                                .Warehouse?
+                                .Warehouse_Name,
+
+                        // =================================================
+                        // LOT / BATCH
+                        // =================================================
+
                         LotBatch =
                             stock.StockCode,
+
+                        // =================================================
+                        // QUANTITY
+                        // =================================================
 
                         Quantity =
                             stock.Quantity,
 
-                        // لو Unit_Name هو اسم الـ Unit عندك
+                        // =================================================
+                        // UOM
+                        // =================================================
+
                         UOM =
                             stock.Units?.Unit_Name,
+
+                        // =================================================
+                        // UNIT PRICE
+                        // =================================================
+
+                        UnitPrice =
+                            stock.UnitPrice,
+
+                        // =================================================
+                        // AVAILABLE
+                        // =================================================
 
                         Available =
                             stock.Quantity -
                             stock.ReservedQuantity,
 
+                        // =================================================
+                        // RESERVED
+                        // =================================================
+
                         Reserved =
                             stock.ReservedQuantity,
+
+                        // =================================================
+                        // STATUS
+                        // =================================================
 
                         Status =
                             stock.StockStatus,
 
+                        // =================================================
+                        // LAST UPDATED
+                        // =================================================
+
                         LastUpdated =
                             stock.LastUpdatedAt
-                    });
+                    })
+                .ToList();
+
+
+            // =================================================
+            // FINAL RESPONSE
+            // =================================================
 
             return Ok(new
             {
-                count = result.Count(),
+                page,
+
+                pageSize,
+
+                totalItems,
+
+                totalPages,
+
+                hasPreviousPage =
+                    page > 1,
+
+                hasNextPage =
+                    page < totalPages,
 
                 stocks = result
             });
         }
-
 
         // =====================================================
         // 6. CREATE STOCK
         // POST: api/Stock
         // =====================================================
 
-        [HttpPost]
+        [HttpPost("Create")]
         public async Task<IActionResult> Create(
             CreateStockDto dto)
         {
@@ -628,7 +773,7 @@ namespace whm.Controllers
         // PUT: api/Stock/1
         // =====================================================
 
-        [HttpPut("{id:int}")]
+        [HttpPut("Update{id:int}")]
         public async Task<IActionResult> Update(
             int id,
             UpdateStockDto dto)
@@ -887,7 +1032,7 @@ namespace whm.Controllers
         // PATCH: api/Stock/1/status
         // =====================================================
 
-        [HttpPatch("{id:int}/status")]
+        [HttpPatch("UPDATESTOCKSTATUS{id:int}/status")]
         public async Task<IActionResult> UpdateStatus(
             int id,
             UpdateStockStatusDto dto)
@@ -945,7 +1090,7 @@ namespace whm.Controllers
         // PATCH: api/Stock/1/delivery-status
         // =====================================================
 
-        [HttpPatch("{id:int}/delivery-status")]
+        [HttpPatch("Update{id:int}/delivery-status")]
         public async Task<IActionResult> UpdateDeliveryStatus(
             int id,
             UpdateDeliveryStatusDto dto)

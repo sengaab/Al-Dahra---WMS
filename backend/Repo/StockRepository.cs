@@ -21,10 +21,16 @@ namespace whm.Repositories
         {
             return await _context.Stocks
                 .AsNoTracking()
+
                 .Include(s => s.Product)
+                    .ThenInclude(p => p.Category)
+
                 .Include(s => s.Bin)
+
                 .Include(s => s.Units)
+
                 .OrderByDescending(s => s.Stock_Id)
+
                 .ToListAsync();
         }
 
@@ -37,10 +43,16 @@ namespace whm.Repositories
         {
             return await _context.Stocks
                 .AsNoTracking()
+
                 .Include(s => s.Product)
+                    .ThenInclude(p => p.Category)
+
                 .Include(s => s.Bin)
+
                 .Include(s => s.Units)
-                .FirstOrDefaultAsync(s => s.Stock_Id == id);
+
+                .FirstOrDefaultAsync(
+                    s => s.Stock_Id == id);
         }
 
 
@@ -53,11 +65,18 @@ namespace whm.Repositories
         {
             return await _context.Stocks
                 .AsNoTracking()
+
                 .Include(s => s.Product)
+                    .ThenInclude(p => p.Category)
+
                 .Include(s => s.Bin)
+
                 .Include(s => s.Units)
+
                 .Where(s => s.ProductId == productId)
+
                 .OrderByDescending(s => s.Stock_Id)
+
                 .ToListAsync();
         }
 
@@ -71,11 +90,18 @@ namespace whm.Repositories
         {
             return await _context.Stocks
                 .AsNoTracking()
+
                 .Include(s => s.Product)
+                    .ThenInclude(p => p.Category)
+
                 .Include(s => s.Bin)
+
                 .Include(s => s.Units)
+
                 .Where(s => s.Bin_Id == binId)
+
                 .OrderByDescending(s => s.Stock_Id)
+
                 .ToListAsync();
         }
 
@@ -90,14 +116,18 @@ namespace whm.Repositories
         {
             var query = _context.Stocks
                 .AsNoTracking()
+
                 .Include(s => s.Product)
                     .ThenInclude(p => p.Category)
+
                 .Include(s => s.Bin)
                     .ThenInclude(b => b.Shelf)
                         .ThenInclude(sh => sh.Row)
                             .ThenInclude(r => r.Room)
                                 .ThenInclude(r => r.Warehouse)
+
                 .Include(s => s.Units)
+
                 .AsQueryable();
 
 
@@ -139,22 +169,79 @@ namespace whm.Repositories
 
 
         // =========================================================
-        // GET INVENTORY
+        // GET INVENTORY WITH PAGINATION
         // =========================================================
 
-        public async Task<IEnumerable<Stock>> GetInventoryAsync()
+        public async Task<(List<Stock> Stocks, int TotalCount)>
+            GetInventoryAsync(
+                int pageNumber,
+                int pageSize)
         {
-            return await _context.Stocks
+            var query = _context.Stocks
                 .AsNoTracking()
+
+                // =================================================
+                // PRODUCT
+                // =================================================
                 .Include(s => s.Product)
+                    .ThenInclude(p => p.Category)
+
+                // =================================================
+                // LOCATION
+                // Bin
+                //   ↓
+                // Shelf
+                //   ↓
+                // Row
+                //   ↓
+                // Room
+                //   ↓
+                // Warehouse
+                // =================================================
                 .Include(s => s.Bin)
                     .ThenInclude(b => b.Shelf)
                         .ThenInclude(sh => sh.Row)
                             .ThenInclude(r => r.Room)
                                 .ThenInclude(r => r.Warehouse)
+
+                // =================================================
+                // UNIT
+                // =================================================
                 .Include(s => s.Units)
-                .OrderByDescending(s => s.LastUpdatedAt)
-                .ToListAsync();
+
+                .AsQueryable();
+
+
+            // =====================================================
+            // TOTAL COUNT
+            // =====================================================
+
+            var totalCount =
+                await query.CountAsync();
+
+
+            // =====================================================
+            // PAGINATION
+            // =====================================================
+
+            var stocks =
+                await query
+
+                    .OrderByDescending(
+                        s => s.LastUpdatedAt)
+
+                    .Skip(
+                        (pageNumber - 1) * pageSize)
+
+                    .Take(pageSize)
+
+                    .ToListAsync();
+
+
+            return (
+                Stocks: stocks,
+                TotalCount: totalCount
+            );
         }
 
 

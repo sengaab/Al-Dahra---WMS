@@ -27,6 +27,9 @@ namespace whm.UnitOfWork
         ISiteRepository Sites { get; }
         IDepartmentRepository Departments { get; }
         IDashboardRepository Dashboard { get; }
+        ISupplierRepository Suppliers { get; }
+        IOrderRepository Orders { get; }
+        IOrderItemRepository OrderItems { get; }
 
         Task<int> SaveAsync();
     }
