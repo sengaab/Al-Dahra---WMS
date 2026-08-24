@@ -31,7 +31,9 @@ namespace whm.UnitOfWork
         public ISiteRepository Sites { get; }
         public IDepartmentRepository Departments { get; }
         public IDashboardRepository Dashboard { get; }
-
+        public ISupplierRepository Suppliers { get; }
+        public IOrderRepository Orders { get; }
+        public IOrderItemRepository OrderItems { get; }
 
         public UnitOfWork(DataBaseContext db)
         {
@@ -60,6 +62,9 @@ namespace whm.UnitOfWork
             Sites = new SiteRepository(db);
             Departments = new DepartmentRepository(db);
             Dashboard = new DashboardRepository(db);
+            Suppliers = new SupplierRepository(db);
+            Orders= new OrderRepository(db);
+            OrderItems = new OrderItemRepository(db);
         }
 
 

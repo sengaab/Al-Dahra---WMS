@@ -1,4 +1,5 @@
 ﻿using whm.Models;
+using whm.Models;
 
 namespace whm.Repositories.Interfaces
 {
@@ -11,5 +12,7 @@ namespace whm.Repositories.Interfaces
         IQueryable<Warehouse> GetWarehousesQuery();
 
         IQueryable<Operations> GetTransactionsQuery();
+
+        IQueryable<Order> GetOrdersQuery();
     }
 }

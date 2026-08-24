@@ -18,7 +18,14 @@ namespace whm.Repositories.Interfaces
             int? siteId,
             int? departmentId);
 
-        Task<IEnumerable<Stock>> GetInventoryAsync();
+        // =========================================================
+        // GET INVENTORY WITH PAGINATION
+        // =========================================================
+
+        Task<(List<Stock> Stocks, int TotalCount)>
+            GetInventoryAsync(
+                int pageNumber,
+                int pageSize);
 
         Task AddAsync(Stock stock);
 

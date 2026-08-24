@@ -98,6 +98,9 @@ namespace whm.DTOs.Stock
     }
     public class InventoryStockResponseDto
     {
+        public string? Category {  get; set; }
+        public string? Warehouse { get; set; }
+        public decimal UnitPrice { get; set; }
         public int Stock_Id { get; set; }
 
         public string SKU { get; set; } = string.Empty;

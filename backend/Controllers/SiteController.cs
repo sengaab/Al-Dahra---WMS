@@ -22,7 +22,7 @@ namespace whm.Controllers
         // GET: api/Site
         // =====================================================
 
-        [HttpGet]
+        [HttpGet("Getall")]
         public async Task<IActionResult> GetAll()
         {
             var sites =
@@ -57,7 +57,7 @@ namespace whm.Controllers
         // GET: api/Site/1
         // =====================================================
 
-        [HttpGet("{id:int}")]
+        [HttpGet("GetbyId/{id:int}")]
         public async Task<IActionResult> GetById(
             int id)
         {
@@ -141,7 +141,7 @@ namespace whm.Controllers
         // POST: api/Site
         // =====================================================
 
-        [HttpPost]
+        [HttpPost("Create")]
         public async Task<IActionResult> Create(
             CreateSiteDTO dto)
         {
@@ -238,7 +238,7 @@ namespace whm.Controllers
         // PUT: api/Site/1
         // =====================================================
 
-        [HttpPut("{id:int}")]
+        [HttpPut("Update/{id:int}")]
         public async Task<IActionResult> Update(
             int id,
             UpdateSiteDTO dto)

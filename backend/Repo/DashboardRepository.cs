@@ -13,11 +13,21 @@ namespace whm.Repositories
             _context = context;
         }
 
+
+        // =====================================================
+        // PRODUCTS
+        // =====================================================
+
         public IQueryable<Product> GetProductsQuery()
         {
             return _context.Products
                 .AsNoTracking();
         }
+
+
+        // =====================================================
+        // STOCK
+        // =====================================================
 
         public IQueryable<Stock> GetStocksQuery()
         {
@@ -26,6 +36,11 @@ namespace whm.Repositories
                 .Where(s => s.IsActive);
         }
 
+
+        // =====================================================
+        // WAREHOUSES
+        // =====================================================
+
         public IQueryable<Warehouse> GetWarehousesQuery()
         {
             return _context.Warehouses
@@ -33,9 +48,25 @@ namespace whm.Repositories
                 .Where(w => w.IsActive);
         }
 
+
+        // =====================================================
+        // OPERATIONS
+        // =====================================================
+
         public IQueryable<Operations> GetTransactionsQuery()
         {
             return _context.Operations
+                .AsNoTracking();
+        }
+
+
+        // =====================================================
+        // ORDERS
+        // =====================================================
+
+        public IQueryable<Order> GetOrdersQuery()
+        {
+            return _context.Orders
                 .AsNoTracking();
         }
     }
