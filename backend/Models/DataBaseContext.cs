@@ -43,6 +43,7 @@ namespace whm.Models
         public DbSet<ReportSchedule> ReportSchedules { get; set; }
 
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<ProductItem> ProductItems { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -93,7 +94,55 @@ namespace whm.Models
             modelBuilder.Entity<Order>()
                 .Property(o => o.Priority)
                 .HasConversion<string>();
+            /// =====================================================
+            // PRODUCT → PRODUCT ITEM
+            // One Product → Many ProductItems
+            // =====================================================
 
+            modelBuilder.Entity<ProductItem>()
+                .HasOne(i => i.Product)
+                .WithMany(p => p.ProductItems)
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // STOCK → PRODUCT ITEM
+            // One Stock → Many ProductItems
+            // =====================================================
+
+            modelBuilder.Entity<ProductItem>()
+                .HasOne(i => i.Stock)
+                .WithMany(s => s.ProductItems)
+                .HasForeignKey(i => i.StockId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // PRODUCT ITEM → UNIQUE ITEM CODE
+            // =====================================================
+
+            modelBuilder.Entity<ProductItem>()
+                .HasIndex(i => i.ItemCode)
+                .IsUnique();
+
+
+            // =====================================================
+            // PRODUCT ITEM → UNIQUE BARCODE
+            // =====================================================
+
+            modelBuilder.Entity<ProductItem>()
+                .HasIndex(i => i.Barcode)
+                .IsUnique();
+
+
+            // =====================================================
+            // PRODUCT ITEM → UNIQUE QR
+            // =====================================================
+
+            modelBuilder.Entity<ProductItem>()
+                .HasIndex(i => i.QRValue)
+                .IsUnique();
 
             // =====================================================
             // ROLE
@@ -402,12 +451,23 @@ namespace whm.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // =====================================================
-            // OPERATIONS → UNIT
-            // One Unit → Many Operations
-            // =====================================================
 
-            modelBuilder.Entity<Operations>()
+
+            // =====================================================
+            // UNIQUE SKU
+
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.SKU)
+                .IsUnique();
+        
+
+
+        // =====================================================
+        // OPERATIONS → UNIT
+        // One Unit → Many Operations
+        // =====================================================
+
+        modelBuilder.Entity<Operations>()
                 .HasOne(o => o.Unit)
                 .WithMany(u => u.operations)
                 .HasForeignKey(o => o.Unit_Id)
@@ -544,6 +604,8 @@ namespace whm.Models
                 .WithMany(w => w.reports)
                 .HasForeignKey(r => r.Warehouse_Id)
                 .OnDelete(DeleteBehavior.Restrict);
+            //Unique SKU
+
 
 
             // =====================================================
@@ -637,6 +699,7 @@ namespace whm.Models
             modelBuilder.Entity<Stock>()
                 .HasIndex(s => s.StockCode)
                 .IsUnique();
+
         }
     }
 }

@@ -28,6 +28,7 @@ namespace whm.Repositories.Interfaces
                 int pageSize);
 
         Task AddAsync(Stock stock);
+        Task<Stock?> GetByIdForUpdateAsync(int id);
 
         void Update(Stock stock);
 

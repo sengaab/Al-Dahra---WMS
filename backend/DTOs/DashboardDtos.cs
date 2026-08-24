@@ -1,6 +1,10 @@
-namespace whm.Models
+namespace whm.DTOs
 {
-    public class DashboardResponse
+    // =====================================================
+    // DASHBOARD RESPONSE
+    // =====================================================
+
+    public class DashboardResponseDto
     {
         public DashboardStatsDto Stats { get; set; } = new();
 
@@ -13,7 +17,18 @@ namespace whm.Models
         public IncomingStockDto IncomingStock { get; set; } = new();
 
         public List<RecentActivityDto> RecentActivity { get; set; } = new();
+
+        // Stock information
+        public List<DashboardStockDto> Stocks { get; set; } = new();
+
+        // Product Item information
+        public List<DashboardProductItemDto> ProductItems { get; set; } = new();
     }
+
+
+    // =====================================================
+    // DASHBOARD STATS
+    // =====================================================
 
     public class DashboardStatsDto
     {
@@ -26,6 +41,11 @@ namespace whm.Models
         public int LowStock { get; set; }
     }
 
+
+    // =====================================================
+    // VALUE BY CATEGORY
+    // =====================================================
+
     public class CategoryValueDto
     {
         public int CategoryId { get; set; }
@@ -34,6 +54,11 @@ namespace whm.Models
 
         public decimal Value { get; set; }
     }
+
+
+    // =====================================================
+    // WAREHOUSE OVERVIEW
+    // =====================================================
 
     public class WarehouseOverviewDto
     {
@@ -52,6 +77,11 @@ namespace whm.Models
         public string StockStatus { get; set; } = "Good";
     }
 
+
+    // =====================================================
+    // STOCK STATUS
+    // =====================================================
+
     public class StockStatusDto
     {
         public string Status { get; set; } = string.Empty;
@@ -60,6 +90,11 @@ namespace whm.Models
 
         public decimal Percentage { get; set; }
     }
+
+
+    // =====================================================
+    // INCOMING STOCK
+    // =====================================================
 
     public class IncomingStockDto
     {
@@ -74,6 +109,11 @@ namespace whm.Models
         public List<IncomingStockOrderDto> Orders { get; set; } = new();
     }
 
+
+    // =====================================================
+    // INCOMING STOCK ORDER
+    // =====================================================
+
     public class IncomingStockOrderDto
     {
         public string PORef { get; set; } = string.Empty;
@@ -86,6 +126,11 @@ namespace whm.Models
 
         public string Status { get; set; } = string.Empty;
     }
+
+
+    // =====================================================
+    // RECENT ACTIVITY
+    // =====================================================
 
     public class RecentActivityDto
     {
@@ -100,5 +145,79 @@ namespace whm.Models
         public string? From { get; set; }
 
         public string? To { get; set; }
+    }
+
+
+    // =====================================================
+    // STOCK INFORMATION
+    // =====================================================
+
+    public class DashboardStockDto
+    {
+        public int ProductId { get; set; }
+
+        public int StockId { get; set; }
+
+        public string SKU { get; set; } = string.Empty;
+
+        public string ProductName { get; set; } = string.Empty;
+
+        public decimal Quantity { get; set; }
+    }
+
+
+    // =====================================================
+    // PRODUCT ITEM INFORMATION
+    // =====================================================
+
+    public class DashboardProductItemDto
+    {
+        // =========================
+        // Product Item
+        // =========================
+
+        public int ItemId { get; set; }
+
+        public string ItemCode { get; set; } = string.Empty;
+
+        public string Barcode { get; set; } = string.Empty;
+
+        public string QRValue { get; set; } = string.Empty;
+
+
+        // =========================
+        // Product
+        // =========================
+
+        public int ProductId { get; set; }
+
+        public string SKU { get; set; } = string.Empty;
+
+        public string ProductName { get; set; } = string.Empty;
+
+
+        // =========================
+        // Stock
+        // =========================
+
+        public int StockId { get; set; }
+
+        public string StockCode { get; set; } = string.Empty;
+
+
+        // =========================
+        // Location
+        // =========================
+
+        public int? BinId { get; set; }
+
+        public string? BinName { get; set; }
+
+
+        // =========================
+        // Status
+        // =========================
+
+        public bool IsActive { get; set; }
     }
 }

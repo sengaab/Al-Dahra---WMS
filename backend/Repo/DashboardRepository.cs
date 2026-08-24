@@ -38,6 +38,18 @@ namespace whm.Repositories
 
 
         // =====================================================
+        // PRODUCT ITEMS
+        // =====================================================
+
+        public IQueryable<ProductItem> GetProductItemsQuery()
+        {
+            return _context.ProductItems
+                .AsNoTracking()
+                .Where(i => i.IsActive);
+        }
+
+
+        // =====================================================
         // WAREHOUSES
         // =====================================================
 
