@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using whm.Models;
 
-namespace whm.Models
+namespace whm
 {
     public class DataBaseContext : DbContext
     {
@@ -9,42 +10,90 @@ namespace whm.Models
         {
         }
 
-        // =====================================================
+        // =========================================================
         // DbSets
-        // =====================================================
+        // =========================================================
 
-        public DbSet<Users> Users { get; set; }
-        public DbSet<Role> Roles { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
+        public DbSet<BarcodeScan> BarcodeScans { get; set; }
+
+        public DbSet<Category> Categories { get; set; }
 
         public DbSet<Department> Departments { get; set; }
-        public DbSet<Categories> Categories { get; set; }
-        public DbSet<SubCategory> SubCategories { get; set; }
+
+        public DbSet<Inspection> Inspections { get; set; }
+
+        public DbSet<Location> Locations { get; set; }
+
+        public DbSet<PickItem> PickItems { get; set; }
+
+        public DbSet<PickList> PickLists { get; set; }
 
         public DbSet<Product> Products { get; set; }
-        public DbSet<Alias> Aliases { get; set; }
-        public DbSet<Unit> Units { get; set; }
+
+        public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+
+        public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+
+        public DbSet<Putaway> Putaways { get; set; }
+
+        public DbSet<PutawayItem> PutawayItems { get; set; }
+
+        public DbSet<Receipt> Receipts { get; set; }
+
+        public DbSet<ReceiptItem> ReceiptItems { get; set; }
+
+        public DbSet<Report> Reports { get; set; }
+
+        public DbSet<ReportSchedule> ReportSchedules { get; set; }
+
+        public DbSet<Reservation> Reservations { get; set; }
+
+        public DbSet<Role> Roles { get; set; }
 
         public DbSet<Site> Sites { get; set; }
-        public DbSet<Warehouse> Warehouses { get; set; }
-        public DbSet<Room> Rooms { get; set; }
-        public DbSet<Row> Rows { get; set; }
-        public DbSet<Shelf> Shelves { get; set; }
-        public DbSet<Bin> Bins { get; set; }
 
         public DbSet<Stock> Stocks { get; set; }
 
-        public DbSet<Operations> Operations { get; set; }
+        public DbSet<StockAdjustment> StockAdjustments { get; set; }
+
+        public DbSet<StockCount> StockCounts { get; set; }
+
+        public DbSet<StockCountItem> StockCountItems { get; set; }
+
+        public DbSet<StockIssue> StockIssues { get; set; }
+
+        public DbSet<StockIssueItem> StockIssueItems { get; set; }
+
+        public DbSet<StockRequest> StockRequests { get; set; }
+
+        public DbSet<StockRequestItem> StockRequestItems { get; set; }
+
+        public DbSet<StockReturn> StockReturns { get; set; }
+
+        public DbSet<StockReturnItem> StockReturnItems { get; set; }
+
+        public DbSet<StockTransaction> StockTransactions { get; set; }
+
+        public DbSet<StockTransfer> StockTransfers { get; set; }
+
+        public DbSet<StockTransferItem> StockTransferItems { get; set; }
 
         public DbSet<Supplier> Suppliers { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
 
-        public DbSet<Report> Reports { get; set; }
-        public DbSet<ReportSchedule> ReportSchedules { get; set; }
+        public DbSet<SupplierProduct> SupplierProducts { get; set; }
 
-        public DbSet<AuditLog> AuditLogs { get; set; }
-        public DbSet<ProductItem> ProductItems { get; set; }
+        public DbSet<Unit> Units { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<Warehouse> Warehouses { get; set; }
+
+
+        // =========================================================
+        // OnModelCreating
+        // =========================================================
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,654 +101,1295 @@ namespace whm.Models
 
 
             // =====================================================
-            // ENUMS → TEXT
+            // ENUMS -> TEXT
             // =====================================================
 
-            //modelBuilder.Entity<Product>()
-            //    .Property(p => p.Status)
-            //    .HasConversion<string>();
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    var clrType = property.ClrType;
+                    var enumType = Nullable.GetUnderlyingType(clrType) ?? clrType;
 
-            modelBuilder.Entity<Stock>()
-                .Property(s => s.StockStatus)
-                .HasConversion<string>();
+                    if (enumType.IsEnum)
+                    {
+                        var converterType =
+                            typeof(Microsoft.EntityFrameworkCore.Storage.ValueConversion.EnumToStringConverter<>)
+                            .MakeGenericType(enumType);
 
-            modelBuilder.Entity<Stock>()
-                .Property(s => s.DeliveryStatus)
-                .HasConversion<string>();
+                        var converter = Activator.CreateInstance(converterType);
 
-            modelBuilder.Entity<Operations>()
-                .Property(o => o.OperationType)
-                .HasConversion<string>();
+                        property.SetValueConverter((Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter)converter!);
 
-            modelBuilder.Entity<Report>()
-                .Property(r => r.ReportType)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<ReportSchedule>()
-                .Property(r => r.ReportType)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<ReportSchedule>()
-                .Property(r => r.Frequency)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Supplier>()
-                .Property(s => s.Status)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Order>()
-                .Property(o => o.Status)
-                .HasConversion<string>();
-
-            modelBuilder.Entity<Order>()
-                .Property(o => o.Priority)
-                .HasConversion<string>();
-            /// =====================================================
-            // PRODUCT → PRODUCT ITEM
-            // One Product → Many ProductItems
-            // =====================================================
-
-            modelBuilder.Entity<ProductItem>()
-                .HasOne(i => i.Product)
-                .WithMany(p => p.ProductItems)
-                .HasForeignKey(i => i.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
-
+                        property.SetMaxLength(50);
+                    }
+                }
+            }
 
             // =====================================================
-            // STOCK → PRODUCT ITEM
-            // One Stock → Many ProductItems
+            // PRODUCT
             // =====================================================
 
-            modelBuilder.Entity<ProductItem>()
-                .HasOne(i => i.Stock)
-                .WithMany(s => s.ProductItems)
-                .HasForeignKey(i => i.StockId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(x => x.ProductId);
 
+                entity.Property(x => x.SKU)
+                    .IsRequired()
+                    .HasMaxLength(100);
 
-            // =====================================================
-            // PRODUCT ITEM → UNIQUE ITEM CODE
-            // =====================================================
+                entity.Property(x => x.Barcode)
+                    .IsRequired()
+                    .HasMaxLength(100);
 
-            modelBuilder.Entity<ProductItem>()
-                .HasIndex(i => i.ItemCode)
-                .IsUnique();
+                entity.Property(x => x.QRValue)
+                    .IsRequired()
+                    .HasMaxLength(100);
 
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(255);
 
-            // =====================================================
-            // PRODUCT ITEM → UNIQUE BARCODE
-            // =====================================================
+                entity.Property(x => x.UnitPrice)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<ProductItem>()
-                .HasIndex(i => i.Barcode)
-                .IsUnique();
+                entity.Property(x => x.MinimumStock)
+                    .HasColumnType("decimal(18,4)");
 
+                // =============================
+                // UNIQUE
+                // =============================
 
-            // =====================================================
-            // PRODUCT ITEM → UNIQUE QR
-            // =====================================================
+                entity.HasIndex(x => x.SKU)
+                    .IsUnique();
 
-            modelBuilder.Entity<ProductItem>()
-                .HasIndex(i => i.QRValue)
-                .IsUnique();
+                entity.HasIndex(x => x.Barcode)
+                    .IsUnique();
+
+                entity.HasIndex(x => x.QRValue)
+                    .IsUnique();
+
+                // =============================
+                // Category
+                // =============================
+
+                entity.HasOne(x => x.Category)
+                    .WithMany(x => x.Products)
+                    .HasForeignKey(x => x.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // =============================
+                // Unit
+                // =============================
+
+                entity.HasOne(x => x.Unit)
+                    .WithMany(x => x.Products)
+                    .HasForeignKey(x => x.UnitId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
 
             // =====================================================
             // ROLE
             // =====================================================
 
-            modelBuilder.Entity<Role>()
-                .HasIndex(r => r.Role_Name)
-                .IsUnique();
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasKey(x => x.RoleId);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Description)
+                    .HasMaxLength(500);
+
+                entity.HasIndex(x => x.Name)
+                    .IsUnique();
+            });
 
 
             // =====================================================
-            // ROLE SEED DATA
+            // USER
             // =====================================================
 
-            modelBuilder.Entity<Role>().HasData(
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(x => x.UserId);
 
-                new Role
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(x => x.Email)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(x => x.EmployeeCode)
+                    .HasMaxLength(50);
+
+                entity.HasIndex(x => x.Email)
+                    .IsUnique();
+
+                entity.HasIndex(x => x.EmployeeCode)
+                    .IsUnique()
+                    .HasFilter("\"EmployeeCode\" IS NOT NULL");
+
+                // Role
+                entity.HasOne(x => x.Role)
+                    .WithMany(x => x.Users)
+                    .HasForeignKey(x => x.RoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Department
+                entity.HasOne(x => x.Department)
+                    .WithMany(x => x.Users)
+                    .HasForeignKey(x => x.DepartmentId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+
+            // =====================================================
+            // DEPARTMENT
+            // =====================================================
+
+            modelBuilder.Entity<Department>(entity =>
+            {
+                entity.HasKey(x => x.DepartmentId);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.HasIndex(x => x.Name)
+                    .IsUnique();
+            });
+
+
+            // =====================================================
+            // CATEGORY
+            // =====================================================
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasKey(x => x.CategoryId);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Description)
+                    .HasMaxLength(500);
+
+                entity.HasIndex(x => x.Name)
+                    .IsUnique();
+            });
+
+
+            // =====================================================
+            // UNIT
+            // =====================================================
+
+            modelBuilder.Entity<Unit>(entity =>
+            {
+                entity.HasKey(x => x.UnitId);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Abbreviation)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.HasIndex(x => x.Name)
+                    .IsUnique();
+
+                entity.HasIndex(x => x.Abbreviation)
+                    .IsUnique();
+            });
+
+
+            // =====================================================
+            // SITE
+            // =====================================================
+
+            modelBuilder.Entity<Site>(entity =>
+            {
+                entity.HasKey(x => x.SiteId);
+
+                entity.Property(x => x.Code)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.HasIndex(x => x.Code)
+                    .IsUnique();
+            });
+
+
+            // =====================================================
+            // WAREHOUSE
+            // =====================================================
+
+            modelBuilder.Entity<Warehouse>(entity =>
+            {
+                entity.HasKey(x => x.WarehouseId);
+
+                entity.Property(x => x.Code)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.HasIndex(x => new
                 {
-                    Role_Id = 1,
-                    Role_Name = "Admin",
-                    Role_Description = "System Administrator",
-                    IsActive = true,
-                    CreateAt = new DateTimeOffset(
-                        new DateTime(2026, 1, 1),
-                        TimeSpan.Zero),
-                    UpdateAt = new DateTimeOffset(
-                        new DateTime(2026, 1, 1),
-                        TimeSpan.Zero)
-                },
+                    x.SiteId,
+                    x.Code
+                }).IsUnique();
 
-                new Role
+                entity.HasOne(x => x.Site)
+                    .WithMany(x => x.Warehouses)
+                    .HasForeignKey(x => x.SiteId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
+            // =====================================================
+            // LOCATION
+            // =====================================================
+
+            modelBuilder.Entity<Location>(entity =>
+            {
+                entity.HasKey(x => x.LocationId);
+
+                entity.Property(x => x.Code)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(x => x.Type)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasIndex(x => new
                 {
-                    Role_Id = 2,
-                    Role_Name = "Employee",
-                    Role_Description = "Normal Employee",
-                    IsActive = true,
-                    CreateAt = new DateTimeOffset(
-                        new DateTime(2026, 1, 1),
-                        TimeSpan.Zero),
-                    UpdateAt = new DateTimeOffset(
-                        new DateTime(2026, 1, 1),
-                        TimeSpan.Zero)
-                },
+                    x.WarehouseId,
+                    x.Code
+                }).IsUnique();
 
-                new Role
+                // Warehouse
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany(x => x.Locations)
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Parent Location
+                entity.HasOne(x => x.ParentLocation)
+                    .WithMany(x => x.ChildLocations)
+                    .HasForeignKey(x => x.ParentLocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
+            // =====================================================
+            // SUPPLIER
+            // =====================================================
+
+            modelBuilder.Entity<Supplier>(entity =>
+            {
+                entity.HasKey(x => x.SupplierId);
+
+                entity.Property(x => x.Code)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(x => x.Email)
+                    .HasMaxLength(255);
+
+                entity.Property(x => x.Phone)
+                    .HasMaxLength(50);
+
+                entity.HasIndex(x => x.Code)
+                    .IsUnique();
+            });
+
+
+            // =====================================================
+            // SUPPLIER PRODUCT
+            // =====================================================
+
+            modelBuilder.Entity<SupplierProduct>(entity =>
+            {
+                entity.HasKey(x => x.SupplierProductId);
+
+                entity.Property(x => x.UnitPrice)
+                    .HasColumnType("decimal(18,4)");
+
+                entity.HasIndex(x => new
                 {
-                    Role_Id = 3,
-                    Role_Name = "Manager",
-                    Role_Description = "Warehouse Manager",
-                    IsActive = true,
-                    CreateAt = new DateTimeOffset(
-                        new DateTime(2026, 1, 1),
-                        TimeSpan.Zero),
-                    UpdateAt = new DateTimeOffset(
-                        new DateTime(2026, 1, 1),
-                        TimeSpan.Zero)
-                }
-            );
+                    x.SupplierId,
+                    x.ProductId
+                }).IsUnique();
 
+                entity.HasOne(x => x.Supplier)
+                    .WithMany(x => x.SupplierProducts)
+                    .HasForeignKey(x => x.SupplierId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Product)
+                    .WithMany(x => x.SupplierProducts)
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // DECIMAL PRECISION
+            // PURCHASE ORDER
             // =====================================================
 
-            modelBuilder.Entity<Stock>()
-                .Property(s => s.Quantity)
-                .HasPrecision(18, 3);
+            modelBuilder.Entity<PurchaseOrder>(entity =>
+            {
+                entity.HasKey(x => x.PurchaseOrderId);
 
-            modelBuilder.Entity<Stock>()
-                .Property(s => s.UnitPrice)
-                .HasPrecision(18, 2);
+                entity.Property(x => x.PONumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-            modelBuilder.Entity<Operations>()
-                .Property(o => o.Quantity)
-                .HasPrecision(18, 3);
+                entity.HasIndex(x => x.PONumber)
+                    .IsUnique();
 
-            modelBuilder.Entity<OrderItem>()
-                .Property(o => o.Quantity)
-                .HasPrecision(18, 3);
+                entity.Property(x => x.TotalValue)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<OrderItem>()
-                .Property(o => o.UnitPrice)
-                .HasPrecision(18, 2);
+                // Supplier
+                entity.HasOne(x => x.Supplier)
+                    .WithMany(x => x.PurchaseOrders)
+                    .HasForeignKey(x => x.SupplierId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<OrderItem>()
-                .Property(o => o.TaxRate)
-                .HasPrecision(5, 2);
+                // Site
+                entity.HasOne(x => x.Site)
+                    .WithMany()
+                    .HasForeignKey(x => x.SiteId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<OrderItem>()
-                .Property(o => o.TotalPrice)
-                .HasPrecision(18, 2);
+                // Creator
+                entity.HasOne(x => x.Creator)
+                    .WithMany()
+                    .HasForeignKey(x => x.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<OrderItem>()
-                .Property(o => o.ReceivedQuantity)
-                .HasPrecision(18, 3);
+                // Approver
+                entity.HasOne(x => x.Approver)
+                    .WithMany()
+                    .HasForeignKey(x => x.ApprovedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
-            modelBuilder.Entity<Order>()
-                .Property(o => o.Subtotal)
-                .HasPrecision(18, 2);
 
-            modelBuilder.Entity<Order>()
-                .Property(o => o.TaxAmount)
-                .HasPrecision(18, 2);
+            // =====================================================
+            // PURCHASE ORDER ITEM
+            // =====================================================
 
-            modelBuilder.Entity<Order>()
-                .Property(o => o.TotalAmount)
-                .HasPrecision(18, 2);
+            modelBuilder.Entity<PurchaseOrderItem>(entity =>
+            {
+                entity.HasKey(x => x.PurchaseOrderItemId);
 
+                entity.Property(x => x.OrderedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            // =====================================================
-            // USERS → ROLE
-            // One Role → Many Users
-            // =====================================================
+                entity.Property(x => x.ReceivedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<Users>()
-                .HasOne(u => u.role)
-                .WithMany(r => r.User)
-                .HasForeignKey(u => u.Role_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.RemainingQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.Property(x => x.UnitPrice)
+                    .HasColumnType("decimal(18,4)");
 
-            // =====================================================
-            // USER EMAIL UNIQUE
-            // =====================================================
+                entity.Property(x => x.TotalPrice)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<Users>()
-                .HasIndex(u => u.User_Email)
-                .IsUnique();
+                entity.HasOne(x => x.PurchaseOrder)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.PurchaseOrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
+
             // =====================================================
-            // DEPARTMENT → CATEGORY
-            // One Department → Many Categories
+            // RECEIPT
             // =====================================================
 
-            modelBuilder.Entity<Categories>()
-                .HasOne(c => c.Department)
-                .WithMany(d => d.Categories)
-                .HasForeignKey(c => c.Department_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Receipt>(entity =>
+            {
+                entity.HasKey(x => x.ReceiptId);
 
+                entity.Property(x => x.ReceiptNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-            // =====================================================
-            // CATEGORY → PRODUCT
-            // One Category → Many Products
-            // =====================================================
+                entity.HasIndex(x => x.ReceiptNumber)
+                    .IsUnique();
+
+                entity.HasOne(x => x.PurchaseOrder)
+                    .WithMany(x => x.Receipts)
+                    .HasForeignKey(x => x.PurchaseOrderId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Receiver)
+                    .WithMany()
+                    .HasForeignKey(x => x.ReceivedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
+
             // =====================================================
-            // CATEGORY → SUBCATEGORY
-            // One Category → Many SubCategories
+            // RECEIPT ITEM
             // =====================================================
 
-            modelBuilder.Entity<SubCategory>()
-                .HasOne(sc => sc.Category)
-                .WithMany(c => c.SubCategories)
-                .HasForeignKey(sc => sc.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ReceiptItem>(entity =>
+            {
+                entity.HasKey(x => x.ReceiptItemId);
 
+                entity.Property(x => x.ReceivedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            // =====================================================
-            // SUBCATEGORY → PRODUCT
-            // One SubCategory → Many Products
-            // =====================================================
+                entity.Property(x => x.AcceptedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.SubCategory)
-                .WithMany(sc => sc.Products)
-                .HasForeignKey(p => p.SubCategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.QuarantineQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.Property(x => x.RejectedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            // =====================================================
-            // UNIT → PRODUCT
-            // One Unit → Many Products
-            // =====================================================
+                entity.HasOne(x => x.Receipt)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.ReceiptId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.PurchaseOrderItem)
+                    .WithMany(x => x.ReceiptItems)
+                    .HasForeignKey(x => x.PurchaseOrderItemId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            // ملاحظة:
-            // الـ Product الحالي اللي بعتّه لا يحتوي UnitId.
-            // لذلك لا نضيف علاقة Product → Unit هنا.
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
 
             // =====================================================
-            // SITE → WAREHOUSE
-            // One Site → Many Warehouses
+            // INSPECTION
             // =====================================================
 
-            modelBuilder.Entity<Warehouse>()
-                .HasOne(w => w.Site)
-                .WithMany(s => s.Warehouses)
-                .HasForeignKey(w => w.Site_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Inspection>(entity =>
+            {
+                entity.HasKey(x => x.InspectionId);
 
+                entity.HasIndex(x => x.ReceiptItemId)
+                    .IsUnique();
 
-            // =====================================================
-            // WAREHOUSE → ROOM
-            // One Warehouse → Many Rooms
-            // =====================================================
+                entity.HasOne(x => x.ReceiptItem)
+                    .WithOne(x => x.Inspection)
+                    .HasForeignKey<Inspection>(x => x.ReceiptItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Room>()
-                .HasOne(r => r.Warehouse)
-                .WithMany(w => w.Rooms)
-                .HasForeignKey(r => r.Warehouse_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Inspector)
+                    .WithMany()
+                    .HasForeignKey(x => x.InspectedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
 
             // =====================================================
-            // ROOM → ROW
-            // One Room → Many Rows
+            // STOCK
             // =====================================================
 
-            modelBuilder.Entity<Row>()
-                .HasOne(r => r.Room)
-                .WithMany(ro => ro.Rows)
-                .HasForeignKey(r => r.Room_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Stock>(entity =>
+            {
+                entity.HasKey(x => x.StockId);
 
+                entity.Property(x => x.StockCode)
+                    .IsRequired()
+                    .HasMaxLength(100);
 
-            // =====================================================
-            // ROW → SHELF
-            // One Row → Many Shelves
-            // =====================================================
+                entity.Property(x => x.Quantity)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<Shelf>()
-                .HasOne(s => s.Row)
-                .WithMany(r => r.Shelves)
-                .HasForeignKey(s => s.Row_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.ReservedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.Property(x => x.AvailableQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            // =====================================================
-            // SHELF → BIN
-            // One Shelf → Many Bins
-            // =====================================================
+                entity.Property(x => x.UnitPrice)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<Bin>()
-                .HasOne(b => b.Shelf)
-                .WithMany(s => s.Bins)
-                .HasForeignKey(b => b.Shelf_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.MinimumStock)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.HasIndex(x => x.StockCode)
+                    .IsUnique();
 
-            // =====================================================
-            // PRODUCT → STOCK
-            // One Product → Many Stocks
-            // =====================================================
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Stock>()
-                .HasOne(s => s.Product)
-                .WithMany(p => p.Stock)
-                .HasForeignKey(s => s.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Location)
+                    .WithMany()
+                    .HasForeignKey(x => x.LocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
+
             // =====================================================
-            // BIN → STOCK
-            // One Bin → Many Stocks
+            // PUTAWAY
             // =====================================================
 
-            modelBuilder.Entity<Stock>()
-                .HasOne(s => s.Bin)
-                .WithMany(b => b.Stocks)
-                .HasForeignKey(s => s.Bin_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Putaway>(entity =>
+            {
+                entity.HasKey(x => x.PutawayId);
 
+                entity.Property(x => x.PutawayNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-            // =====================================================
-            // UNIT → STOCK
-            // One Unit → Many Stocks
-            // =====================================================
+                entity.HasIndex(x => x.PutawayNumber)
+                    .IsUnique();
+
+                entity.HasOne(x => x.Receipt)
+                    .WithMany(x => x.Putaways)
+                    .HasForeignKey(x => x.ReceiptId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Stock>()
-                .HasOne(s => s.Units)
-                .WithMany(u => u.Stocks)
-                .HasForeignKey(s => s.UnitId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Creator)
+                    .WithMany()
+                    .HasForeignKey(x => x.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
+
             // =====================================================
-            // PRODUCT → ALIAS
-            // One Product → Many Aliases
+            // PUTAWAY ITEM
             // =====================================================
 
-            modelBuilder.Entity<Alias>()
-                .HasOne(a => a.Product)
-                .WithMany(p => p.Aliases)
-                .HasForeignKey(a => a.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PutawayItem>(entity =>
+            {
+                entity.HasKey(x => x.PutawayItemId);
 
+                entity.Property(x => x.Quantity)
+                    .HasColumnType("decimal(18,4)");
 
-            // =====================================================
-            // OPERATIONS → PRODUCT
-            // One Product → Many Operations
-            // =====================================================
+                entity.HasOne(x => x.Putaway)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.PutawayId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Operations>()
-                .HasOne(o => o.Product)
-                .WithMany(p => p.Operations)
-                .HasForeignKey(o => o.Product_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.ReceiptItem)
+                    .WithMany(x => x.PutawayItems)
+                    .HasForeignKey(x => x.ReceiptItemId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Location)
+                    .WithMany()
+                    .HasForeignKey(x => x.LocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.PutawayItems)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
+
+            // =====================================================
+            // STOCK REQUEST
             // =====================================================
-            // UNIQUE SKU
+
+            modelBuilder.Entity<StockRequest>(entity =>
+            {
+                entity.HasKey(x => x.RequestId);
+
+                entity.Property(x => x.RequestNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-            modelBuilder.Entity<Product>()
-                .HasIndex(p => p.SKU)
-                .IsUnique();
-        
+                entity.HasIndex(x => x.RequestNumber)
+                    .IsUnique();
 
+                entity.HasOne(x => x.Department)
+                    .WithMany()
+                    .HasForeignKey(x => x.DepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-        // =====================================================
-        // OPERATIONS → UNIT
-        // One Unit → Many Operations
-        // =====================================================
+                entity.HasOne(x => x.Site)
+                    .WithMany()
+                    .HasForeignKey(x => x.SiteId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Operations>()
-                .HasOne(o => o.Unit)
-                .WithMany(u => u.operations)
-                .HasForeignKey(o => o.Unit_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Requester)
+                    .WithMany()
+                    .HasForeignKey(x => x.RequestedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Approver)
+                    .WithMany()
+                    .HasForeignKey(x => x.ApprovedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
+
             // =====================================================
-            // OPERATIONS → USER
-            // One User → Many Operations
+            // STOCK REQUEST ITEM
             // =====================================================
+
+            modelBuilder.Entity<StockRequestItem>(entity =>
+            {
+                entity.HasKey(x => x.RequestItemId);
+
+                entity.Property(x => x.RequestedQuantity)
+                    .HasColumnType("decimal(18,4)");
+
+                entity.Property(x => x.ReservedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<Operations>()
-                .HasOne(o => o.User)
-                .WithMany(u => u.Operations)
-                .HasForeignKey(o => o.User_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.IssuedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.Property(x => x.RemainingQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.HasOne(x => x.StockRequest)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.RequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // OPERATIONS → FROM BIN
-            // One Bin → Many Operations
+            // RESERVATION
             // =====================================================
+
+            modelBuilder.Entity<Reservation>(entity =>
+            {
+                entity.HasKey(x => x.ReservationId);
 
-            modelBuilder.Entity<Operations>()
-                .HasOne(o => o.FromBin)
-                .WithMany(b => b.FromOperation)
-                .HasForeignKey(o => o.FromBinId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.Quantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.HasOne(x => x.StockRequest)
+                    .WithMany(x => x.Reservations)
+                    .HasForeignKey(x => x.RequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
+                entity.HasOne(x => x.RequestItem)
+                    .WithMany(x => x.Reservations)
+                    .HasForeignKey(x => x.RequestItemId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.Reservations)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Reserver)
+                    .WithMany()
+                    .HasForeignKey(x => x.ReservedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // OPERATIONS → TO BIN
-            // One Bin → Many Operations
+            // PICK LIST
             // =====================================================
+
+            modelBuilder.Entity<PickList>(entity =>
+            {
+                entity.HasKey(x => x.PickListId);
 
-            modelBuilder.Entity<Operations>()
-                .HasOne(o => o.ToBin)
-                .WithMany(b => b.ToOperation)
-                .HasForeignKey(o => o.ToBinId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.PickNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
+                entity.HasIndex(x => x.PickNumber)
+                    .IsUnique();
 
+                entity.HasOne(x => x.StockRequest)
+                    .WithMany(x => x.PickLists)
+                    .HasForeignKey(x => x.RequestId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Assignee)
+                    .WithMany()
+                    .HasForeignKey(x => x.AssignedTo)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // SUPPLIER → ORDER
-            // One Supplier → Many Orders
+            // PICK ITEM
             // =====================================================
+
+            modelBuilder.Entity<PickItem>(entity =>
+            {
+                entity.HasKey(x => x.PickItemId);
+
+                entity.Property(x => x.RequiredQuantity)
+                    .HasColumnType("decimal(18,4)");
+
+                entity.Property(x => x.PickedQuantity)
+                    .HasColumnType("decimal(18,4)");
+
+                entity.HasOne(x => x.PickList)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.PickListId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Supplier)
-                .WithMany(s => s.Orders)
-                .HasForeignKey(o => o.SupplierId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.PickItems)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Location)
+                    .WithMany()
+                    .HasForeignKey(x => x.LocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // WAREHOUSE → ORDER
-            // One Warehouse → Many Orders
+            // STOCK ISSUE
             // =====================================================
+
+            modelBuilder.Entity<StockIssue>(entity =>
+            {
+                entity.HasKey(x => x.IssueId);
+
+                entity.Property(x => x.IssueNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasIndex(x => x.IssueNumber)
+                    .IsUnique();
+
+                entity.HasOne(x => x.StockRequest)
+                    .WithMany(x => x.StockIssues)
+                    .HasForeignKey(x => x.RequestId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.PickList)
+                    .WithMany()
+                    .HasForeignKey(x => x.PickListId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Department)
+                    .WithMany()
+                    .HasForeignKey(x => x.DepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Warehouse)
-                .WithMany()
-                .HasForeignKey(o => o.WarehouseId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Issuer)
+                    .WithMany()
+                    .HasForeignKey(x => x.IssuedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
 
             // =====================================================
-            // ORDER → CREATED BY USER
-            // One User → Many Orders
+            // STOCK ISSUE ITEM
             // =====================================================
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.CreatedByUser)
-                .WithMany()
-                .HasForeignKey(o => o.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<StockIssueItem>(entity =>
+            {
+                entity.HasKey(x => x.IssueItemId);
 
+                entity.Property(x => x.Quantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.HasOne(x => x.StockIssue)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.IssueId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.StockIssueItems)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // ORDER → APPROVED BY USER
-            // One User → Many Approved Orders
+            // STOCK RETURN
             // =====================================================
+
+            modelBuilder.Entity<StockReturn>(entity =>
+            {
+                entity.HasKey(x => x.ReturnId);
+
+                entity.Property(x => x.ReturnNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasIndex(x => x.ReturnNumber)
+                    .IsUnique();
+
+                entity.HasOne(x => x.StockIssue)
+                    .WithMany()
+                    .HasForeignKey(x => x.IssueId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.ApprovedByUser)
-                .WithMany()
-                .HasForeignKey(o => o.ApprovedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Department)
+                    .WithMany()
+                    .HasForeignKey(x => x.DepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Returner)
+                    .WithMany()
+                    .HasForeignKey(x => x.ReturnedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // ORDER → ORDER ITEMS
-            // One Order → Many OrderItems
+            // STOCK RETURN ITEM
             // =====================================================
+
+            modelBuilder.Entity<StockReturnItem>(entity =>
+            {
+                entity.HasKey(x => x.ReturnItemId);
+
+                entity.Property(x => x.Quantity)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Order)
-                .WithMany(o => o.OrderItems)
-                .HasForeignKey(oi => oi.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.StockReturn)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.ReturnId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.StockReturnItems)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // PRODUCT → ORDER ITEMS
-            // One Product → Many OrderItems
+            // STOCK TRANSFER
             // =====================================================
+
+            modelBuilder.Entity<StockTransfer>(entity =>
+            {
+                entity.HasKey(x => x.TransferId);
+
+                entity.Property(x => x.TransferNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasIndex(x => x.TransferNumber)
+                    .IsUnique();
 
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Product)
-                .WithMany()
-                .HasForeignKey(oi => oi.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.SourceWarehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.SourceWarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.DestinationWarehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.DestinationWarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Requester)
+                    .WithMany()
+                    .HasForeignKey(x => x.RequestedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Approver)
+                    .WithMany()
+                    .HasForeignKey(x => x.ApprovedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // REPORT → USER
-            // One User → Many Reports
+            // STOCK TRANSFER ITEM
             // =====================================================
+
+            modelBuilder.Entity<StockTransferItem>(entity =>
+            {
+                entity.HasKey(x => x.TransferItemId);
+
+                entity.Property(x => x.Quantity)
+                    .HasColumnType("decimal(18,4)");
+
+                entity.Property(x => x.ReceivedQuantity)
+                    .HasColumnType("decimal(18,4)");
+
+                entity.HasOne(x => x.StockTransfer)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.TransferId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Report>()
-                .HasOne(r => r.CreateByUser)
-                .WithMany(u => u.Reports)
-                .HasForeignKey(r => r.craeteByUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.SourceStock)
+                    .WithMany(x => x.StockTransferItems)
+                    .HasForeignKey(x => x.SourceStockId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.SourceLocation)
+                    .WithMany()
+                    .HasForeignKey(x => x.SourceLocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.DestinationLocation)
+                    .WithMany()
+                    .HasForeignKey(x => x.DestinationLocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // REPORT → WAREHOUSE
-            // One Warehouse → Many Reports
+            // STOCK COUNT
             // =====================================================
+
+            modelBuilder.Entity<StockCount>(entity =>
+            {
+                entity.HasKey(x => x.StockCountId);
+
+                entity.Property(x => x.CountNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-            modelBuilder.Entity<Report>()
-                .HasOne(r => r.Warehouses)
-                .WithMany(w => w.reports)
-                .HasForeignKey(r => r.Warehouse_Id)
-                .OnDelete(DeleteBehavior.Restrict);
-            //Unique SKU
+                entity.HasIndex(x => x.CountNumber)
+                    .IsUnique();
 
+                entity.HasOne(x => x.Warehouse)
+                    .WithMany()
+                    .HasForeignKey(x => x.WarehouseId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Location)
+                    .WithMany()
+                    .HasForeignKey(x => x.LocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Creator)
+                    .WithMany()
+                    .HasForeignKey(x => x.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Approver)
+                    .WithMany()
+                    .HasForeignKey(x => x.ApprovedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // REPORT → PRODUCT
-            // One Product → Many Reports
+            // STOCK COUNT ITEM
             // =====================================================
+
+            modelBuilder.Entity<StockCountItem>(entity =>
+            {
+                entity.HasKey(x => x.StockCountItemId);
+
+                entity.Property(x => x.ExpectedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<Report>()
-                .HasOne(r => r.Products)
-                .WithMany(p => p.reports)
-                .HasForeignKey(r => r.Product_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.CountedQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.Property(x => x.Variance)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.HasOne(x => x.StockCount)
+                    .WithMany(x => x.Items)
+                    .HasForeignKey(x => x.StockCountId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.StockCountItems)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // REPORT SCHEDULE → USER
-            // One User → Many ReportSchedules
+            // STOCK ADJUSTMENT
             // =====================================================
+
+            modelBuilder.Entity<StockAdjustment>(entity =>
+            {
+                entity.HasKey(x => x.AdjustmentId);
+
+                entity.Property(x => x.AdjustmentNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasIndex(x => x.AdjustmentNumber)
+                    .IsUnique();
+
+                entity.Property(x => x.PreviousQuantity)
+                    .HasColumnType("decimal(18,4)");
 
-            modelBuilder.Entity<ReportSchedule>()
-                .HasOne(r => r.CreateByUser)
-                .WithMany(u => u.reportSchedules)
-                .HasForeignKey(r => r.craeteByUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.AdjustmentQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.Property(x => x.NewQuantity)
+                    .HasColumnType("decimal(18,4)");
 
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.StockAdjustments)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Creator)
+                    .WithMany()
+                    .HasForeignKey(x => x.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Approver)
+                    .WithMany()
+                    .HasForeignKey(x => x.ApprovedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // REPORT SCHEDULE → WAREHOUSE
-            // One Warehouse → Many ReportSchedules
+            // STOCK TRANSACTION
             // =====================================================
+
+            modelBuilder.Entity<StockTransaction>(entity =>
+            {
+                entity.HasKey(x => x.TransactionId);
+
+                entity.Property(x => x.TransactionType)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(x => x.Quantity)
+                    .HasColumnType("decimal(18,4)");
+
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ReportSchedule>()
-                .HasOne(r => r.Warehouses)
-                .WithMany(w => w.reportSchedules)
-                .HasForeignKey(r => r.Warehouse_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.StockTransactions)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.SourceLocation)
+                    .WithMany()
+                    .HasForeignKey(x => x.SourceLocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.DestinationLocation)
+                    .WithMany()
+                    .HasForeignKey(x => x.DestinationLocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Performer)
+                    .WithMany()
+                    .HasForeignKey(x => x.PerformedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // REPORT SCHEDULE → PRODUCT
-            // One Product → Many ReportSchedules
+            // BARCODE SCAN
             // =====================================================
+
+            modelBuilder.Entity<BarcodeScan>(entity =>
+            {
+                entity.HasKey(x => x.ScanId);
+
+                entity.Property(x => x.Barcode)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.ScanType)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(x => x.ReferenceType)
+                    .HasMaxLength(50);
+
+                entity.HasOne(x => x.Product)
+                    .WithMany(x => x.BarcodeScans)
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ReportSchedule>()
-                .HasOne(r => r.Products)
-                .WithMany(p => p.reportSchedules)
-                .HasForeignKey(r => r.Product_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Stock)
+                    .WithMany(x => x.BarcodeScans)
+                    .HasForeignKey(x => x.StockId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Location)
+                    .WithMany()
+                    .HasForeignKey(x => x.LocationId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(x => x.Scanner)
+                    .WithMany()
+                    .HasForeignKey(x => x.ScannedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
             // =====================================================
-            // AUDIT LOG → USER
-            // One User → Many AuditLogs
+            // REPORT
             // =====================================================
+
+            modelBuilder.Entity<Report>(entity =>
+            {
+                entity.HasKey(x => x.ReportId);
+
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(255);
 
-            modelBuilder.Entity<AuditLog>()
-                .HasOne(a => a.Users)
-                .WithMany(u => u.auditLog)
-                .HasForeignKey(a => a.User_Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(x => x.Type)
+                    .IsRequired()
+                    .HasMaxLength(100);
 
+                entity.HasOne(x => x.Creator)
+                    .WithMany()
+                    .HasForeignKey(x => x.CreatedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
+
             // =====================================================
-            // UNIQUE INDEXES
+            // REPORT SCHEDULE
             // =====================================================
+
+            modelBuilder.Entity<ReportSchedule>(entity =>
+            {
+                entity.HasKey(x => x.ScheduleId);
 
-            modelBuilder.Entity<Product>()
-                .HasIndex(p => p.SKU)
-                .IsUnique();
+                entity.Property(x => x.Frequency)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
-            modelBuilder.Entity<Product>()
-                .HasIndex(p => p.QRValue)
-                .IsUnique();
+                entity.HasOne(x => x.Report)
+                    .WithMany(x => x.Schedules)
+                    .HasForeignKey(x => x.ReportId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
-            modelBuilder.Entity<Alias>()
-                .HasIndex(a => new
-                {
-                    a.ProductId,
-                    a.AliasName
-                })
-                .IsUnique();
+
+            // =====================================================
+            // AUDIT LOG
+            // =====================================================
 
-            modelBuilder.Entity<Supplier>()
-                .HasIndex(s => s.SupplierCode)
-                .IsUnique();
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.HasKey(x => x.AuditLogId);
 
-            modelBuilder.Entity<Order>()
-                .HasIndex(o => o.OrderNumber)
-                .IsUnique();
+                entity.Property(x => x.EntityType)
+                    .IsRequired()
+                    .HasMaxLength(100);
 
-            modelBuilder.Entity<Stock>()
-                .HasIndex(s => s.StockCode)
-                .IsUnique();
+                entity.Property(x => x.Action)
+                    .IsRequired()
+                    .HasMaxLength(50);
 
+                entity.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

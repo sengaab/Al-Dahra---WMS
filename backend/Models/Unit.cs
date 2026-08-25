@@ -5,19 +5,22 @@ namespace whm.Models
     public class Unit
     {
         [Key]
-        public int Unit_Id { get; set; }
+        public int UnitId { get; set; }
+
         [Required]
-        public string Unit_Name { get; set; } =String.Empty;
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
         [Required]
-        public string Unit_Symbol { get; set;} =String.Empty;
-        public bool IsActive { get; set; }=true;
-        public List<Product> Products { get; set; }=new List<Product>();
-        public List<Operations> operations { get; set; } = new List<Operations>();
-        public List<Stock> Stocks { get; set; }= new List<Stock>();
+        [MaxLength(20)]
+        public string Abbreviation { get; set; } = string.Empty;
 
+        public DateTimeOffset CreatedAt { get; set; }
 
+        public DateTimeOffset UpdatedAt { get; set; }
 
-
-
+        // Navigation
+        public ICollection<Product> Products { get; set; }
+            = new List<Product>();
     }
 }

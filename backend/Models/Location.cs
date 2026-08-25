@@ -1,14 +1,15 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace whm.Models
 {
-    public class Warehouse
+    public class Location
     {
         [Key]
+        public int LocationId { get; set; }
+
         public int WarehouseId { get; set; }
 
-        public int SiteId { get; set; }
+        public int? ParentLocationId { get; set; }
 
         [Required]
         [MaxLength(50)]
@@ -18,8 +19,9 @@ namespace whm.Models
         [MaxLength(150)]
         public string Name { get; set; } = string.Empty;
 
-        [MaxLength(500)]
-        public string? Description { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Type { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
 
@@ -28,9 +30,11 @@ namespace whm.Models
         public DateTimeOffset UpdatedAt { get; set; }
 
         // Navigation
-        public Site Site { get; set; } = null!;
+        public Warehouse Warehouse { get; set; } = null!;
 
-        public ICollection<Location> Locations { get; set; }
+        public Location? ParentLocation { get; set; }
+
+        public ICollection<Location> ChildLocations { get; set; }
             = new List<Location>();
     }
 }

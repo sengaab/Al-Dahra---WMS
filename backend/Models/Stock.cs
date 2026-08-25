@@ -3,159 +3,97 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
-    // =========================
-    // Stock Status
-    // =========================
-
     public enum StockStatus
     {
         Available,
-        Reserved,
+        Quarantined,
+        Damaged,
         Expired,
-        Quarantined
+        Blocked
     }
-
-
-    // =========================
-    // Delivery Status
-    // =========================
-
-    public enum DeliveryStatus
-    {
-        Pending,
-        InTransit,
-        PartiallyReceived,
-        Delivered,
-        Cancelled
-    }
-
-
     public class Stock
     {
-        // =========================
-        // Primary Key
-        // =========================
-
         [Key]
-        public int Stock_Id { get; set; }
-
-
-        // =========================
-        // Stock / Lot Code
-        // =========================
-
-        [Required]
-        [MaxLength(50)]
-        public string StockCode { get; set; } = string.Empty;
-
-
-        // =========================
-        // Quantity
-        // =========================
-
-        [Required]
-        [Range(0, double.MaxValue)]
-        public decimal Quantity { get; set; }
-
-
-        // =========================
-        // Expiry Date
-        // =========================
-
-        public DateTime? ExpiryDate { get; set; }
-
-        // =========================
-        // Reserved Quantity
-        // =========================
-
-        [Range(0, int.MaxValue)]
-        public int ReservedQuantity { get; set; } = 0;
-
-
-        // =========================
-        // Unit Price
-        // =========================
-
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal UnitPrice { get; set; }
-
-
-        // =========================
-        // Minimum Stock
-        // =========================
-
-        public int MinimumStock { get; set; }
-
-
-        // =========================
-        // Unit
-        // =========================
-
-        public int? UnitId { get; set; }
-
-        [ForeignKey(nameof(UnitId))]
-        public Unit? Units { get; set; }
-
-
-        // =========================
-        // Product
-        // =========================
+        public int StockId { get; set; }
 
         [Required]
         public int ProductId { get; set; }
 
-        [ForeignKey(nameof(ProductId))]
+        [Required]
+        public int WarehouseId { get; set; }
+
+        public int? LocationId { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string StockCode { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string? BatchNumber { get; set; }
+
+        public DateOnly? ExpiryDate { get; set; }
+
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal Quantity { get; set; } = 0;
+
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal ReservedQuantity { get; set; } = 0;
+
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal AvailableQuantity { get; set; } = 0;
+
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal UnitPrice { get; set; } = 0;
+
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal MinimumStock { get; set; } = 0;
+
+        [Required]
+        [MaxLength(50)]
+        public StockStatus stockStatus { get; set; } = StockStatus.Available;
+        public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset UpdatedAt { get; set; }
+
+
+        // =========================
+        // Navigation Properties
+        // =========================
+
         public Product Product { get; set; } = null!;
 
+        public Warehouse Warehouse { get; set; } = null!;
 
-        // =========================
-        // Bin
-        // =========================
+        public Location? Location { get; set; }
 
-        public int? Bin_Id { get; set; }
+        public List<PutawayItem> PutawayItems { get; set; }
+            = new List<PutawayItem>();
 
-        [ForeignKey(nameof(Bin_Id))]
-        public Bin? Bin { get; set; }
+        public List<Reservation> Reservations { get; set; }
+            = new List<Reservation>();
 
+        public List<PickItem> PickItems { get; set; }
+            = new List<PickItem>();
 
-        // =========================
-        // Stock Status
-        // =========================
+        public List<StockIssueItem> StockIssueItems { get; set; }
+            = new List<StockIssueItem>();
 
-        public StockStatus StockStatus { get; set; }
-            = StockStatus.Available;
+        public List<StockTransferItem> StockTransferItems { get; set; }
+            = new List<StockTransferItem>();
 
+        public List<StockReturnItem> StockReturnItems { get; set; }
+            = new List<StockReturnItem>();
 
-        // =========================
-        // Delivery Status
-        // =========================
+        public List<StockCountItem> StockCountItems { get; set; }
+            = new List<StockCountItem>();
 
-        public DeliveryStatus DeliveryStatus { get; set; }
-            = DeliveryStatus.Pending;
+        public List<StockAdjustment> StockAdjustments { get; set; }
+            = new List<StockAdjustment>();
 
+        public List<StockTransaction> StockTransactions { get; set; }
+            = new List<StockTransaction>();
 
-        // =========================
-        // Active
-        // =========================
-
-        public bool IsActive { get; set; } = true;
-
-
-        // =========================
-        // Dates
-        // =========================
-
-        public DateTime CreateAt { get; set; }
-            = DateTime.UtcNow;
-
-        public DateTime LastUpdatedAt { get; set; }
-            = DateTime.UtcNow;
-        // =========================
-        // Product Items
-        // =========================
-
-        public List<ProductItem> ProductItems { get; set; }
-            = new List<ProductItem>();
+        public List<BarcodeScan> BarcodeScans { get; set; }
+            = new List<BarcodeScan>();
     }
 }

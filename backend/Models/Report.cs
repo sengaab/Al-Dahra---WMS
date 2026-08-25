@@ -1,38 +1,33 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
-    public enum ReportType
-    {
-        StockMovement,
-        StockSummary,
-        LowStock,
-        ProductInventory
-    }
-
     public class Report
     {
         [Key]
-        public int Report_Id { get; set; }
+        public int ReportId { get; set; }
+
         [Required]
-        public ReportType ReportType { get; set; }
+        [MaxLength(255)]
+        public string Name { get; set; } = string.Empty;
+
         [Required]
-        public DateTimeOffset FromDate { get; set; }
+        [MaxLength(100)]
+        public string Type { get; set; } = string.Empty;
+
         [Required]
-        public DateTimeOffset ToDate { get; set; }
-        [ForeignKey(nameof(craeteByUserId))]
-        public Guid craeteByUserId { get; set; }
-        public Users CreateByUser { get; set; }
-        public DateTimeOffset CreateAt { get; set; }=DateTimeOffset.Now;
-        [ForeignKey(nameof(Warehouse))]
-        public int?Warehouse_Id { get; set; }
-        public Warehouse? Warehouses { get; set; }
-        [ForeignKey(nameof(Product))]
-        public int? Product_Id { get; set; }
-        public Product? Products { get; set; }
+        public Guid CreatedBy { get; set; }
+
+        public DateTimeOffset CreatedAt { get; set; }
 
 
+        // =========================
+        // Navigation Properties
+        // =========================
 
+        public User Creator { get; set; } = null!;
+
+        public List<ReportSchedule> Schedules { get; set; }
+            = new List<ReportSchedule>();
     }
 }

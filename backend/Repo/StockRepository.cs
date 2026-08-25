@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using whm.DTOs.Stock;
 using whm.Models;
 using whm.Repositories.Interfaces;
 
@@ -13,296 +14,193 @@ namespace whm.Repositories
             _context = context;
         }
 
-        // =========================================================
+
+        // =====================================================
         // GET ALL
-        // =========================================================
+        // =====================================================
 
-        public async Task<IEnumerable<Stock>> GetAllAsync()
+        public async Task<List<StockDto>> GetAllAsync()
         {
-            return await _context.Stocks
-                .AsNoTracking()
-
-                // =================================================
-                // PRODUCT
-                // =================================================
-
-                .Include(s => s.Product)
-                    .ThenInclude(p => p.Category)
-
-                // =================================================
-                // LOCATION
-                //
-                // Bin
-                //   ↓
-                // Shelf
-                //   ↓
-                // Row
-                //   ↓
-                // Room
-                //   ↓
-                // Warehouse
-                // =================================================
-
-                .Include(s => s.Bin)
-                    .ThenInclude(b => b.Shelf)
-                        .ThenInclude(sh => sh.Row)
-                            .ThenInclude(r => r.Room)
-                                .ThenInclude(room => room.Warehouse)
-
-                // =================================================
-                // UNIT
-                // =================================================
-
-                .Include(s => s.Units)
-
-                .OrderByDescending(s => s.Stock_Id)
-
+            return await BuildQuery()
                 .ToListAsync();
         }
 
 
-        // =========================================================
+        // =====================================================
         // GET BY ID
-        // =========================================================
+        // =====================================================
 
-        public async Task<Stock?> GetByIdAsync(int id)
+        public async Task<StockDto?> GetByIdAsync(int id)
         {
-            return await _context.Stocks
-                .AsNoTracking()
-
-                .Include(s => s.Product)
-                    .ThenInclude(p => p.Category)
-
-                .Include(s => s.Bin)
-                    .ThenInclude(b => b.Shelf)
-                        .ThenInclude(sh => sh.Row)
-                            .ThenInclude(r => r.Room)
-                                .ThenInclude(room => room.Warehouse)
-
-                .Include(s => s.Units)
-
-                .FirstOrDefaultAsync(
-                    s => s.Stock_Id == id);
+            return await BuildQuery()
+                .FirstOrDefaultAsync(x => x.StockId == id);
         }
 
 
-        // =========================================================
-        // GET BY ID FOR UPDATE
-        // =========================================================
+        // =====================================================
+        // GET BY PRODUCT
+        // =====================================================
 
-        public async Task<Stock?> GetByIdForUpdateAsync(int id)
+        public async Task<List<StockDto>> GetByProductAsync(int productId)
         {
-            return await _context.Stocks
-                .FirstOrDefaultAsync(
-                    s => s.Stock_Id == id);
-        }
-
-
-        // =========================================================
-        // GET BY PRODUCT ID
-        // =========================================================
-
-        public async Task<IEnumerable<Stock>> GetByProductIdAsync(
-            int productId)
-        {
-            return await _context.Stocks
-                .AsNoTracking()
-
-                .Include(s => s.Product)
-                    .ThenInclude(p => p.Category)
-
-                .Include(s => s.Bin)
-                    .ThenInclude(b => b.Shelf)
-                        .ThenInclude(sh => sh.Row)
-                            .ThenInclude(r => r.Room)
-                                .ThenInclude(room => room.Warehouse)
-
-                .Include(s => s.Units)
-
-                .Where(s => s.ProductId == productId)
-
-                .OrderByDescending(s => s.Stock_Id)
-
+            return await BuildQuery()
+                .Where(x => x.ProductId == productId)
                 .ToListAsync();
         }
 
 
-        // =========================================================
-        // GET BY BIN ID
-        // =========================================================
+        // =====================================================
+        // GET BY LOCATION
+        // =====================================================
 
-        public async Task<IEnumerable<Stock>> GetByBinIdAsync(
-            int binId)
+        public async Task<List<StockDto>> GetByLocationAsync(int locationId)
         {
-            return await _context.Stocks
-                .AsNoTracking()
-
-                .Include(s => s.Product)
-                    .ThenInclude(p => p.Category)
-
-                .Include(s => s.Bin)
-                    .ThenInclude(b => b.Shelf)
-                        .ThenInclude(sh => sh.Row)
-                            .ThenInclude(r => r.Room)
-                                .ThenInclude(room => room.Warehouse)
-
-                .Include(s => s.Units)
-
-                .Where(s => s.Bin_Id == binId)
-
-                .OrderByDescending(s => s.Stock_Id)
-
+            return await BuildQuery()
+                .Where(x => x.LocationId == locationId)
                 .ToListAsync();
         }
 
 
-        // =========================================================
-        // SEARCH BY SITE AND DEPARTMENT
-        // =========================================================
+        // =====================================================
+        // GET BY WAREHOUSE
+        // =====================================================
 
-        public async Task<List<Stock>> SearchBySiteAndDepartmentAsync(
-            int? siteId,
-            int? departmentId)
+        public async Task<List<StockDto>> GetByWarehouseAsync(int warehouseId)
         {
-            var query = _context.Stocks
-                .AsNoTracking()
-
-                // =================================================
-                // PRODUCT
-                // =================================================
-
-                .Include(s => s.Product)
-                    .ThenInclude(p => p.Category)
-
-                // =================================================
-                // LOCATION
-                // =================================================
-
-                .Include(s => s.Bin)
-                    .ThenInclude(b => b.Shelf)
-                        .ThenInclude(sh => sh.Row)
-                            .ThenInclude(r => r.Room)
-                                .ThenInclude(room => room.Warehouse)
-
-                // =================================================
-                // UNIT
-                // =================================================
-
-                .Include(s => s.Units)
-
-                .AsQueryable();
+            return await BuildQuery()
+                .Where(x => x.WarehouseId == warehouseId)
+                .ToListAsync();
+        }
 
 
-            // =====================================================
-            // FILTER BY SITE
-            // =====================================================
+        // =====================================================
+        // AVAILABLE STOCK
+        // =====================================================
 
-            if (siteId.HasValue)
+        public async Task<List<StockDto>> GetAvailableAsync()
+        {
+            return await BuildQuery()
+                .Where(x =>
+                    x.AvailableQuantity > 0 &&
+                    x.StockStatus == StockStatus.Available.ToString())
+                .ToListAsync();
+        }
+
+
+        // =====================================================
+        // LOW STOCK
+        // =====================================================
+
+        public async Task<List<StockDto>> GetLowStockAsync()
+        {
+            return await BuildQuery()
+                .Where(x =>
+                    x.AvailableQuantity > 0 &&
+                    x.AvailableQuantity <= x.MinimumStock)
+                .ToListAsync();
+        }
+
+
+        // =====================================================
+        // OUT OF STOCK
+        // =====================================================
+
+        public async Task<List<StockDto>> GetOutOfStockAsync()
+        {
+            return await BuildQuery()
+                .Where(x => x.AvailableQuantity <= 0)
+                .ToListAsync();
+        }
+
+
+        // =====================================================
+        // SUMMARY
+        // =====================================================
+
+        public async Task<StockSummaryDto> GetSummaryAsync()
+        {
+            var stocks = _context.Stocks.AsNoTracking();
+
+            return new StockSummaryDto
             {
-                query = query.Where(stock =>
-                    stock.Bin != null &&
-                    stock.Bin.Shelf != null &&
-                    stock.Bin.Shelf.Row != null &&
-                    stock.Bin.Shelf.Row.Room != null &&
-                    stock.Bin.Shelf.Row.Room.Warehouse != null &&
-                    stock.Bin.Shelf.Row.Room.Warehouse.Site_Id
-                        == siteId.Value);
-            }
+                TotalStockItems = await stocks.CountAsync(),
 
+                TotalQuantity = await stocks
+                    .SumAsync(x => (decimal?)x.Quantity) ?? 0,
 
-            // =====================================================
-            // FILTER BY DEPARTMENT
-            // =====================================================
+                TotalReservedQuantity = await stocks
+                    .SumAsync(x => (decimal?)x.ReservedQuantity) ?? 0,
 
-            if (departmentId.HasValue)
-            {
-                query = query.Where(stock =>
-                    stock.Product != null &&
-                    stock.Product.Category != null &&
-                    stock.Product.Category.Department_Id
-                        == departmentId.Value);
-            }
+                TotalAvailableQuantity = await stocks
+                    .SumAsync(x => (decimal?)x.AvailableQuantity) ?? 0,
 
+                TotalValue = await stocks
+                    .SumAsync(x => (decimal?)(x.Quantity * x.UnitPrice)) ?? 0,
 
-            return await query
-                .OrderByDescending(s => s.Stock_Id)
-                .ToListAsync();
+                AvailableItems = await stocks
+                    .CountAsync(x => x.stockStatus== StockStatus.Available),
+
+                QuarantinedItems = await stocks
+                    .CountAsync(x => x.stockStatus == StockStatus.Quarantined),
+
+                DamagedItems = await stocks
+                    .CountAsync(x => x.stockStatus == StockStatus.Damaged),
+
+                ExpiredItems = await stocks
+                    .CountAsync(x => x.stockStatus == StockStatus.Expired),
+
+                BlockedItems = await stocks
+                    .CountAsync(x => x.stockStatus == StockStatus.Blocked),
+
+                LowStockItems = await stocks
+                    .CountAsync(x =>
+                        x.AvailableQuantity > 0 &&
+                        x.AvailableQuantity <= x.MinimumStock),
+
+                OutOfStockItems = await stocks
+                    .CountAsync(x => x.AvailableQuantity <= 0)
+            };
         }
 
 
-        // =========================================================
-        // GET INVENTORY WITH PAGINATION
-        // =========================================================
+        // =====================================================
+        // TOTAL QUANTITY
+        // =====================================================
 
-        public async Task<(List<Stock> Stocks, int TotalCount)>
-            GetInventoryAsync(
-                int pageNumber,
-                int pageSize)
+        public async Task<decimal> GetTotalQuantityAsync()
         {
-            var query = _context.Stocks
+            return await _context.Stocks
                 .AsNoTracking()
-
-                // =================================================
-                // PRODUCT
-                // =================================================
-
-                .Include(s => s.Product)
-                    .ThenInclude(p => p.Category)
-
-                // =================================================
-                // LOCATION
-                // =================================================
-
-                .Include(s => s.Bin)
-                    .ThenInclude(b => b.Shelf)
-                        .ThenInclude(sh => sh.Row)
-                            .ThenInclude(r => r.Room)
-                                .ThenInclude(room => room.Warehouse)
-
-                // =================================================
-                // UNIT
-                // =================================================
-
-                .Include(s => s.Units)
-
-                .AsQueryable();
-
-
-            // =====================================================
-            // TOTAL COUNT
-            // =====================================================
-
-            var totalCount =
-                await query.CountAsync();
-
-
-            // =====================================================
-            // PAGINATION
-            // =====================================================
-
-            var stocks =
-                await query
-                    .OrderByDescending(
-                        s => s.LastUpdatedAt)
-
-                    .Skip(
-                        (pageNumber - 1) * pageSize)
-
-                    .Take(pageSize)
-
-                    .ToListAsync();
-
-
-            return (
-                Stocks: stocks,
-                TotalCount: totalCount
-            );
+                .SumAsync(x => (decimal?)x.Quantity) ?? 0;
         }
 
 
-        // =========================================================
+        // =====================================================
+        // TOTAL VALUE
+        // =====================================================
+
+        public async Task<decimal> GetTotalValueAsync()
+        {
+            return await _context.Stocks
+                .AsNoTracking()
+                .SumAsync(x => (decimal?)(x.Quantity * x.UnitPrice)) ?? 0;
+        }
+
+
+        // =====================================================
+        // ENTITY
+        // =====================================================
+
+        public async Task<Stock?> GetEntityByIdAsync(int id)
+        {
+            return await _context.Stocks
+                .FirstOrDefaultAsync(x => x.StockId == id);
+        }
+
+
+        // =====================================================
         // ADD
-        // =========================================================
+        // =====================================================
 
         public async Task AddAsync(Stock stock)
         {
@@ -310,9 +208,9 @@ namespace whm.Repositories
         }
 
 
-        // =========================================================
+        // =====================================================
         // UPDATE
-        // =========================================================
+        // =====================================================
 
         public void Update(Stock stock)
         {
@@ -320,13 +218,66 @@ namespace whm.Repositories
         }
 
 
-        // =========================================================
+        // =====================================================
         // DELETE
-        // =========================================================
+        // =====================================================
 
         public void Delete(Stock stock)
         {
             _context.Stocks.Remove(stock);
+        }
+
+
+        // =====================================================
+        // COMMON QUERY
+        // =====================================================
+
+        private IQueryable<StockDto> BuildQuery()
+        {
+            return _context.Stocks
+                .AsNoTracking()
+                .Select(x => new StockDto
+                {
+                    StockId = x.StockId,
+
+                    ProductId = x.ProductId,
+
+                    ProductName = x.Product.Name,
+
+                    SKU = x.Product.SKU,
+
+                    WarehouseId = x.WarehouseId,
+
+                    WarehouseName = x.Warehouse.Name,
+
+                    LocationId = x.LocationId,
+
+                    LocationName = x.Location != null
+                        ? x.Location.Name
+                        : null,
+
+                    StockCode = x.StockCode,
+
+                    BatchNumber = x.BatchNumber,
+
+                    ExpiryDate = x.ExpiryDate,
+
+                    Quantity = x.Quantity,
+
+                    ReservedQuantity = x.ReservedQuantity,
+
+                    AvailableQuantity = x.AvailableQuantity,
+
+                    UnitPrice = x.UnitPrice,
+
+                    MinimumStock = x.MinimumStock,
+
+                    StockStatus = x.stockStatus.ToString(),
+
+                    CreatedAt = x.CreatedAt,
+
+                    UpdatedAt = x.UpdatedAt
+                });
         }
     }
 }

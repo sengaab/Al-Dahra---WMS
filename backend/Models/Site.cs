@@ -5,22 +5,27 @@ namespace whm.Models
     public class Site
     {
         [Key]
-        public int Site_Id { get; set; }
+        public int SiteId { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        public string Site_Name { get; set; } = string.Empty;
-
         [MaxLength(50)]
-        public string? Site_Code { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(150)]
+        public string Name { get; set; } = string.Empty;
 
         [MaxLength(500)]
-        public string? Site_Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
         public bool IsActive { get; set; } = true;
 
+        public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset UpdatedAt { get; set; }
+
         // Navigation
-        public List<Warehouse> Warehouses { get; set; }
+        public ICollection<Warehouse> Warehouses { get; set; }
             = new List<Warehouse>();
     }
 }

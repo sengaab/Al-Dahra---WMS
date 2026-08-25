@@ -1,151 +1,108 @@
-﻿using whm.Models;
-
-namespace whm.DTOs.Stock
+﻿namespace whm.DTOs.Stock
 {
-    public class CreateStockDto
+    public class StockDto
     {
-        public decimal Quantity { get; set; }
+        public int StockId { get; set; }
 
         public int ProductId { get; set; }
 
-        // Optional
-        public int? Bin_Id { get; set; }
-
-        // Optional
-        public int? UnitId { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-
-        public decimal UnitPrice { get; set; }
-
-        public int MinimumStock { get; set; }
-
-        public int ReservedQuantity { get; set; } = 0;
-
-        public StockStatus StockStatus { get; set; }
-            = StockStatus.Available;
-
-        public DeliveryStatus DeliveryStatus { get; set; }
-            = DeliveryStatus.Pending;
-    }
-
-
-    public class UpdateStockDto
-    {
-        public decimal? Quantity { get; set; }
-
-        public int? ReservedQuantity { get; set; }
-
-        public decimal? UnitPrice { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-
-        public int? MinimumStock { get; set; }
-
-        public int? UnitId { get; set; }
-
-        public int? Bin_Id { get; set; }
-
-        public bool? IsActive { get; set; }
-
-        public StockStatus? StockStatus { get; set; }
-
-        public DeliveryStatus? DeliveryStatus { get; set; }
-    }
-
-
-    public class UpdateStockStatusDto
-    {
-        public StockStatus StockStatus { get; set; }
-    }
-
-
-    public class UpdateDeliveryStatusDto
-    {
-        public DeliveryStatus DeliveryStatus { get; set; }
-    }
-
-
-    public class StockResponseDto
-    {
-        public int Stock_Id { get; set; }
-
-        public string StockCode { get; set; } = string.Empty;
-
-        public decimal Quantity { get; set; }
-
-        public int ReservedQuantity { get; set; }
-
-        public decimal UnitPrice { get; set; }
-
-        public int MinimumStock { get; set; }
-
-        // Optional
-        public int? UnitId { get; set; }
-
-        public int ProductId { get; set; }
-
-        // Optional
-        public int? Bin_Id { get; set; }
-
-        public StockStatus StockStatus { get; set; }
-
-        public DeliveryStatus DeliveryStatus { get; set; }
-
-        public bool IsActive { get; set; }
-
-        public DateTime CreateAt { get; set; }
-
-        public DateTime LastUpdatedAt { get; set; }
-    }
-    public class InventoryStockResponseDto
-    {
-        public string? Category {  get; set; }
-        public string? Warehouse { get; set; }
-        public decimal UnitPrice { get; set; }
-        public int Stock_Id { get; set; }
+        public string ProductName { get; set; } = string.Empty;
 
         public string SKU { get; set; } = string.Empty;
 
-        public string Product { get; set; } = string.Empty;
-        public DateTime? ExpiryDate { get; set; }
+        public int WarehouseId { get; set; }
 
-        public List<string> Aliases { get; set; } = new();
+        public string WarehouseName { get; set; } = string.Empty;
 
-        public string? Location { get; set; }
+        public int? LocationId { get; set; }
 
-        public string LotBatch { get; set; } = string.Empty;
+        public string? LocationName { get; set; }
+
+        public string StockCode { get; set; } = string.Empty;
+
+        public string? BatchNumber { get; set; }
+
+        public DateOnly? ExpiryDate { get; set; }
 
         public decimal Quantity { get; set; }
 
-        public string? UOM { get; set; }
+        public decimal ReservedQuantity { get; set; }
 
-        public decimal Available { get; set; }
+        public decimal AvailableQuantity { get; set; }
 
-        public int Reserved { get; set; }
+        public decimal UnitPrice { get; set; }
 
-        public StockStatus Status { get; set; }
+        public decimal MinimumStock { get; set; }
 
-        public DateTime LastUpdated { get; set; }
+        public string StockStatus { get; set; } = string.Empty;
+
+        public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset UpdatedAt { get; set; }
     }
-    public class UpdateInventoryStockDto
+    public class CreateStockDto
     {
-        public int? Quantity { get; set; }
+        public int ProductId { get; set; }
 
-        public int? ReservedQuantity { get; set; }
+        public int WarehouseId { get; set; }
 
-        public decimal? UnitPrice { get; set; }
+        public int? LocationId { get; set; }
 
-        public int? MinimumStock { get; set; }
+        public string? BatchNumber { get; set; }
 
-        public int? UnitId { get; set; }
+        public DateOnly? ExpiryDate { get; set; }
 
-        public int? Bin_Id { get; set; }
+        public decimal Quantity { get; set; }
 
-        public DateTime? ExpiryDate { get; set; }
+        public decimal ReservedQuantity { get; set; }
 
-        public StockStatus? StockStatus { get; set; }
+        public decimal UnitPrice { get; set; }
 
-        public DeliveryStatus? DeliveryStatus { get; set; }
-
-        public bool? IsActive { get; set; }
+        public decimal MinimumStock { get; set; }
     }
+    public class UpdateStockDto
+    {
+        public int? LocationId { get; set; }
+
+        public string? BatchNumber { get; set; }
+
+        public DateOnly? ExpiryDate { get; set; }
+
+        public decimal Quantity { get; set; }
+
+        public decimal ReservedQuantity { get; set; }
+
+        public decimal UnitPrice { get; set; }
+
+        public decimal MinimumStock { get; set; }
+
+        public string? StockStatus { get; set; }
+    }
+    public class StockSummaryDto
+    {
+        public int TotalStockItems { get; set; }
+
+        public decimal TotalQuantity { get; set; }
+
+        public decimal TotalReservedQuantity { get; set; }
+
+        public decimal TotalAvailableQuantity { get; set; }
+
+        public decimal TotalValue { get; set; }
+
+        public int AvailableItems { get; set; }
+
+        public int QuarantinedItems { get; set; }
+
+        public int DamagedItems { get; set; }
+
+        public int ExpiredItems { get; set; }
+
+        public int BlockedItems { get; set; }
+
+        public int LowStockItems { get; set; }
+
+        public int OutOfStockItems { get; set; }
+    }
+
 }
