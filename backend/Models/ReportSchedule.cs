@@ -1,38 +1,30 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
-    public enum ScheduleFrequency
-    {
-        Daily,
-        Weekly,
-        Monthly
-    }
     public class ReportSchedule
     {
         [Key]
-        public int ReportSchedule_Id { get; set; }
-        [Required]
-        public ReportType ReportType { get; set; }
-        [Required]
-        public ScheduleFrequency Frequency { get; set; } = ScheduleFrequency.Monthly;
-        [Required]
-        public TimeSpan RunAt { get; set; }
-        public bool IsActive { get; set; }=true;
-        [ForeignKey(nameof(Users))]
-        public Guid craeteByUserId { get; set; }
-        public Users CreateByUser { get; set; }
-        [ForeignKey(nameof(Warehouse))]
-        public int? Warehouse_Id { get; set; }
-        public Warehouse? Warehouses { get; set; }
-        [ForeignKey(nameof(Product))]
-        public int? Product_Id { get; set; }
-        public Product? Products { get; set; }
-        public DateTimeOffset? LastRunAt { get; set; }
-        public DateTimeOffset? NextRunAt { get; set; }
-        public DateTimeOffset? UpdateAt { get; set; }
-        public DateTimeOffset CreateAt { get; set; }=DateTimeOffset.UtcNow;
+        public int ScheduleId { get; set; }
 
+        [Required]
+        public int ReportId { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Frequency { get; set; } = string.Empty;
+
+        public string? Recipients { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        public DateTimeOffset? NextRunAt { get; set; }
+
+
+        // =========================
+        // Navigation Properties
+        // =========================
+
+        public Report Report { get; set; } = null!;
     }
 }

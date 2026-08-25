@@ -4,12 +4,14 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
+using System.Text.Json.Serialization;
 using whm.Middleware;
 using whm.Models;
+using whm.Repositories;
+using whm.Repositories.Interfaces;
 using whm.Services;
 using whm.UnitOfWork;
-using System.Text.Json.Serialization;
+
 
 namespace whm
 {
@@ -335,6 +337,12 @@ namespace whm
                 );
             });
 
+            // =====================================================
+            // Repositories
+            // =====================================================
+
+            builder.Services.AddScoped<IStockRepository, StockRepository>();
+            builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 
             // =====================================================
             // BUILD

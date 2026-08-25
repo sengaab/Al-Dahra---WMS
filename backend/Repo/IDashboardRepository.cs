@@ -1,48 +1,14 @@
-﻿using whm.Models;
+﻿using whm.DTOs.Dashboard;
 
 namespace whm.Repositories.Interfaces
 {
     public interface IDashboardRepository
     {
-        // =====================================================
-        // PRODUCTS
-        // =====================================================
-
-        IQueryable<Product> GetProductsQuery();
-
-
-        // =====================================================
-        // STOCK
-        // =====================================================
-
-        IQueryable<Stock> GetStocksQuery();
-
-
-        // =====================================================
-        // PRODUCT ITEMS
-        // =====================================================
-
-        IQueryable<ProductItem> GetProductItemsQuery();
-
-
-        // =====================================================
-        // WAREHOUSES
-        // =====================================================
-
-        IQueryable<Warehouse> GetWarehousesQuery();
-
-
-        // =====================================================
-        // OPERATIONS
-        // =====================================================
-
-        IQueryable<Operations> GetTransactionsQuery();
-
-
-        // =====================================================
-        // ORDERS
-        // =====================================================
-
-        IQueryable<Order> GetOrdersQuery();
+        Task<DashboardDto> GetDashboardAsync(
+            int? siteId,
+            int? departmentId,
+            int? warehouseId,
+            DateTimeOffset? fromDate,
+            DateTimeOffset? toDate);
     }
 }

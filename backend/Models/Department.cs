@@ -1,19 +1,24 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using System.ComponentModel.DataAnnotations;
 
 namespace whm.Models
 {
     public class Department
     {
         [Key]
-        public int Department_Id { get; set; }
+        public int DepartmentId { get; set; }
+
         [Required]
         [MaxLength(100)]
-        public string Department_Name { get; set; } = string.Empty;
-        [MaxLength(255)]
-        public string? Description { get; set; }
+        public string Name { get; set; } = string.Empty;
+
         public bool IsActive { get; set; } = true;
-        public DateTimeOffset CreateAt { get; set; }= DateTimeOffset.UtcNow;
-        public DateTimeOffset? UpdateAt { get;set; }= DateTimeOffset.UtcNow;
-        public List<Categories> Categories { get; set; }=new List<Categories>();
+
+        public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset UpdatedAt { get; set; }
+
+        // Navigation
+        public ICollection<User> Users { get; set; } = new List<User>();
     }
 }

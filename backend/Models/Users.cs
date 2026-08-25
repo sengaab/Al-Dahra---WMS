@@ -1,51 +1,36 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace whm.Models
 {
-   
-
-    public class Users
+    public class User
     {
         [Key]
-        public Guid User_Id { get; set; }
+        public Guid UserId { get; set; }
+
+        [MaxLength(50)]
+        public string? EmployeeCode { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        public string User_Name { get; set; } = string.Empty;
+        [MaxLength(150)]
+        public string Name { get; set; } = string.Empty;
 
         [Required]
-        [EmailAddress]
         [MaxLength(255)]
-        public string User_Email { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
-        
+        public int RoleId { get; set; }
 
-        // User Information
-        public DateTimeOffset CreateAt { get; set; } = DateTimeOffset.UtcNow;
+        public int? DepartmentId { get; set; }
 
-        public DateTimeOffset UpdateAt { get; set; } = DateTimeOffset.UtcNow;
+        public bool IsActive { get; set; } = true;
 
-        public DateTimeOffset? LoginAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
 
-        
+        public DateTimeOffset UpdatedAt { get; set; }
 
-       // Role
-        [ForeignKey(nameof(role))]
-        public int Role_Id { get; set; }
+        // Navigation
+        public Role Role { get; set; } = null!;
 
-        public Role role { get; set; } = null!;
-
-        // Navigation Properties
-        public List<Report> Reports { get; set; } = new List<Report>();
-
-        public List<ReportSchedule> reportSchedules { get; set; }
-            = new List<ReportSchedule>();
-
-        public List<Operations> Operations { get; set; }
-            = new List<Operations>();
-
-        public List<AuditLog> auditLog { get; set; }
-            = new List<AuditLog>();
+        public Department? Department { get; set; }
     }
 }

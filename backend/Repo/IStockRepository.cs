@@ -1,34 +1,35 @@
-﻿using whm.Models;
+﻿using whm.DTOs.Stock;
+using whm.Models;
 
 namespace whm.Repositories.Interfaces
 {
     public interface IStockRepository
     {
-        Task<IEnumerable<Stock>> GetAllAsync();
+        Task<List<StockDto>> GetAllAsync();
 
-        Task<Stock?> GetByIdAsync(int id);
+        Task<StockDto?> GetByIdAsync(int id);
 
-        Task<IEnumerable<Stock>> GetByProductIdAsync(
-            int productId);
+        Task<List<StockDto>> GetByProductAsync(int productId);
 
-        Task<IEnumerable<Stock>> GetByBinIdAsync(
-            int binId);
+        Task<List<StockDto>> GetByLocationAsync(int locationId);
 
-        Task<List<Stock>> SearchBySiteAndDepartmentAsync(
-            int? siteId,
-            int? departmentId);
+        Task<List<StockDto>> GetByWarehouseAsync(int warehouseId);
 
-        // =========================================================
-        // GET INVENTORY WITH PAGINATION
-        // =========================================================
+        Task<List<StockDto>> GetAvailableAsync();
 
-        Task<(List<Stock> Stocks, int TotalCount)>
-            GetInventoryAsync(
-                int pageNumber,
-                int pageSize);
+        Task<List<StockDto>> GetLowStockAsync();
+
+        Task<List<StockDto>> GetOutOfStockAsync();
+
+        Task<StockSummaryDto> GetSummaryAsync();
+
+        Task<decimal> GetTotalQuantityAsync();
+
+        Task<decimal> GetTotalValueAsync();
+
+        Task<Stock?> GetEntityByIdAsync(int id);
 
         Task AddAsync(Stock stock);
-        Task<Stock?> GetByIdForUpdateAsync(int id);
 
         void Update(Stock stock);
 
