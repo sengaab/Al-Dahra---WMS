@@ -1,120 +1,201 @@
 @import "tailwindcss";
 
 :root {
-  /* =========================
-     Typography
-     1440 × 900 Reference
-     ========================= */
+  /* ========================================
+     FONT FAMILIES
+     ======================================== */
 
-  /* Roboto Serif */
-  --font-section-title: clamp(14px, 1.11vw, 16px);
+  --font-roboto: "Roboto", sans-serif;
+  --font-roboto-serif: "Roboto Serif", serif;
+
+
+  /* ========================================
+     FONT WEIGHTS
+     ======================================== */
+
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+
+  /* ========================================
+     RESPONSIVE TYPOGRAPHY
+     ======================================== */
+
+  /* Big Text
+     Roboto Serif Medium — 32px
+  */
+  --font-big-text: clamp(28px, 2.2vw, 32px);
+
+  /* Page Title
+     Roboto Serif Medium — 23px
+  */
   --font-page-title: clamp(20px, 1.6vw, 23px);
-  --font-big-text: clamp(32px, 3vw, 48px);
 
-  /* Roboto */
-  --font-body: clamp(11px, 0.83vw, 12px);
+  /* Card Title
+     Roboto Serif Semibold — 10px
+  */
+  --font-card-title: clamp(9px, 0.7vw, 10px);
+
+  /* Small CTA
+     Roboto Serif Semibold — 7px
+  */
+  --font-small-cta: clamp(7px, 0.5vw, 8px);
+
+  /* Nav Items
+     Roboto Medium — 16px
+  */
+  --font-nav-item: clamp(14px, 1.1vw, 16px);
+
+  /* Placeholder
+     Roboto Medium — 12px
+  */
+  --font-placeholder: clamp(11px, 0.83vw, 12px);
+
+  /* Body Title
+     Roboto Bold — 12px
+  */
   --font-body-title: clamp(11px, 0.83vw, 12px);
-  --font-placeholder: clamp(14px, 1.11vw, 16px);
 
-  /* Font weights */
-  --weight-section-title: 600;
-  --weight-page-title: 500;
-  --weight-body: 300;
-  --weight-body-title: 700;
-  --weight-placeholder: 100;
+  /* Metadata Title
+     Roboto Bold — 6px
+  */
+  --font-metadata-title: clamp(6px, 0.45vw, 7px);
+
+  /* Small Body
+     Roboto Regular — 8px
+  */
+  --font-small-body: clamp(8px, 0.7vw, 10px);
+
+  /* Metadata
+     Roboto Regular — 6px
+  */
+  --font-metadata: clamp(6px, 0.45vw, 7px);
+
+  /* Body
+     Roboto Light — 12px
+  */
+  --font-body: clamp(11px, 0.83vw, 12px);
 }
+
+
+/* ========================================
+   GLOBAL RESET
+   ======================================== */
 
 * {
   box-sizing: border-box;
-  font-family: var(--font-roboto);
 }
 
+html,
 body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+}
+
+
+/* ========================================
+   GLOBAL BODY
+   ======================================== */
+
+body {
   font-family: var(--font-roboto);
   font-size: var(--font-body);
-  font-weight: var(--weight-body);
+  font-weight: var(--weight-light);
 }
 
-/* =========================
-   Headings
-   ========================= */
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-  color: var(--midnight-blue);
-}
+/* ========================================
+   TYPOGRAPHY CLASSES
+   ======================================== */
 
 /* Big Text */
-h1 {
+.big-text {
   font-family: var(--font-roboto-serif);
   font-size: var(--font-big-text);
-  font-weight: var(--weight-page-title);
+  font-weight: var(--weight-medium);
 }
+
 
 /* Page Title */
-h2 {
+.page-title {
   font-family: var(--font-roboto-serif);
   font-size: var(--font-page-title);
-  font-weight: var(--weight-page-title);
+  font-weight: var(--weight-medium);
 }
 
-/* Section Title Serif */
-h3 {
+
+/* Card Title */
+.card-title {
   font-family: var(--font-roboto-serif);
-  font-size: var(--font-section-title);
-  font-weight: var(--weight-section-title);
+  font-size: var(--font-card-title);
+  font-weight: var(--weight-semibold);
 }
 
-/* Section Title */
-h4 {
+
+/* Small CTA */
+.small-cta {
+  font-family: var(--font-roboto-serif);
+  font-size: var(--font-small-cta);
+  font-weight: var(--weight-semibold);
+}
+
+
+/* Navigation Item */
+.nav-item {
   font-family: var(--font-roboto);
-  font-size: var(--font-section-title);
-  font-weight: var(--weight-section-title);
+  font-size: var(--font-nav-item);
+  font-weight: var(--weight-medium);
 }
 
-h5 {
-  font-family: var(--font-roboto);
-  font-size: var(--font-page-title);
-  font-weight: var(--weight-section-title);
-}
 
-h6 {
-  font-family: var(--font-roboto);
-  font-size: var(--font-section-title);
-  font-weight: var(--weight-body);
-}
-/* =========================
-   Typography Classes
-   ========================= */
-
-.body {
-  font-family: var(--font-roboto);
-  font-size: var(--font-body-title);
-  font-weight: var(--weight-body);
-}
-
-.body-subtitle {
-  font-family: var(--font-roboto);
-  font-size: var(--font-body-title);
-  font-weight: var(--weight-page-title);
-}
-
-.body-title {
-  font-family: var(--font-roboto);
-  font-size: var(--font-body-title);
-  font-weight: var(--weight-body-title);
-}
-
+/* Placeholder */
 .placeholder {
   font-family: var(--font-roboto);
   font-size: var(--font-placeholder);
-  font-weight: var(--weight-placeholder);
+  font-weight: var(--weight-medium);
+  color: var(--grey);
+}
+
+
+/* Body Title */
+.body-title {
+  font-family: var(--font-roboto);
+  font-size: var(--font-body-title);
+  font-weight: var(--weight-bold);
+}
+
+
+/* Metadata Title */
+.metadata-title {
+  font-family: var(--font-roboto);
+  font-size: var(--font-metadata-title);
+  font-weight: var(--weight-bold);
+}
+
+
+/* Small Body */
+.small-body {
+  font-family: var(--font-roboto);
+  font-size: var(--font-small-body);
+  font-weight: var(--weight-regular);
+}
+
+
+/* Metadata */
+.metadata {
+  font-family: var(--font-roboto);
+  font-size: var(--font-metadata);
+  font-weight: var(--weight-regular);
+}
+
+
+/* Body */
+.body {
+  font-family: var(--font-roboto);
+  font-size: var(--font-body);
+  font-weight: var(--weight-light);
 }

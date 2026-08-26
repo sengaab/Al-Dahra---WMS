@@ -4,64 +4,108 @@
      Main Palette
      ========================================= */
 
-    --dark-green: #084734;
+    --white: #ffffff;
     --beige: #FAF9F6;
-    --grey: #828282;
+    --dark-green: #084734;
     --dahra-green: #93976d;
+    --grey: #828282;
     --midnight-blue: #1c252c;
     --blood-red: #780606;
     --lime-green: #F1FE77;
-    --white: #ffffff;
-
-
+    
+    
     /* =========================================
-     System Colors
-     ========================================= */
-
-    --green-1: #2F4A0D;
-    --green-2: #667E35;
-    --green-3: #9BAD65;
-    --green-4: #C5D099;
+    System Colors
+    ========================================= */
+    
     --orange: #FE6A35;
+    --light-orange: #FFBCA5;
     --red: #780606;
+    --light-red: #AD5E5E;
     --blue: #2B72FB;
+    --light-blue: #B0CBFF;
+    --light-purple: #C396FF;
+    --light-green: #CDD0B1;
     --light-grey: #D9D9D9;
 
 
-    /* =========================================
-     Typography
-     1440 × 900 Reference
-     ========================================= */
+    /* ========================================
+     FONT FAMILIES
+     ======================================== */
 
-    /* Font Families */
     --font-roboto: "Roboto", sans-serif;
     --font-roboto-serif: "Roboto Serif", serif;
 
-    /* Font Sizes */
 
-    /* Roboto Serif */
-    --font-big-text: clamp(32px, 3vw, 48px);
-    --font-page-title: clamp(20px, 1.6vw, 23px);
-    --font-section-title: clamp(14px, 1.11vw, 16px);
+    /* ========================================
+     FONT WEIGHTS
+     ======================================== */
 
-    /* Roboto */
-    --font-body: clamp(10px, 0.75vw, 10px);
-    --font-body-title: clamp(11px, 0.83vw, 12px);
-    --font-placeholder: clamp(14px, 1.11vw, 16px);
-
-    /* Font Weights */
-    --weight-thin: 100;
     --weight-light: 300;
     --weight-regular: 400;
     --weight-medium: 500;
     --weight-semibold: 600;
     --weight-bold: 700;
 
-    --weight-section-title: var(--weight-medium);
-    --weight-page-title: var(--weight-medium);
-    --weight-body: var(--weight-light);
-    --weight-body-title: var(--weight-bold);
-    --weight-placeholder: var(--weight-thin);
+
+    /* ========================================
+     RESPONSIVE TYPOGRAPHY
+     ======================================== */
+
+    /* Big Text
+     Roboto Serif Medium — 32px
+  */
+    --font-big-text: clamp(28px, 2.2vw, 32px);
+
+    /* Page Title
+     Roboto Serif Medium — 23px
+  */
+    --font-page-title: clamp(20px, 1.6vw, 23px);
+
+    /* Card Title
+     Roboto Serif Semibold — 10px
+  */
+    --font-card-title: clamp(9px, 0.7vw, 10px);
+
+    /* Small CTA
+     Roboto Serif Semibold — 7px
+  */
+    --font-small-cta: clamp(7px, 0.5vw, 8px);
+
+    /* Nav Items
+     Roboto Medium — 16px
+  */
+    --font-nav-item: clamp(14px, 1.1vw, 16px);
+
+    /* Placeholder
+     Roboto Medium — 12px
+  */
+    --font-placeholder: clamp(11px, 0.83vw, 12px);
+
+    /* Body Title
+     Roboto Bold — 12px
+  */
+    --font-body-title: clamp(11px, 0.83vw, 12px);
+
+    /* Metadata Title
+     Roboto Bold — 6px
+  */
+    --font-metadata-title: clamp(6px, 0.45vw, 7px);
+
+    /* Small Body
+     Roboto Regular — 8px
+  */
+    --font-small-body: clamp(8px, 0.7vw, 10px);
+
+    /* Metadata
+     Roboto Regular — 6px
+  */
+    --font-metadata: clamp(6px, 0.45vw, 7px);
+
+    /* Body
+     Roboto Light — 12px
+  */
+    --font-body: clamp(11px, 0.83vw, 12px);
 
 
     /* =========================================

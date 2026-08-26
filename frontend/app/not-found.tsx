@@ -34,13 +34,13 @@ export default function NotFound() {
           textAlign: "center",
         }}
       >
-        <h1 style={{color: "var(--blood-red)"}}>Error 404</h1>
+        <p className="big-text" style={{color: "var(--blood-red)"}}>Error 404</p>
 
-        <h2 style={{color: "black"}}>Page Not Found</h2>
+        <p className="nav-item">Page Not Found</p>
 
-        <h4>
+        <p className="body-title">
           The page you're looking for doesn't exist.
-        </h4>
+        </p>
 
         <Link
           href="/dashboard"

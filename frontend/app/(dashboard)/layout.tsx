@@ -1,16 +1,41 @@
-// app/(dashboard)/layout.tsx
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import SearchBar from "@/components/searchbar";
 import Sidebar from "@/components/sidebar";
+
+const pageTitles: Record<string, string> = {
+    "/dashboard": "Operations Dashboard",
+    "/inventory": "Inventory",
+    "/stock-counts": "Stock Counts",
+    "/transfers": "Transfers",
+    "/stock-issues": "Stock Issues",
+    "/returns": "Returns",
+    "/procurement": "Procurement",
+    "/purchase-orders": "Purchase Orders",
+    "/suppliers": "Suppliers",
+    "/receiving": "Receiving",
+    "/putaway": "Putaway",
+    "/requests": "Requests",
+    "/picking": "Picking",
+    "/scan": "Barcode Scanner",
+    "/reports": "Reports",
+    "/audit-logs": "Audit Logs",
+    "/settings": "Settings",
+};
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const pathname = usePathname();
     const [showHeader, setShowHeader] = useState(true);
+
+    const PageTitle =
+        pageTitles[pathname] ||
+        "Operations Dashboard";
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
@@ -69,13 +94,13 @@ export default function DashboardLayout({
                         top: 0,
                         left: "var(--sidebar-width)",
                         right: 0,
-                        height: "var(--header-height)",
                         backgroundColor: "var(--white)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
                         gap: "var(--space-6)",
-                        padding: "0 var(--content-padding)",
+                        padding:
+                            "var(--space-3) var(--content-padding)",
                         boxSizing: "border-box",
                         zIndex: 1000,
 
@@ -83,8 +108,7 @@ export default function DashboardLayout({
                             ? "translateY(0)"
                             : "translateY(-100%)",
 
-                        transition:
-                            "transform 0.25s ease",
+                        transition: "transform 0.25s ease",
                     }}
                 >
                     {/* Left Side */}
@@ -97,14 +121,15 @@ export default function DashboardLayout({
                             flex: 1,
                         }}
                     >
-                        <h2
+                        <p
+                            className="page-title"
                             style={{
                                 whiteSpace: "nowrap",
                                 flexShrink: 0,
                             }}
                         >
-                            Operations Dashboard
-                        </h2>
+                            {PageTitle}
+                        </p>
 
                         <SearchBar
                             placeholder="Search products..."
@@ -133,8 +158,8 @@ export default function DashboardLayout({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                width: "var(--icon-xl)",
-                                height: "var(--icon-xl)",
+                                width: "var(--icon-lg)",
+                                height: "var(--icon-lg)",
                                 padding: 0,
                                 border: "none",
                                 backgroundColor: "transparent",
@@ -145,8 +170,8 @@ export default function DashboardLayout({
                                 src="/notification.svg"
                                 alt="Notifications"
                                 style={{
-                                    width: "var(--icon-xl)",
-                                    height: "var(--icon-xl)",
+                                    width: "var(--icon-lg)",
+                                    height: "var(--icon-lg)",
                                 }}
                             />
                         </button>
@@ -158,8 +183,8 @@ export default function DashboardLayout({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                width: "var(--icon-xl)",
-                                height: "var(--icon-xl)",
+                                width: "var(--icon-lg)",
+                                height: "var(--icon-lg)",
                                 padding: 0,
                                 border: "none",
                                 backgroundColor: "transparent",
@@ -170,8 +195,8 @@ export default function DashboardLayout({
                                 src="/profile.svg"
                                 alt="Profile"
                                 style={{
-                                    width: "var(--icon-xl)",
-                                    height: "var(--icon-xl)",
+                                    width: "var(--icon-lg)",
+                                    height: "var(--icon-lg)",
                                 }}
                             />
                         </button>
