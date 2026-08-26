@@ -1,7 +1,6 @@
-﻿using whm.Repositories;
+﻿using whm.Data;
+using whm.Repositories;
 using whm.Repositories.Interfaces;
-using whm.Models;
-using whm.Data;
 
 namespace whm.UnitOfWork
 {
@@ -12,9 +11,17 @@ namespace whm.UnitOfWork
         public IStockRepository Stocks { get; }
 
         public IDashboardRepository Dashboard { get; }
+
         public IUserRepository User { get; }
+
         public IRoleRepository Roles { get; }
+
         public IDepartmentRepository Department { get; }
+
+        public IStockTransactionRepository StockTransactions { get; }
+
+        public IStockRequestRepository StockRequests { get; }
+        public IPickListRepository PickLists { get; }
 
 
         public UnitOfWork(
@@ -23,7 +30,10 @@ namespace whm.UnitOfWork
             IDashboardRepository dashboardRepository,
             IUserRepository userRepository,
             IRoleRepository roleRepository,
-            IDepartmentRepository departmentRepository
+            IDepartmentRepository departmentRepository,
+            IStockTransactionRepository stockTransactionRepository,
+            IStockRequestRepository stockRequestRepository
+            , IPickListRepository pickListRepository
             )
         {
             _context = context;
@@ -31,11 +41,25 @@ namespace whm.UnitOfWork
             Stocks = stockRepository;
 
             Dashboard = dashboardRepository;
+
             User = userRepository;
+
             Roles = roleRepository;
+
             Department = departmentRepository;
+
+            StockTransactions = stockTransactionRepository;
+
+            StockRequests = stockRequestRepository;
+            PickLists = pickListRepository;
+
+
         }
 
+
+        // =====================================================
+        // SAVE CHANGES
+        // =====================================================
 
         public async Task<int> SaveAsync()
         {

@@ -10,6 +10,10 @@ namespace whm.UnitOfWork
         IUserRepository User { get; }
         IRoleRepository Roles { get; }
         IDepartmentRepository Department { get; }
+        IStockTransactionRepository StockTransactions { get; }
+        IStockRequestRepository StockRequests { get; }
+        IPickListRepository PickLists { get; }
+
 
         Task<int> SaveAsync();
     }

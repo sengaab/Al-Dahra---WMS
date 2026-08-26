@@ -49,6 +49,10 @@ namespace whm
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IRoleRepository, RoleRepository>();
             builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+            builder.Services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
+            builder.Services.AddScoped<IStockRequestRepository, StockRequestRepository>();
+            builder.Services.AddScoped<IPickListRepository, PickListRepository>();
+
 
 
             // =====================================================
