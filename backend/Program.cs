@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using whm.Data;
 using whm.Middleware;
 using whm.Models;
 using whm.Repositories;
@@ -45,6 +46,9 @@ namespace whm
               IBarcodeService,
                BarcodeService
             >();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+            builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 
             // =====================================================
