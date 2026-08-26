@@ -26,13 +26,14 @@ export default function SearchBar({
                 alignItems: "center",
                 width: "100%",
                 maxWidth: "500px",
-                height: "var(--input-height)",
                 border: "var(--border-default)",
                 borderColor: "var(--grey)",
                 borderRadius: "var(--input-radius)",
                 backgroundColor: "var(--white)",
                 overflow: "hidden",
                 boxSizing: "border-box",
+                padding:"var(--space-1)",
+                gap:"var(--space-3)"
             }}
         >
             {/* Search Icon */}
@@ -41,7 +42,6 @@ export default function SearchBar({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    width: "var(--input-height)",
                     height: "100%",
                     color: "var(--grey)",
                     flexShrink: 0,
@@ -65,6 +65,7 @@ export default function SearchBar({
             {/* Input */}
             <input
                 type="text"
+                className="placeholder"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={placeholder}
@@ -74,9 +75,6 @@ export default function SearchBar({
                     height: "100%",
                     border: "none",
                     outline: "none",
-                    fontFamily: "var(--font-roboto)",
-                    fontSize: "var(--font-placeholder)",
-                    fontWeight: "var(--weight-placeholder)",
                     color: "black",
                     backgroundColor: "transparent",
                     padding: "0 var(--space-3) 0 0",

@@ -47,35 +47,30 @@ export default function Error({
           textAlign: "center",
         }}
       >
-        <h1
+        <p className="big-text"
           style={{
             margin: 0,
             color:"var(--blood-red)",
           }}
         >
          Error 500
-        </h1>
+        </p>
 
-        <h2
-          style={{
-            margin: 0,
-            color: "black",
-          }}
+        <p
+          className="nav-item"
         >
           Something Went Wrong
-        </h2>
+        </p>
 
-        <h4
+        <p
+          className="body-title"
           style={{
             margin: "5px 0 15px",
-            fontFamily: "var(--font-roboto)",
-            lineHeight: 1.5,
-            color: "black",
           }}
         >
           Something went wrong while processing your request. Please try
           again.
-        </h4>
+        </p>
 
         <Button
           variant="secondary"

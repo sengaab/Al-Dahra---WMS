@@ -16,9 +16,34 @@ const navItems = [
         icon: "/nav/inventory.svg",
     },
     {
-        name: "Reports",
-        href: "/reports",
-        icon: "/nav/reports.svg",
+        name: "Stock Counts",
+        href: "/stock-counts",
+        icon: "/nav/stock-counts.svg",
+    },
+    {
+        name: "Transfers",
+        href: "/transfers",
+        icon: "/nav/transfers.svg",
+    },
+    {
+        name: "Stock Issues",
+        href: "/stock-issues",
+        icon: "/nav/stock-issues.svg",
+    },
+    {
+        name: "Returns",
+        href: "/returns",
+        icon: "/nav/returns.svg",
+    },
+    {
+        name: "Procurement",
+        href: "/procurement",
+        icon: "/nav/procurement.svg",
+    },
+    {
+        name: "Purchase Orders",
+        href: "/purchase-orders",
+        icon: "/nav/purchase-orders.svg",
     },
     {
         name: "Suppliers",
@@ -26,14 +51,39 @@ const navItems = [
         icon: "/nav/suppliers.svg",
     },
     {
-        name: "Orders",
-        href: "/orders",
-        icon: "/nav/orders.svg",
+        name: "Receiving",
+        href: "/receiving",
+        icon: "/nav/receiving.svg",
     },
     {
-        name: "Scan Product",
+        name: "Putaway",
+        href: "/putaway",
+        icon: "/nav/putaway.svg",
+    },
+    {
+        name: "Requests",
+        href: "/requests",
+        icon: "/nav/requests.svg",
+    },
+    {
+        name: "Picking",
+        href: "/picking",
+        icon: "/nav/picking.svg",
+    },
+    {
+        name: "Barcode Scanner",
         href: "/scan",
-        icon: "/nav/scan.svg",
+        icon: "/nav/barcode-scanner.svg",
+    },
+    {
+        name: "Reports",
+        href: "/reports",
+        icon: "/nav/reports.svg",
+    },
+    {
+        name: "Audit Logs",
+        href: "/audit-logs",
+        icon: "/nav/audit-logs.svg",
     },
 ];
 
@@ -85,13 +135,14 @@ function NavItem({
                 }}
             />
 
-            <h4
+            <p
+                className="nav-item"
                 style={{
                     color: active?"black":"var(--white)",
                 }}
             >
                 {name}
-            </h4>
+            </p>
         </Link>
     );
 }
@@ -129,6 +180,8 @@ export default function Sidebar() {
                 boxSizing: "border-box",
                 gap: "var(--space-10)",
                 flexShrink: 0,
+                overflowY:"auto",
+                scrollbarWidth:"none",
             }}
         >
             {/* Logo */}
@@ -230,13 +283,14 @@ export default function Sidebar() {
                         }}
                     />
 
-                    <h4
+                    <p
+                        className="nav-item"
                         style={{
                             color: "var(--white)",
                         }}
                     >
                         Log Out
-                    </h4>
+                    </p>
                 </button>
             </nav>
         </aside>

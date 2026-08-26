@@ -52,72 +52,14 @@ export default function Home() {
       return;
     }
 
-    // =========================
-    // Get Access Token
-    // =========================
-
-    console.log("SESSION:", session);
-
-    console.log("ACCESS TOKEN:", session.access_token);
+    console.log("Authentication successful!");
+    console.log("User:", session.user);
 
     // =========================
-    // Test .NET Backend
+    // Login Successful
     // =========================
 
-    try {
-      const response = await fetch(
-        "http://localhost:5171/api/Auth/me",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const responseText = await response.text();
-
-      console.log("Backend status:", response.status);
-      console.log("Backend raw response:", responseText);
-
-      if (!response.ok) {
-        setError(
-          `Backend authentication failed (${response.status})`
-        );
-
-        setLoading(false);
-        return;
-      }
-
-      let backendData = null;
-
-      if (responseText) {
-        try {
-          backendData = JSON.parse(responseText);
-        } catch (error) {
-          console.error("Invalid JSON from backend:", error);
-        }
-      }
-
-      console.log("Backend response:", backendData);
-
-      // =========================
-      // Login Successful
-      // =========================
-
-      console.log("Authentication successful!");
-
-      router.push("/dashboard");
-    } catch (backendError) {
-      console.error("Backend connection error:", backendError);
-
-      setError(
-        "Could not connect to the WMS backend."
-      );
-
-      setLoading(false);
-    }
+    router.push("/dashboard");
   };
 
   return (
@@ -192,22 +134,20 @@ export default function Home() {
           }}
         >
           <h1
-            style={{
-              color: "var(--midnight-blue)",
-            }}
-          >
+            className="big-text"
+            >
             Welcome to
           </h1>
 
-          <h4
+          <h1
+            className="nav-item"
             style={{
               marginTop: "var(--space-2)",
-              color: "var(--midnight-blue)",
               lineHeight: 1.5,
             }}
           >
             Eldahra's Warehouse Management System
-          </h4>
+          </h1>
         </div>
 
         {/* =========================
@@ -231,21 +171,20 @@ export default function Home() {
           >
             <label
               htmlFor="email"
+              className="body-title"
               style={{
                 display: "block",
                 marginBottom: "var(--space-2)",
-                fontFamily: "var(--font-roboto-serif)",
-                fontSize: "var(--font-section-title)",
-                fontWeight: "var(--weight-section-title)",
                 color: "var(--dark-green)",
               }}
-            >
+              >
               Email
             </label>
 
             <input
               id="email"
               type="email"
+              className="placeholder"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -262,14 +201,9 @@ export default function Home() {
                 borderColor: "var(--dark-green)",
                 padding: "0 var(--input-padding-x)",
                 boxSizing: "border-box",
-                fontFamily: "var(--font-roboto)",
-                fontSize: "var(--font-placeholder)",
-                fontWeight: "var(--weight-placeholder)",
-                backgroundColor: "var(--beige)",
-                color: "var(--dark-green)",
                 outline: "none",
               }}
-            />
+              />
           </div>
 
           {/* Password */}
@@ -278,15 +212,13 @@ export default function Home() {
             style={{
               width: "100%",
             }}
-          >
+            >
             <label
               htmlFor="password"
+              className="body-title"
               style={{
                 display: "block",
                 marginBottom: "var(--space-2)",
-                fontFamily: "var(--font-roboto-serif)",
-                fontSize: "var(--font-section-title)",
-                fontWeight: "var(--weight-section-title)",
                 color: "var(--dark-green)",
               }}
             >
@@ -296,6 +228,7 @@ export default function Home() {
             <input
               id="password"
               type="password"
+              className="placeholder"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -312,24 +245,19 @@ export default function Home() {
                 borderColor: "var(--dark-green)",
                 padding: "0 var(--input-padding-x)",
                 boxSizing: "border-box",
-                fontFamily: "var(--font-roboto)",
-                fontSize: "var(--font-placeholder)",
-                fontWeight: "var(--weight-placeholder)",
-                backgroundColor: "var(--beige)",
-                color: "var(--dark-green)",
                 outline: "none",
               }}
             />
           </div>
 
           {/* Error */}
+
           {error && (
             <p
+            className="body-title"
               style={{
                 margin: "-5px 0 0",
                 color: "#B42318",
-                fontFamily: "var(--font-roboto)",
-                fontSize: "13px",
               }}
             >
               {error}
