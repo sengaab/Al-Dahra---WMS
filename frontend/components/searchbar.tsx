@@ -4,14 +4,31 @@ import { useState } from "react";
 
 interface SearchBarProps {
     placeholder?: string;
+    value?: string;
+    onChange?: (value: string) => void;
     onSearch?: (value: string) => void;
+    style?: React.CSSProperties;
 }
 
 export default function SearchBar({
     placeholder = "Search...",
+    value: controlledValue,
+    onChange,
     onSearch,
+    style,
 }: SearchBarProps) {
-    const [value, setValue] = useState("");
+    const [internalValue, setInternalValue] = useState("");
+
+    const value =
+        controlledValue !== undefined ? controlledValue : internalValue;
+
+    const handleChange = (newValue: string) => {
+        if (controlledValue === undefined) {
+            setInternalValue(newValue);
+        }
+
+        onChange?.(newValue);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,15 +42,16 @@ export default function SearchBar({
                 display: "flex",
                 alignItems: "center",
                 width: "100%",
-                maxWidth: "500px",
+                maxWidth: "600px",
                 border: "var(--border-default)",
-                borderColor: "var(--grey)",
                 borderRadius: "var(--input-radius)",
                 backgroundColor: "var(--white)",
                 overflow: "hidden",
                 boxSizing: "border-box",
-                padding:"var(--space-1)",
-                gap:"var(--space-3)"
+                padding: "var(--space-1)",
+                gap: "var(--space-3)",
+                height: "var(--input-height)",
+                ...style,
             }}
         >
             {/* Search Icon */}
@@ -48,8 +66,7 @@ export default function SearchBar({
                 }}
             >
                 <svg
-                    width="20"
-                    height="20"
+                    height="var(--icon-md)"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -67,7 +84,7 @@ export default function SearchBar({
                 type="text"
                 className="placeholder"
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => handleChange(e.target.value)}
                 placeholder={placeholder}
                 style={{
                     flex: 1,

@@ -82,18 +82,22 @@ export default function Button({
         setIsHovered(false);
         props.onMouseLeave?.(e);
       }}
+      className="body-title"
       style={{
         ...currentVariant.normal,
         ...(isHovered ? currentVariant.hover : {}),
 
-        padding: "12px 24px",
         borderRadius: "8px",
-        fontFamily: "var(--font-roboto-serif)",
-        fontSize: "var(--font-section-title)",
         fontWeight: 400,
         cursor: "pointer",
         transition: "all 0.2s ease",
-
+        textWrap: "nowrap",
+        height: "var(--input-height)",
+        paddingInline: "var(--input-padding-x)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "var(--space-2)",
         border: variant === "outline"
           ? "2px solid var(--dark-green)"
           : "none",
