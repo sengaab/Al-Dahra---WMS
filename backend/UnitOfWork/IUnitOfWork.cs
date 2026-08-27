@@ -13,7 +13,9 @@ namespace whm.UnitOfWork
         IStockTransactionRepository StockTransactions { get; }
         IStockRequestRepository StockRequests { get; }
         IPickListRepository PickLists { get; }
-
+        IStockIssueRepository StockIssues { get; }
+        IStockTransferRepository StockTransfers { get; }
+        IStockCountRepository StockCounts { get; }
 
         Task<int> SaveAsync();
     }
