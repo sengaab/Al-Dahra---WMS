@@ -8,6 +8,8 @@
 
         public string ProductName { get; set; } = string.Empty;
 
+        public string CategoryName { get; set; } = string.Empty;
+
         public string SKU { get; set; } = string.Empty;
 
         public int WarehouseId { get; set; }

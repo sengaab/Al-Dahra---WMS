@@ -13,6 +13,7 @@ interface DropdownProps {
     value?: string;
     onChange?: (value: string) => void;
     width?: string;
+    style?: React.CSSProperties;
 }
 
 export default function Dropdown({
@@ -20,7 +21,7 @@ export default function Dropdown({
     placeholder = "Select...",
     value,
     onChange,
-    width = "200px",
+    style,
 }: DropdownProps) {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,7 +57,7 @@ export default function Dropdown({
             ref={dropdownRef}
             style={{
                 position: "relative",
-                width,
+                ...style,
             }}
         >
             {/* Trigger */}
@@ -64,26 +65,26 @@ export default function Dropdown({
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
                 style={{
-                    width: "100%",
-                    height: "fit-content",
-                    padding: "0 5px",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    width: "100%",
+                    border: "var(--border-default)",
+                    borderRadius: "var(--input-radius)",
                     backgroundColor: "white",
-                    border: "1px solid #ddd",
-                    borderRadius: "var(--radius-md)",
+                    height: "var(--input-height)",
+                    paddingInline: "var(--input-padding-x)",
+                    justifyContent: "space-between",
+                    boxSizing: "border-box",
                     cursor: "pointer",
                     outline: "none",
-                    fontFamily: "var(--font-roboto)",
                     color: selectedOption
                         ? "var(--midnight-blue)"
                         : "var(--grey)",
                 }}
             >
-                <h6>
+                <p className="placeholder">
                     {selectedOption?.label || placeholder}
-                </h6>
+                </p>
 
                 <img
                     src={"/down arrow.svg"}

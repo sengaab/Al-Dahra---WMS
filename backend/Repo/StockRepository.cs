@@ -244,6 +244,11 @@ namespace whm.Repositories
 
                     ProductName = x.Product.Name,
 
+                    CategoryName = _context.Categories
+                        .Where(c => c.CategoryId == x.Product.CategoryId)
+                        .Select(c => c.Name)
+                        .FirstOrDefault() ?? string.Empty,
+
                     SKU = x.Product.SKU,
 
                     WarehouseId = x.WarehouseId,
@@ -270,7 +275,7 @@ namespace whm.Repositories
 
                     UnitPrice = x.UnitPrice,
 
-                    MinimumStock = x.MinimumStock,
+                    MinimumStock = x.Product.MinimumStock,
 
                     StockStatus = x.stockStatus.ToString(),
 

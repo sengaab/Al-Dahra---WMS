@@ -37,32 +37,6 @@ export default function DashboardLayout({
         pageTitles[pathname] ||
         "Operations Dashboard";
 
-    useEffect(() => {
-        let lastScrollY = window.scrollY;
-
-        const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-
-            if (currentScrollY <= 0) {
-                setShowHeader(true);
-            } else if (currentScrollY > lastScrollY) {
-                // Scrolling down
-                setShowHeader(false);
-            } else {
-                // Scrolling up
-                setShowHeader(true);
-            }
-
-            lastScrollY = currentScrollY;
-        };
-
-        window.addEventListener("scroll", handleScroll);
-
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
-    }, []);
-
     return (
         <div
             style={{
@@ -103,12 +77,7 @@ export default function DashboardLayout({
                             "var(--space-3) var(--content-padding)",
                         boxSizing: "border-box",
                         zIndex: 1000,
-
-                        transform: showHeader
-                            ? "translateY(0)"
-                            : "translateY(-100%)",
-
-                        transition: "transform 0.25s ease",
+                        height: "var(--header-height)",
                     }}
                 >
                     {/* Left Side */}
@@ -158,8 +127,8 @@ export default function DashboardLayout({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                width: "var(--icon-lg)",
-                                height: "var(--icon-lg)",
+                                width: "var(--icon-xl)",
+                                height: "var(--icon-xl)",
                                 padding: 0,
                                 border: "none",
                                 backgroundColor: "transparent",
@@ -170,8 +139,8 @@ export default function DashboardLayout({
                                 src="/notification.svg"
                                 alt="Notifications"
                                 style={{
-                                    width: "var(--icon-lg)",
-                                    height: "var(--icon-lg)",
+                                    width: "var(--icon-xl)",
+                                    height: "var(--icon-xl)",
                                 }}
                             />
                         </button>
@@ -183,8 +152,8 @@ export default function DashboardLayout({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                width: "var(--icon-lg)",
-                                height: "var(--icon-lg)",
+                                width: "var(--icon-xl)",
+                                height: "var(--icon-xl)",
                                 padding: 0,
                                 border: "none",
                                 backgroundColor: "transparent",
@@ -195,8 +164,8 @@ export default function DashboardLayout({
                                 src="/profile.svg"
                                 alt="Profile"
                                 style={{
-                                    width: "var(--icon-lg)",
-                                    height: "var(--icon-lg)",
+                                    width: "var(--icon-xl)",
+                                    height: "var(--icon-xl)",
                                 }}
                             />
                         </button>

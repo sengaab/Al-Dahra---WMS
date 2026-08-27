@@ -156,7 +156,7 @@ body {
 .placeholder {
   font-family: var(--font-roboto);
   font-size: var(--font-placeholder);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-thin);
   color: var(--grey);
 }
 
@@ -197,5 +197,5 @@ body {
 .body {
   font-family: var(--font-roboto);
   font-size: var(--font-body);
-  font-weight: var(--weight-light);
+  font-weight: var(--weight-regular);
 }

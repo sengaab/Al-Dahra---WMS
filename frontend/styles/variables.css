@@ -19,9 +19,9 @@
     ========================================= */
     
     --orange: #FE6A35;
-    --light-orange: #FFBCA5;
+    --light-orange: #FFCD82;
     --red: #780606;
-    --light-red: #AD5E5E;
+    --light-red: #FF9D9D;
     --blue: #2B72FB;
     --light-blue: #B0CBFF;
     --light-purple: #C396FF;
@@ -181,8 +181,8 @@
 
     --border-width: 1px;
 
-    --border-color: var(--grey);
-    --border-color-dark: var(--grey);
+    --border-color: var(--light-grey);
+    --border-color-dark: var(--light-grey);
 
     --border-default:
         var(--border-width) solid var(--border-color);
@@ -208,7 +208,7 @@
 
     --sidebar-width: 240px;
 
-    --header-height: clamp(64px, 5.9vw, 85px);
+    --header-height: clamp(52px, 4.5vw, 68px);
 
     --content-padding: clamp(16px, 2.5vw, 40px);
 
@@ -238,7 +238,7 @@
 
 
     /* Inputs */
-    --input-height: 40px;
+    --input-height: 36px;
     --input-padding-x: 12px;
     --input-radius: var(--radius-md);
 
