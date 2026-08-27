@@ -22,6 +22,9 @@ namespace whm.UnitOfWork
 
         public IStockRequestRepository StockRequests { get; }
         public IPickListRepository PickLists { get; }
+        public IStockIssueRepository StockIssues { get; }
+        public IStockTransferRepository StockTransfers { get; }
+        public IStockCountRepository StockCounts { get; }
 
 
         public UnitOfWork(
@@ -33,7 +36,10 @@ namespace whm.UnitOfWork
             IDepartmentRepository departmentRepository,
             IStockTransactionRepository stockTransactionRepository,
             IStockRequestRepository stockRequestRepository
-            , IPickListRepository pickListRepository
+            , IPickListRepository pickListRepository,
+            IStockIssueRepository stockIssueRepository,
+            IStockTransferRepository stockTransferRepository,
+            IStockCountRepository stockCountRepository
             )
         {
             _context = context;
@@ -52,6 +58,9 @@ namespace whm.UnitOfWork
 
             StockRequests = stockRequestRepository;
             PickLists = pickListRepository;
+            StockIssues = stockIssueRepository;
+            StockTransfers = stockTransferRepository;
+            StockCounts = stockCountRepository;
 
 
         }
