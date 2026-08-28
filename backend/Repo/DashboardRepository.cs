@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using whm.Data;
 using whm.DTOs.Dashboard;
 using whm.Models;
 using whm.Repositories.Interfaces;
