@@ -6,12 +6,14 @@ interface CardProps {
     title: string;
     header?: ReactNode;
     children: ReactNode;
+    maxWidth?: string;
 }
 
 export default function Card({
     title,
     header,
     children,
+    maxWidth = "none",
 }: CardProps) {
     return (
         <div
@@ -21,7 +23,8 @@ export default function Card({
                 boxSizing: "border-box",
                 backgroundColor:"var(--white)",
                 borderRadius:"var(--radius-md)",
-                border:"solid 1px var(--light-grey)"
+                border:"solid 1px var(--light-grey)",
+                maxWidth: maxWidth,
             }}
         >
             {/* Header */}
@@ -31,7 +34,6 @@ export default function Card({
                     alignItems: "center",
                     justifyContent: "flex-start",
                     gap: "var(--space-3)",
-                    marginBottom: "var(--space-3)",
                     height:"fit-content",
                     padding:"var(--space-3)",
                 }}
