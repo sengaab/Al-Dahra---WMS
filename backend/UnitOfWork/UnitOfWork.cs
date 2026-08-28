@@ -1,4 +1,5 @@
-﻿using whm.Data;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using whm.Data;
 using whm.Repositories;
 using whm.Repositories.Interfaces;
 
@@ -25,6 +26,8 @@ namespace whm.UnitOfWork
         public IStockIssueRepository StockIssues { get; }
         public IStockTransferRepository StockTransfers { get; }
         public IStockCountRepository StockCounts { get; }
+        public IStockAdjustmentRepository StockAdjustments { get; }
+        public IStockReturnRepository StockReturns { get; }
 
 
         public UnitOfWork(
@@ -39,7 +42,11 @@ namespace whm.UnitOfWork
             , IPickListRepository pickListRepository,
             IStockIssueRepository stockIssueRepository,
             IStockTransferRepository stockTransferRepository,
-            IStockCountRepository stockCountRepository
+            IStockCountRepository stockCountRepository,
+            IStockAdjustmentRepository stockAdjustmentRepository,
+            IStockReturnRepository stockReturnRepository
+            
+
             )
         {
             _context = context;
@@ -61,6 +68,8 @@ namespace whm.UnitOfWork
             StockIssues = stockIssueRepository;
             StockTransfers = stockTransferRepository;
             StockCounts = stockCountRepository;
+            StockAdjustments = stockAdjustmentRepository;
+            StockReturns= stockReturnRepository;
 
 
         }
