@@ -4,6 +4,7 @@ import type {
     CreateStockDto,
     UpdateStockDto,
     StockSummaryDto,
+    StockByProductDto,
 } from "@/types";
 
 export async function getStock(): Promise<StockDto[]> {
@@ -54,5 +55,13 @@ export async function deleteStock(
 export async function getStockSummary(): Promise<StockSummaryDto> {
     return apiFetch<StockSummaryDto>(
         "/api/stock/summary"
+    );
+}
+
+export async function getStockByProduct(
+    productId: number
+): Promise<StockByProductDto> {
+    return apiFetch<StockByProductDto>(
+        `/api/stock/product/${productId}`
     );
 }

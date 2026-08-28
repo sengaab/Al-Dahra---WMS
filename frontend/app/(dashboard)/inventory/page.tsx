@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Card from "@/components/card";
 import Dropdown from "@/components/dropdown";
+import ProductDetails from "@/components/product-details";
 import SearchBar from "@/components/searchbar";
 import Button from "@/components/button";
 import Status from "@/components/status";
@@ -12,6 +13,8 @@ export default function Inventory() {
     const [selectedStatus, setSelectedStatus] = useState("All");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [search, setSearch] = useState("");
+    const [selectedProductId, setSelectedProductId] =
+        useState<number | null>(null);
 
     const {
         stock,
@@ -29,9 +32,6 @@ export default function Inventory() {
         { label: "Damaged", value: "Damaged" },
     ];
 
-    /*
-     * Categories are generated from the API data.
-     */
     const categories = useMemo(() => {
         const uniqueCategories = Array.from(
             new Set(
@@ -50,13 +50,6 @@ export default function Inventory() {
         ];
     }, [stock]);
 
-    /*
-     * Filter by category and search first.
-     *
-     * Status filtering happens AFTER records are
-     * grouped by SKU because status depends on the
-     * total quantity across all locations.
-     */
     const filteredData = useMemo(() => {
         const query = search.toLowerCase().trim();
 
@@ -94,12 +87,6 @@ export default function Inventory() {
         search,
     ]);
 
-    /*
-     * Group stock records by SKU.
-     *
-     * One product can exist in multiple locations,
-     * so the inventory table displays one row per SKU.
-     */
     const inventoryData = useMemo(() => {
         const grouped = new Map<string, typeof stock>();
 
@@ -115,33 +102,20 @@ export default function Inventory() {
             .map((items) => {
                 const first = items[0];
 
-                /*
-                 * Average unit price across all
-                 * stock records for this SKU.
-                 */
                 const averageUnitPrice =
                     items.reduce(
                         (total, item) =>
-                            total +
-                            item.unitPrice,
+                            total + item.unitPrice,
                         0
                     ) / items.length;
 
-                /*
-                 * Total quantity across all locations.
-                 */
                 const totalQuantity =
                     items.reduce(
                         (total, item) =>
-                            total +
-                            item.quantity,
+                            total + item.quantity,
                         0
                     );
 
-                /*
-                 * Total available quantity across
-                 * all locations.
-                 */
                 const totalAvailableQuantity =
                     items.reduce(
                         (total, item) =>
@@ -150,10 +124,6 @@ export default function Inventory() {
                         0
                     );
 
-                /*
-                 * Total reserved quantity across
-                 * all locations.
-                 */
                 const totalReservedQuantity =
                     items.reduce(
                         (total, item) =>
@@ -162,10 +132,6 @@ export default function Inventory() {
                         0
                     );
 
-                /*
-                 * Count distinct locations containing
-                 * this product.
-                 */
                 const locationCount =
                     new Set(
                         items
@@ -176,10 +142,6 @@ export default function Inventory() {
                             .filter(Boolean)
                     ).size;
 
-                /*
-                 * Calculate stock value using each
-                 * stock record's actual unit price.
-                 */
                 const stockValue =
                     items.reduce(
                         (total, item) =>
@@ -189,16 +151,6 @@ export default function Inventory() {
                         0
                     );
 
-                /*
-                 * Determine the final product status.
-                 *
-                 * Priority:
-                 *
-                 * 1. Quarantined
-                 * 2. Total Quantity = 0
-                 * 3. Available + Total Qty < Min Stock
-                 * 4. Available
-                 */
                 const hasQuarantined =
                     items.some(
                         (item) =>
@@ -226,21 +178,15 @@ export default function Inventory() {
                     stockStatus =
                         "Quarantined";
                 } else if (hasDamaged) {
-                    stockStatus =
-                        "Damaged";
+                    stockStatus = "Damaged";
                 } else if (hasExpired) {
-                    stockStatus =
-                        "Expired";
-                }
-
-                else if (
+                    stockStatus = "Expired";
+                } else if (
                     totalQuantity === 0
                 ) {
                     stockStatus =
                         "Out of Stock";
                 } else if (
-                    first.stockStatus ===
-                    "Available" &&
                     totalQuantity <
                     first.minimumStock
                 ) {
@@ -263,10 +209,6 @@ export default function Inventory() {
                 };
             })
             .filter((item) => {
-                /*
-                 * Apply status filter AFTER
-                 * calculating the aggregated status.
-                 */
                 return (
                     selectedStatus === "All" ||
                     item.stockStatus ===
@@ -311,332 +253,445 @@ export default function Inventory() {
         }
     };
 
+    const detailsOpen =
+        selectedProductId !== null;
+
     return (
         <div
             style={{
                 width: "100%",
                 minHeight: "100vh",
                 display: "flex",
-                flexDirection: "column",
+                alignItems: "flex-start",
                 padding: "var(--content-padding)",
                 boxSizing: "border-box",
                 gap: "var(--content-gap)",
+                overflow: "hidden",
             }}
         >
-            <Card
-                title={`Product Inventory - ${inventoryData.length} Records`}
-                header={
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "var(--space-3)",
-                            width: "100%",
-                        }}
-                    >
-                        <SearchBar
-                            placeholder="Search SKU, Product, Category..."
-                            value={search}
-                            onChange={setSearch}
-                            style={{
-                                flex: 1,
-                                minWidth: 0,
-                            }}
-                        />
-
-                        <Dropdown
-                            options={statuses}
-                            value={selectedStatus}
-                            onChange={setSelectedStatus}
-                            placeholder="Select Status"
-                            style={{
-                                width: "180px",
-                                flexShrink: 0,
-                            }}
-                        />
-
-                        <Dropdown
-                            options={categories}
-                            value={selectedCategory}
-                            onChange={setSelectedCategory}
-                            placeholder="Select Category"
-                            style={{
-                                width: "180px",
-                                flexShrink: 0,
-                            }}
-                        />
-
-                        <Button variant="secondary">
-                            <p className="nav-item">+</p>
-                            Add Product
-                        </Button>
-                    </div>
-                }
+            {/* Inventory Card */}
+            <div
+                style={{
+                    flex: detailsOpen
+                        ? "1 1 0"
+                        : "1 1 100%",
+                    minWidth: 0,
+                    width: detailsOpen
+                        ? "calc(100% - var(--sidebar-width) - var(--content-gap))"
+                        : "100%",
+                    transition:
+                        "width 0.25s ease, flex 0.25s ease",
+                }}
             >
-                {loading && (
-                    <div
-                        style={{
-                            padding: "var(--space-6)",
-                            textAlign: "center",
-                        }}
-                    >
-                        Loading inventory...
-                    </div>
-                )}
-
-                {error && !loading && (
-                    <div
-                        style={{
-                            padding: "var(--space-6)",
-                            textAlign: "center",
-                            color: "var(--blood-red)",
-                        }}
-                    >
-                        Failed to load inventory.
-                        <br />
-                        {error}
-                    </div>
-                )}
-
-                {!loading && !error && (
-                    <div
-                        style={{
-                            width: "100%",
-                            overflowX: "auto",
-                        }}
-                    >
-                        <table
+                <Card
+                    title={`Product Inventory - ${inventoryData.length} Records`}
+                    header={
+                        <div
                             style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "var(--space-3)",
                                 width: "100%",
-                                minWidth: "1200px",
-                                borderCollapse: "collapse",
                             }}
                         >
-                            <thead>
-                                <tr
-                                    style={{
-                                        width: "100%",
-                                        backgroundColor:
-                                            "var(--beige)",
-                                        borderTop:
-                                            "var(--border-default)",
-                                        borderBottom:
-                                            "var(--border-default)",
-                                    }}
-                                >
-                                    <th
+                            <SearchBar
+                                placeholder="Search SKU, Product, Category..."
+                                value={search}
+                                onChange={setSearch}
+                                style={{
+                                    flex: 1,
+                                    minWidth: 0,
+                                }}
+                            />
+
+                            <Dropdown
+                                options={statuses}
+                                value={selectedStatus}
+                                onChange={
+                                    setSelectedStatus
+                                }
+                                placeholder="Select Status"
+                                style={{
+                                    width: "180px",
+                                    flexShrink: 0,
+                                }}
+                            />
+
+                            <Dropdown
+                                options={categories}
+                                value={selectedCategory}
+                                onChange={
+                                    setSelectedCategory
+                                }
+                                placeholder="Select Category"
+                                style={{
+                                    width: "180px",
+                                    flexShrink: 0,
+                                }}
+                            />
+
+                            <Button variant="secondary">
+                                <p className="nav-item">
+                                    +
+                                </p>
+                                Add Product
+                            </Button>
+                        </div>
+                    }
+                >
+                    {loading && (
+                        <div
+                            style={{
+                                padding:
+                                    "var(--space-6)",
+                                textAlign: "center",
+                            }}
+                        >
+                            Loading inventory...
+                        </div>
+                    )}
+
+                    {error && !loading && (
+                        <div
+                            style={{
+                                padding:
+                                    "var(--space-6)",
+                                textAlign: "center",
+                                color: "var(--blood-red)",
+                            }}
+                        >
+                            Failed to load
+                            inventory.
+                            <br />
+                            {error}
+                        </div>
+                    )}
+
+                    {!loading && !error && (
+                        <div
+                            style={{
+                                width: "100%",
+                                overflowX: "auto",
+                            }}
+                        >
+                            <table
+                                style={{
+                                    width: "100%",
+                                    minWidth:
+                                        "1200px",
+                                    borderCollapse:
+                                        "collapse",
+                                }}
+                            >
+                                <thead>
+                                    <tr
                                         style={{
-                                            ...headerStyle,
-                                            textAlign: "left",
+                                            width: "100%",
+                                            backgroundColor:
+                                                "var(--beige)",
+                                            borderTop:
+                                                "var(--border-default)",
+                                            borderBottom:
+                                                "var(--border-default)",
                                         }}
                                     >
-                                        SKU
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Product
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Category
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Total Qty
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Available
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Reserved
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Locations
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Status
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Min Stock
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Avg Unit Price
-                                    </th>
-
-                                    <th style={headerStyle}>
-                                        Stock Value
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {inventoryData.map(
-                                    (item) => (
-                                        <tr
-                                            key={
-                                                item.stockId
-                                            }
+                                        <th
                                             style={{
-                                                borderBottom:
-                                                    "var(--border-default)",
+                                                ...headerStyle,
+                                                textAlign:
+                                                    "left",
                                             }}
                                         >
-                                            <td
-                                                style={
-                                                    cellStyle
+                                            SKU
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Product
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Category
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Total Qty
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Available
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Reserved
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Locations
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Status
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Min Stock
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Avg Unit Price
+                                        </th>
+
+                                        <th
+                                            style={
+                                                headerStyle
+                                            }
+                                        >
+                                            Stock Value
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {inventoryData.map(
+                                        (item) => (
+                                            <tr
+                                                key={
+                                                    item.stockId
                                                 }
+                                                onClick={() =>
+                                                    setSelectedProductId(
+                                                        item.productId
+                                                    )
+                                                }
+                                                style={{
+                                                    borderBottom:
+                                                        "var(--border-default)",
+                                                    cursor: "pointer",
+                                                }}
                                             >
-                                                <span
-                                                    style={{
-                                                        fontWeight:
-                                                            700,
-                                                    }}
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    <span
+                                                        style={{
+                                                            fontWeight:
+                                                                700,
+                                                        }}
+                                                    >
+                                                        {
+                                                            item.sku
+                                                        }
+                                                    </span>
+                                                </td>
+
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
                                                 >
                                                     {
-                                                        item.sku
+                                                        item.productName
                                                     }
-                                                </span>
-                                            </td>
+                                                </td>
 
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {
-                                                    item.productName
-                                                }
-                                            </td>
-
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {
-                                                    item.categoryName ??
-                                                    "—"
-                                                }
-                                            </td>
-
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {formatNumber(
-                                                    item.quantity
-                                                )}
-                                            </td>
-
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {formatNumber(
-                                                    item.availableQuantity
-                                                )}
-                                            </td>
-
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {formatNumber(
-                                                    item.reservedQuantity
-                                                )}
-                                            </td>
-
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {formatNumber(
-                                                    item.locationCount
-                                                )}
-                                            </td>
-
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                <Status
-                                                    text={
-                                                        item.stockStatus
+                                                <td
+                                                    style={
+                                                        cellStyle
                                                     }
-                                                    variant={getStatusVariant(
-                                                        item.stockStatus
+                                                >
+                                                    {item.categoryName ??
+                                                        "—"}
+                                                </td>
+
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        item.quantity
                                                     )}
-                                                />
-                                            </td>
+                                                </td>
 
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {formatNumber(
-                                                    item.minimumStock
-                                                )}
-                                            </td>
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        item.availableQuantity
+                                                    )}
+                                                </td>
 
-                                            <td
-                                                style={
-                                                    cellStyle
-                                                }
-                                            >
-                                                {formatCurrency(
-                                                    item.unitPrice
-                                                )}
-                                            </td>
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        item.reservedQuantity
+                                                    )}
+                                                </td>
 
-                                            <td
-                                                style={{
-                                                    ...cellStyle,
-                                                    fontWeight: 500,
-                                                }}
-                                            >
-                                                {formatCurrency(
-                                                    item.stockValue
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        item.locationCount
+                                                    )}
+                                                </td>
 
-                                {inventoryData.length ===
-                                    0 && (
-                                        <tr>
-                                            <td
-                                                colSpan={11}
-                                                style={{
-                                                    padding:
-                                                        "var(--space-6)",
-                                                    textAlign:
-                                                        "center",
-                                                }}
-                                            >
-                                                No inventory
-                                                records
-                                                found.
-                                            </td>
-                                        </tr>
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    <Status
+                                                        text={
+                                                            item.stockStatus
+                                                        }
+                                                        variant={getStatusVariant(
+                                                            item.stockStatus
+                                                        )}
+                                                    />
+                                                </td>
+
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    {formatNumber(
+                                                        item.minimumStock
+                                                    )}
+                                                </td>
+
+                                                <td
+                                                    style={
+                                                        cellStyle
+                                                    }
+                                                >
+                                                    {formatCurrency(
+                                                        item.unitPrice
+                                                    )}
+                                                </td>
+
+                                                <td
+                                                    style={{
+                                                        ...cellStyle,
+                                                        fontWeight: 500,
+                                                    }}
+                                                >
+                                                    {formatCurrency(
+                                                        item.stockValue
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )
                                     )}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </Card>
+
+                                    {inventoryData.length ===
+                                        0 && (
+                                            <tr>
+                                                <td
+                                                    colSpan={
+                                                        11
+                                                    }
+                                                    style={{
+                                                        padding:
+                                                            "var(--space-6)",
+                                                        textAlign:
+                                                            "center",
+                                                    }}
+                                                >
+                                                    No
+                                                    inventory
+                                                    records
+                                                    found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </Card>
+            </div>
+
+            {/* Product Details */}
+            {detailsOpen && (
+                <div
+                    style={{
+                        flex: `0 0 var(--sidebar-width)`,
+                        width: "var(--sidebar-width)",
+                        maxWidth:
+                            "var(--sidebar-width)",
+                        minWidth: 0,
+                        maxHeight:
+                            "calc(100vh - 2 * var(--content-padding))",
+                        overflowY: "auto",
+                    }}
+                >
+                    <ProductDetails
+                        productId={
+                            selectedProductId
+                        }
+                        onClose={() =>
+                            setSelectedProductId(
+                                null
+                            )
+                        }
+                        status={
+                            inventoryData.find(
+                                (item) =>
+                                    item.productId ===
+                                    selectedProductId
+                            )?.stockStatus ?? "Available"
+                        }
+
+                    />
+                </div>
+            )}
         </div>
     );
 }

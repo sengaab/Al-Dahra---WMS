@@ -58,3 +58,26 @@ export interface StockSummaryDto {
     lowStockItems: number;
     outOfStockItems: number;
 }
+
+export interface StockByProductDto {
+    stockId: number;
+    productId: number;
+    productName: string;
+    categoryName: string;
+    sku: string;
+    warehouseId: number;
+    warehouseName: string;
+    locationId: number;
+    locationName: string;
+    stockCode: string;
+    batchNumber: string | null;
+    expiryDate: string | null;
+    quantity: number;
+    reservedQuantity: number;
+    availableQuantity: number;
+    unitPrice: number;
+    minimumStock: number;
+    stockStatus: string;
+    createdAt: string;
+    updatedAt: string;
+}
