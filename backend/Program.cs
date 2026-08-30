@@ -57,6 +57,8 @@ namespace whm
             builder.Services.AddScoped<IStockCountRepository, StockCountRepository>();
             builder.Services.AddScoped<IStockAdjustmentRepository, StockAdjustmentRepository>();
             builder.Services.AddScoped<IStockReturnRepository, StockReturnRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
 
 
 

@@ -18,6 +18,7 @@ namespace whm.UnitOfWork
         IStockCountRepository StockCounts { get; }
         IStockAdjustmentRepository StockAdjustments { get; }
         IStockReturnRepository StockReturns { get; }
+        IProductRepository Products { get; }
 
         Task<int> SaveAsync();
     }
