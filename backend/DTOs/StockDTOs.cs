@@ -23,6 +23,7 @@
         public string StockCode { get; set; } = string.Empty;
 
         public string? BatchNumber { get; set; }
+        public string ? Barcode {  get; set; } 
 
         public DateOnly? ExpiryDate { get; set; }
 

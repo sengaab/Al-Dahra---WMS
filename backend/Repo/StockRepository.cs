@@ -139,19 +139,24 @@ namespace whm.Repositories
                     .SumAsync(x => (decimal?)(x.Quantity * x.UnitPrice)) ?? 0,
 
                 AvailableItems = await stocks
-                    .CountAsync(x => x.stockStatus== StockStatus.Available),
+                    .CountAsync(x =>
+                        x.stockStatus == StockStatus.Available),
 
                 QuarantinedItems = await stocks
-                    .CountAsync(x => x.stockStatus == StockStatus.Quarantined),
+                    .CountAsync(x =>
+                        x.stockStatus == StockStatus.Quarantined),
 
                 DamagedItems = await stocks
-                    .CountAsync(x => x.stockStatus == StockStatus.Damaged),
+                    .CountAsync(x =>
+                        x.stockStatus == StockStatus.Damaged),
 
                 ExpiredItems = await stocks
-                    .CountAsync(x => x.stockStatus == StockStatus.Expired),
+                    .CountAsync(x =>
+                        x.stockStatus == StockStatus.Expired),
 
                 BlockedItems = await stocks
-                    .CountAsync(x => x.stockStatus == StockStatus.Blocked),
+                    .CountAsync(x =>
+                        x.stockStatus == StockStatus.Blocked),
 
                 LowStockItems = await stocks
                     .CountAsync(x =>
@@ -159,7 +164,8 @@ namespace whm.Repositories
                         x.AvailableQuantity <= x.MinimumStock),
 
                 OutOfStockItems = await stocks
-                    .CountAsync(x => x.AvailableQuantity <= 0)
+                    .CountAsync(x =>
+                        x.AvailableQuantity <= 0)
             };
         }
 
@@ -251,6 +257,9 @@ namespace whm.Repositories
                         .FirstOrDefault() ?? string.Empty,
 
                     SKU = x.Product.SKU,
+
+                    // Barcode from Product
+                    Barcode = x.Product.Barcode,
 
                     WarehouseId = x.WarehouseId,
 
