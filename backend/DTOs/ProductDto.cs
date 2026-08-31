@@ -62,7 +62,9 @@
 
     public class CreateProductDto
     {
-        public string SKU { get; set; } = string.Empty;
+        // Optional:
+        // If null, empty, or "string" -> generate automatically
+        public string? SKU { get; set; }
 
         public string? Barcode { get; set; }
 

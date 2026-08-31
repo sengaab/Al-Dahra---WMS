@@ -9,6 +9,7 @@ namespace whm.Models
         Suspended,
         Blocked
     }
+
     public class Supplier
     {
         [Key]
@@ -36,21 +37,26 @@ namespace whm.Models
 
         public bool IsActive { get; set; } = true;
 
-        [MaxLength(50)]
-        
-       
         [Required]
+        public SupplierStatus SupplierStatus { get; set; }
+            = SupplierStatus.Active;
 
-        public SupplierStatus SupplierStatus { get; set; }= SupplierStatus.Active;
         public DateTimeOffset CreatedAt { get; set; }
 
         public DateTimeOffset UpdatedAt { get; set; }
 
+
+        // =========================
         // Navigation
+        // =========================
+
         public ICollection<SupplierProduct> SupplierProducts { get; set; }
             = new List<SupplierProduct>();
 
         public ICollection<PurchaseOrder> PurchaseOrders { get; set; }
             = new List<PurchaseOrder>();
+
+        public ICollection<Stock> Stocks { get; set; }
+            = new List<Stock>();
     }
 }

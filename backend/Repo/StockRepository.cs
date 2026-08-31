@@ -245,31 +245,11 @@ namespace whm.Repositories
                 .AsNoTracking()
                 .Select(x => new StockDto
                 {
+                    // =========================
+                    // Stock
+                    // =========================
+
                     StockId = x.StockId,
-
-                    ProductId = x.ProductId,
-
-                    ProductName = x.Product.Name,
-
-                    CategoryName = _context.Categories
-                        .Where(c => c.CategoryId == x.Product.CategoryId)
-                        .Select(c => c.Name)
-                        .FirstOrDefault() ?? string.Empty,
-
-                    SKU = x.Product.SKU,
-
-                    // Barcode from Product
-                    Barcode = x.Product.Barcode,
-
-                    WarehouseId = x.WarehouseId,
-
-                    WarehouseName = x.Warehouse.Name,
-
-                    LocationId = x.LocationId,
-
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
 
                     StockCode = x.StockCode,
 
@@ -291,7 +271,62 @@ namespace whm.Repositories
 
                     CreatedAt = x.CreatedAt,
 
-                    UpdatedAt = x.UpdatedAt
+                    UpdatedAt = x.UpdatedAt,
+
+
+                    // =========================
+                    // Product
+                    // =========================
+
+                    ProductId = x.ProductId,
+
+                    ProductName = x.Product.Name,
+
+                    SKU = x.Product.SKU,
+
+                    Barcode = x.Product.Barcode,
+
+
+                    // =========================
+                    // Category
+                    // =========================
+
+                    CategoryName = _context.Categories
+                        .Where(c =>
+                            c.CategoryId == x.Product.CategoryId)
+                        .Select(c => c.Name)
+                        .FirstOrDefault() ?? string.Empty,
+
+
+                    // =========================
+                    // Warehouse
+                    // =========================
+
+                    WarehouseId = x.WarehouseId,
+
+                    WarehouseName = x.Warehouse.Name,
+
+
+                    // =========================
+                    // Location
+                    // =========================
+
+                    LocationId = x.LocationId,
+
+                    LocationName = x.Location != null
+                        ? x.Location.Name
+                        : null,
+
+
+                    // =========================
+                    // Supplier
+                    // =========================
+
+                    SupplierId = x.SupplierId,
+
+                    SupplierName = x.Supplier != null
+                        ? x.Supplier.Name
+                        : null
                 });
         }
     }
