@@ -21,6 +21,7 @@ namespace whm.UnitOfWork
         IProductRepository Products { get; }
          IUnitRepository Units { get; }
         ICategoryRepository Categories { get; }
+        ISupplierRepository Suppliers { get; }
 
 
         Task<int> SaveAsync();

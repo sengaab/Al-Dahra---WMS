@@ -31,6 +31,7 @@ namespace whm.UnitOfWork
         public IProductRepository Products { get; }
         public IUnitRepository Units { get; }
         public ICategoryRepository Categories { get; }
+        public ISupplierRepository Suppliers { get; }
 
 
         public UnitOfWork(
@@ -50,7 +51,8 @@ namespace whm.UnitOfWork
             IStockReturnRepository stockReturnRepository,
             IProductRepository productRepository,
             IUnitRepository unitRepository,
-            ICategoryRepository categoryRepository
+            ICategoryRepository categoryRepository,
+            ISupplierRepository supplierRepository
             
 
             )
@@ -79,6 +81,7 @@ namespace whm.UnitOfWork
             Products = productRepository;
             Units = unitRepository;
             Categories= categoryRepository;
+            Suppliers= supplierRepository;
 
 
         }
