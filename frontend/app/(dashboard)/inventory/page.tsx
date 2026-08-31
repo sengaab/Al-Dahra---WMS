@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Card from "@/components/card";
 import Dropdown from "@/components/dropdown";
 import ProductDetails from "@/components/product-details";
+import AddProduct from "@/components/popups/add-product";
 import SearchBar from "@/components/searchbar";
 import Button from "@/components/button";
 import Status from "@/components/status";
@@ -15,6 +16,9 @@ export default function Inventory() {
     const [search, setSearch] = useState("");
     const [selectedProductId, setSelectedProductId] =
         useState<number | null>(null);
+
+    const [addProductOpen, setAddProductOpen] =
+        useState(false);
 
     const {
         stock,
@@ -91,7 +95,8 @@ export default function Inventory() {
         const grouped = new Map<string, typeof stock>();
 
         filteredData.forEach((item) => {
-            const existing = grouped.get(item.sku) ?? [];
+            const existing =
+                grouped.get(item.sku) ?? [];
 
             existing.push(item);
 
@@ -147,7 +152,7 @@ export default function Inventory() {
                         (total, item) =>
                             total +
                             item.quantity *
-                            item.unitPrice,
+                                item.unitPrice,
                         0
                     );
 
@@ -212,7 +217,7 @@ export default function Inventory() {
                 return (
                     selectedStatus === "All" ||
                     item.stockStatus ===
-                    selectedStatus
+                        selectedStatus
                 );
             });
     }, [
@@ -257,442 +262,486 @@ export default function Inventory() {
         selectedProductId !== null;
 
     return (
-        <div
-            style={{
-                width: "100%",
-                minHeight: "100vh",
-                display: "flex",
-                alignItems: "flex-start",
-                padding: "var(--content-padding)",
-                boxSizing: "border-box",
-                gap: "var(--content-gap)",
-                overflow: "hidden",
-            }}
-        >
-            {/* Inventory Card */}
+        <>
             <div
                 style={{
-                    flex: detailsOpen
-                        ? "1 1 0"
-                        : "1 1 100%",
-                    minWidth: 0,
-                    width: detailsOpen
-                        ? "calc(100% - var(--sidebar-width) - var(--content-gap))"
-                        : "100%",
-                    transition:
-                        "width 0.25s ease, flex 0.25s ease",
+                    width: "100%",
+                    minHeight: "100vh",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    padding: "var(--content-padding)",
+                    boxSizing: "border-box",
+                    gap: "var(--content-gap)",
+                    overflow: "hidden",
                 }}
             >
-                <Card
-                    title={`Product Inventory - ${inventoryData.length} Records`}
-                    header={
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "var(--space-3)",
-                                width: "100%",
-                            }}
-                        >
-                            <SearchBar
-                                placeholder="Search SKU, Product, Category..."
-                                value={search}
-                                onChange={setSearch}
-                                style={{
-                                    flex: 1,
-                                    minWidth: 0,
-                                }}
-                            />
-
-                            <Dropdown
-                                options={statuses}
-                                value={selectedStatus}
-                                onChange={
-                                    setSelectedStatus
-                                }
-                                placeholder="Select Status"
-                                style={{
-                                    width: "180px",
-                                    flexShrink: 0,
-                                }}
-                            />
-
-                            <Dropdown
-                                options={categories}
-                                value={selectedCategory}
-                                onChange={
-                                    setSelectedCategory
-                                }
-                                placeholder="Select Category"
-                                style={{
-                                    width: "180px",
-                                    flexShrink: 0,
-                                }}
-                            />
-
-                            <Button variant="secondary">
-                                <p className="nav-item">
-                                    +
-                                </p>
-                                Add Product
-                            </Button>
-                        </div>
-                    }
-                >
-                    {loading && (
-                        <div
-                            style={{
-                                padding:
-                                    "var(--space-6)",
-                                textAlign: "center",
-                            }}
-                        >
-                            Loading inventory...
-                        </div>
-                    )}
-
-                    {error && !loading && (
-                        <div
-                            style={{
-                                padding:
-                                    "var(--space-6)",
-                                textAlign: "center",
-                                color: "var(--blood-red)",
-                            }}
-                        >
-                            Failed to load
-                            inventory.
-                            <br />
-                            {error}
-                        </div>
-                    )}
-
-                    {!loading && !error && (
-                        <div
-                            style={{
-                                width: "100%",
-                                overflowX: "auto",
-                            }}
-                        >
-                            <table
-                                style={{
-                                    width: "100%",
-                                    minWidth:
-                                        "1200px",
-                                    borderCollapse:
-                                        "collapse",
-                                }}
-                            >
-                                <thead>
-                                    <tr
-                                        style={{
-                                            width: "100%",
-                                            backgroundColor:
-                                                "var(--beige)",
-                                            borderTop:
-                                                "var(--border-default)",
-                                            borderBottom:
-                                                "var(--border-default)",
-                                        }}
-                                    >
-                                        <th
-                                            style={{
-                                                ...headerStyle,
-                                                textAlign:
-                                                    "left",
-                                            }}
-                                        >
-                                            SKU
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Product
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Category
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Total Qty
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Available
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Reserved
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Locations
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Status
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Min Stock
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Avg Unit Price
-                                        </th>
-
-                                        <th
-                                            style={
-                                                headerStyle
-                                            }
-                                        >
-                                            Stock Value
-                                        </th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    {inventoryData.map(
-                                        (item) => (
-                                            <tr
-                                                key={
-                                                    item.stockId
-                                                }
-                                                onClick={() =>
-                                                    setSelectedProductId(
-                                                        item.productId
-                                                    )
-                                                }
-                                                style={{
-                                                    borderBottom:
-                                                        "var(--border-default)",
-                                                    cursor: "pointer",
-                                                }}
-                                            >
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    <span
-                                                        style={{
-                                                            fontWeight:
-                                                                700,
-                                                        }}
-                                                    >
-                                                        {
-                                                            item.sku
-                                                        }
-                                                    </span>
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {
-                                                        item.productName
-                                                    }
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {item.categoryName ??
-                                                        "—"}
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {formatNumber(
-                                                        item.quantity
-                                                    )}
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {formatNumber(
-                                                        item.availableQuantity
-                                                    )}
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {formatNumber(
-                                                        item.reservedQuantity
-                                                    )}
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {formatNumber(
-                                                        item.locationCount
-                                                    )}
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    <Status
-                                                        text={
-                                                            item.stockStatus
-                                                        }
-                                                        variant={getStatusVariant(
-                                                            item.stockStatus
-                                                        )}
-                                                    />
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {formatNumber(
-                                                        item.minimumStock
-                                                    )}
-                                                </td>
-
-                                                <td
-                                                    style={
-                                                        cellStyle
-                                                    }
-                                                >
-                                                    {formatCurrency(
-                                                        item.unitPrice
-                                                    )}
-                                                </td>
-
-                                                <td
-                                                    style={{
-                                                        ...cellStyle,
-                                                        fontWeight: 500,
-                                                    }}
-                                                >
-                                                    {formatCurrency(
-                                                        item.stockValue
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-
-                                    {inventoryData.length ===
-                                        0 && (
-                                            <tr>
-                                                <td
-                                                    colSpan={
-                                                        11
-                                                    }
-                                                    style={{
-                                                        padding:
-                                                            "var(--space-6)",
-                                                        textAlign:
-                                                            "center",
-                                                    }}
-                                                >
-                                                    No
-                                                    inventory
-                                                    records
-                                                    found.
-                                                </td>
-                                            </tr>
-                                        )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </Card>
-            </div>
-
-            {/* Product Details */}
-            {detailsOpen && (
+                {/* Inventory Card */}
                 <div
                     style={{
-                        flex: `0 0 var(--sidebar-width)`,
-                        width: "var(--sidebar-width)",
-                        maxWidth:
-                            "var(--sidebar-width)",
+                        flex: detailsOpen
+                            ? "1 1 0"
+                            : "1 1 100%",
                         minWidth: 0,
-                        maxHeight:
-                            "calc(100vh - 2 * var(--content-padding))",
-                        overflowY: "auto",
+                        width: detailsOpen
+                            ? "calc(100% - var(--sidebar-width) - var(--content-gap))"
+                            : "100%",
+                        transition:
+                            "width 0.25s ease, flex 0.25s ease",
                     }}
                 >
-                    <ProductDetails
-                        productId={
-                            selectedProductId
-                        }
-                        onClose={() =>
-                            setSelectedProductId(
-                                null
-                            )
-                        }
-                        status={
-                            inventoryData.find(
-                                (item) =>
-                                    item.productId ===
-                                    selectedProductId
-                            )?.stockStatus ?? "Available"
-                        }
+                    <Card
+                        title={`Product Inventory - ${inventoryData.length} Records`}
+                        header={
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "var(--space-3)",
+                                    width: "100%",
+                                }}
+                            >
+                                <SearchBar
+                                    placeholder="Search SKU, Product, Category..."
+                                    value={search}
+                                    onChange={setSearch}
+                                    style={{
+                                        flex: 1,
+                                        minWidth: 0,
+                                    }}
+                                />
 
-                    />
+                                <Dropdown
+                                    options={statuses}
+                                    value={selectedStatus}
+                                    onChange={
+                                        setSelectedStatus
+                                    }
+                                    placeholder="Select Status"
+                                    style={{
+                                        width: "180px",
+                                        flexShrink: 0,
+                                    }}
+                                />
+
+                                <Dropdown
+                                    options={categories}
+                                    value={selectedCategory}
+                                    onChange={
+                                        setSelectedCategory
+                                    }
+                                    placeholder="Select Category"
+                                    style={{
+                                        width: "180px",
+                                        flexShrink: 0,
+                                    }}
+                                />
+
+                                <Button
+                                    variant="secondary"
+                                    onClick={() =>
+                                        setAddProductOpen(
+                                            true
+                                        )
+                                    }
+                                >
+                                    <p className="nav-item">
+                                        +
+                                    </p>
+                                    Add Product
+                                </Button>
+                            </div>
+                        }
+                    >
+                        {loading && (
+                            <div
+                                style={{
+                                    padding:
+                                        "var(--space-6)",
+                                    textAlign: "center",
+                                }}
+                            >
+                                Loading inventory...
+                            </div>
+                        )}
+
+                        {error && !loading && (
+                            <div
+                                style={{
+                                    padding:
+                                        "var(--space-6)",
+                                    textAlign: "center",
+                                    color: "var(--blood-red)",
+                                }}
+                            >
+                                Failed to load
+                                inventory.
+                                <br />
+                                {error}
+                            </div>
+                        )}
+
+                        {!loading && !error && (
+                            <div
+                                style={{
+                                    width: "100%",
+                                    overflowX: "auto",
+                                }}
+                            >
+                                <table
+                                    style={{
+                                        width: "100%",
+                                        minWidth:
+                                            "1200px",
+                                        borderCollapse:
+                                            "collapse",
+                                    }}
+                                >
+                                    <thead>
+                                        <tr
+                                            style={{
+                                                width: "100%",
+                                                backgroundColor:
+                                                    "var(--beige)",
+                                                borderTop:
+                                                    "var(--border-default)",
+                                                borderBottom:
+                                                    "var(--border-default)",
+                                            }}
+                                        >
+                                            <th
+                                                style={{
+                                                    ...headerStyle,
+                                                    textAlign:
+                                                        "left",
+                                                }}
+                                            >
+                                                SKU
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Product
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Category
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Total Qty
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Available
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Reserved
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Locations
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Status
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Min Stock
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Avg Unit Price
+                                            </th>
+
+                                            <th
+                                                style={
+                                                    headerStyle
+                                                }
+                                            >
+                                                Stock Value
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {inventoryData.map(
+                                            (item) => (
+                                                <tr
+                                                    key={
+                                                        item.stockId
+                                                    }
+                                                    onClick={() =>
+                                                        setSelectedProductId(
+                                                            item.productId
+                                                        )
+                                                    }
+                                                    style={{
+                                                        borderBottom:
+                                                            "var(--border-default)",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        <span
+                                                            style={{
+                                                                fontWeight:
+                                                                    700,
+                                                            }}
+                                                        >
+                                                            {
+                                                                item.sku
+                                                            }
+                                                        </span>
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {
+                                                            item.productName
+                                                        }
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {item.categoryName ??
+                                                            "—"}
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {formatNumber(
+                                                            item.quantity
+                                                        )}
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {formatNumber(
+                                                            item.availableQuantity
+                                                        )}
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {formatNumber(
+                                                            item.reservedQuantity
+                                                        )}
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {formatNumber(
+                                                            item.locationCount
+                                                        )}
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        <Status
+                                                            text={
+                                                                item.stockStatus
+                                                            }
+                                                            variant={getStatusVariant(
+                                                                item.stockStatus
+                                                            )}
+                                                        />
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {formatNumber(
+                                                            item.minimumStock
+                                                        )}
+                                                    </td>
+
+                                                    <td
+                                                        style={
+                                                            cellStyle
+                                                        }
+                                                    >
+                                                        {formatCurrency(
+                                                            item.unitPrice
+                                                        )}
+                                                    </td>
+
+                                                    <td
+                                                        style={{
+                                                            ...cellStyle,
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
+                                                        {formatCurrency(
+                                                            item.stockValue
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        )}
+
+                                        {inventoryData.length ===
+                                            0 && (
+                                                <tr>
+                                                    <td
+                                                        colSpan={
+                                                            11
+                                                        }
+                                                        style={{
+                                                            padding:
+                                                                "var(--space-6)",
+                                                            textAlign:
+                                                                "center",
+                                                        }}
+                                                    >
+                                                        No
+                                                        inventory
+                                                        records
+                                                        found.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </Card>
+                </div>
+
+                {/* Product Details */}
+                {detailsOpen && (
+                    <div
+                        style={{
+                            flex: `0 0 var(--sidebar-width)`,
+                            width: "var(--sidebar-width)",
+                            maxWidth:
+                                "var(--sidebar-width)",
+                            minWidth: 0,
+                            maxHeight:
+                                "calc(100vh - 2 * var(--content-padding))",
+                            overflowY: "auto",
+                        }}
+                    >
+                        <ProductDetails
+                            productId={
+                                selectedProductId
+                            }
+                            onClose={() =>
+                                setSelectedProductId(
+                                    null
+                                )
+                            }
+                            status={
+                                inventoryData.find(
+                                    (item) =>
+                                        item.productId ===
+                                        selectedProductId
+                                )?.stockStatus ??
+                                "Available"
+                            }
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Add Product Popup */}
+            {addProductOpen && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        zIndex: 1000,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor:
+                            "rgba(0, 0, 0, 0.35)",
+                        padding: "var(--content-padding)",
+                        boxSizing: "border-box",
+                    }}
+                    onClick={() =>
+                        setAddProductOpen(false)
+                    }
+                >
+                    <div
+                        onClick={(event) =>
+                            event.stopPropagation()
+                        }
+                    >
+                        <AddProduct
+                            onClose={() =>
+                                setAddProductOpen(
+                                    false
+                                )
+                            }
+                        />
+                    </div>
                 </div>
             )}
-        </div>
+        </>
     );
 }
 
