@@ -29,6 +29,7 @@ namespace whm.Repositories.Interfaces
 
         Task<Stock?> GetEntityByIdAsync(int id);
 
+
         Task AddAsync(Stock stock);
 
         void Update(Stock stock);

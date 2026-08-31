@@ -1079,6 +1079,12 @@ namespace whm.Data
             modelBuilder.Entity<Supplier>()
                 .Property(x => x.IsActive)
                 .HasDefaultValue(true);
+
+            modelBuilder.Entity<Stock>()
+          .HasOne(x => x.Supplier)
+          .WithMany(x => x.Stocks)
+         .HasForeignKey(x => x.SupplierId)
+         .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
