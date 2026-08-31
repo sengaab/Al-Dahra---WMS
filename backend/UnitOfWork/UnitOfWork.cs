@@ -29,6 +29,8 @@ namespace whm.UnitOfWork
         public IStockAdjustmentRepository StockAdjustments { get; }
         public IStockReturnRepository StockReturns { get; }
         public IProductRepository Products { get; }
+        public IUnitRepository Units { get; }
+        public ICategoryRepository Categories { get; }
 
 
         public UnitOfWork(
@@ -46,7 +48,9 @@ namespace whm.UnitOfWork
             IStockCountRepository stockCountRepository,
             IStockAdjustmentRepository stockAdjustmentRepository,
             IStockReturnRepository stockReturnRepository,
-            IProductRepository productRepository
+            IProductRepository productRepository,
+            IUnitRepository unitRepository,
+            ICategoryRepository categoryRepository
             
 
             )
@@ -73,6 +77,8 @@ namespace whm.UnitOfWork
             StockAdjustments = stockAdjustmentRepository;
             StockReturns= stockReturnRepository;
             Products = productRepository;
+            Units = unitRepository;
+            Categories= categoryRepository;
 
 
         }

@@ -19,6 +19,9 @@ namespace whm.UnitOfWork
         IStockAdjustmentRepository StockAdjustments { get; }
         IStockReturnRepository StockReturns { get; }
         IProductRepository Products { get; }
+         IUnitRepository Units { get; }
+        ICategoryRepository Categories { get; }
+
 
         Task<int> SaveAsync();
     }
