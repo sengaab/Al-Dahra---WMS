@@ -61,6 +61,8 @@ namespace whm
             builder.Services.AddScoped<IUnitRepository, UnitRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+            builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+            builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 
 
 
