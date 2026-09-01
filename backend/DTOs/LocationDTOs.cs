@@ -8,10 +8,12 @@
     {
         public int LocationId { get; set; }
 
-        public int WarehouseId { get; set; }
+        // Warehouse OPTIONAL
+        public int? WarehouseId { get; set; }
 
-        public string WarehouseName { get; set; } = string.Empty;
+        public string? WarehouseName { get; set; }
 
+        // Parent Location OPTIONAL
         public int? ParentLocationId { get; set; }
 
         public string? ParentLocationName { get; set; }
@@ -39,8 +41,10 @@
 
     public class CreateLocationDto
     {
-        public int WarehouseId { get; set; }
+        // Warehouse OPTIONAL
+        public int? WarehouseId { get; set; }
 
+        // Parent Location OPTIONAL
         public int? ParentLocationId { get; set; }
 
         public string Code { get; set; } = string.Empty;
@@ -58,8 +62,10 @@
 
     public class UpdateLocationDto
     {
+        // Warehouse OPTIONAL
         public int? WarehouseId { get; set; }
 
+        // Parent Location OPTIONAL
         public int? ParentLocationId { get; set; }
 
         public string? Code { get; set; }
@@ -80,7 +86,8 @@
     {
         public int LocationId { get; set; }
 
-        public int WarehouseId { get; set; }
+        // Warehouse OPTIONAL
+        public int? WarehouseId { get; set; }
 
         public string Code { get; set; } = string.Empty;
 
@@ -137,5 +144,138 @@
         public decimal TotalValue { get; set; }
 
         public bool IsOccupied { get; set; }
+    }
+
+    public class LocationStructureDto
+    {
+        public int LocationId { get; set; }
+
+        public int? WarehouseId { get; set; }
+
+        public string? WarehouseName { get; set; }
+
+        public int? ParentLocationId { get; set; }
+
+        public string? ParentLocationName { get; set; }
+
+        public string Code { get; set; } = string.Empty;
+
+        public string Name { get; set; } = string.Empty;
+
+        public string Type { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; }
+
+        // ==========================================
+        // ROOMS
+        // ==========================================
+
+        public List<LocationRoomDto> Rooms { get; set; }
+            = new();
+
+        // ==========================================
+        // RACKS
+        // ==========================================
+
+        public List<LocationRackDto> Racks { get; set; }
+            = new();
+
+        // ==========================================
+        // SHELVES
+        // ==========================================
+
+        public List<LocationShelfDto> Shelves { get; set; }
+            = new();
+
+        // ==========================================
+        // BINS
+        // ==========================================
+
+        public List<LocationBinDto> Bins { get; set; }
+            = new();
+    }
+
+
+    // =====================================================
+    // LOCATION ROOM
+    // =====================================================
+
+    public class LocationRoomDto
+    {
+        public int RoomId { get; set; }
+
+        public string Code { get; set; } = string.Empty;
+
+        public string Name { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; }
+
+        public int RackCount { get; set; }
+    }
+
+
+    // =====================================================
+    // LOCATION RACK
+    // =====================================================
+
+    public class LocationRackDto
+    {
+        public int RackId { get; set; }
+
+        public int? RoomId { get; set; }
+
+        public string? RoomName { get; set; }
+
+        public string Code { get; set; } = string.Empty;
+
+        public string Name { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; }
+
+        public int ShelfCount { get; set; }
+    }
+
+
+    // =====================================================
+    // LOCATION SHELF
+    // =====================================================
+
+    public class LocationShelfDto
+    {
+        public int ShelfId { get; set; }
+
+        public int? RackId { get; set; }
+
+        public string? RackName { get; set; }
+
+        public string Code { get; set; } = string.Empty;
+
+        public string Name { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; }
+
+        public int BinCount { get; set; }
+    }
+
+
+    // =====================================================
+    // LOCATION BIN
+    // =====================================================
+
+    public class LocationBinDto
+    {
+        public int BinId { get; set; }
+
+        public int? ShelfId { get; set; }
+
+        public string? ShelfName { get; set; }
+
+        public string Code { get; set; } = string.Empty;
+
+        public string Name { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; }
+
+        public int StockCount { get; set; }
     }
 }
