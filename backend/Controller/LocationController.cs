@@ -56,6 +56,36 @@ namespace whm.Controllers
 
 
         // =====================================================
+        // GET /api/locations/{id}/structure
+        //
+        // Returns:
+        // Location
+        // ├── Rooms
+        // ├── Racks
+        // ├── Shelves
+        // └── Bins
+        // =====================================================
+
+        [HttpGet("{id:int}/structure")]
+        public async Task<IActionResult> GetStructure(int id)
+        {
+            var structure =
+                await _unitOfWork.Locations
+                    .GetStructureAsync(id);
+
+            if (structure == null)
+            {
+                return NotFound(new
+                {
+                    message = "Location not found."
+                });
+            }
+
+            return Ok(structure);
+        }
+
+
+        // =====================================================
         // POST /api/locations
         // =====================================================
 
@@ -68,20 +98,25 @@ namespace whm.Controllers
 
 
             // =================================================
-            // VALIDATE WAREHOUSE
+            // VALIDATE WAREHOUSE - OPTIONAL
             // =================================================
 
-            var warehouse =
-                await _unitOfWork.Warehouses
-                    .GetEntityByIdAsync(
-                        dto.WarehouseId);
+            Warehouse? warehouse = null;
 
-            if (warehouse == null)
+            if (dto.WarehouseId.HasValue)
             {
-                return BadRequest(new
+                warehouse =
+                    await _unitOfWork.Warehouses
+                        .GetEntityByIdAsync(
+                            dto.WarehouseId.Value);
+
+                if (warehouse == null)
                 {
-                    message = "Warehouse not found."
-                });
+                    return BadRequest(new
+                    {
+                        message = "Warehouse not found."
+                    });
+                }
             }
 
 
@@ -107,6 +142,7 @@ namespace whm.Controllers
 
 
                 // Parent must belong to same warehouse
+
                 if (parent.WarehouseId !=
                     dto.WarehouseId)
                 {
@@ -127,7 +163,8 @@ namespace whm.Controllers
             {
                 return BadRequest(new
                 {
-                    message = "Location type is required."
+                    message =
+                        "Location type is required."
                 });
             }
 
@@ -283,8 +320,6 @@ namespace whm.Controllers
             }
             else if (dto.WarehouseId.HasValue)
             {
-                // If warehouse changed and no parent
-                // was supplied, keep parent null.
                 location.ParentLocationId = null;
             }
 
@@ -401,7 +436,7 @@ namespace whm.Controllers
 
 
             // =================================================
-            // CHECK CHILDREN
+            // CHECK CHILD LOCATIONS
             // =================================================
 
             var hasChildren =
@@ -449,7 +484,8 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Location not found."
+                    message =
+                        "Location not found."
                 });
             }
 
@@ -478,7 +514,8 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Location not found."
+                    message =
+                        "Location not found."
                 });
             }
 
@@ -507,7 +544,8 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Location not found."
+                    message =
+                        "Location not found."
                 });
             }
 

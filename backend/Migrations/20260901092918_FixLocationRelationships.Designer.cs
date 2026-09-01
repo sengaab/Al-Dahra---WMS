@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using whm.Data;
@@ -11,9 +12,11 @@ using whm.Data;
 namespace WMS.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260901092918_FixLocationRelationships")]
+    partial class FixLocationRelationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -208,7 +211,7 @@ namespace WMS.Migrations
 
                     b.HasIndex("Shelf_Id");
 
-                    b.ToTable("Bins");
+                    b.ToTable("Bin");
                 });
 
             modelBuilder.Entity("whm.Models.Category", b =>
@@ -696,7 +699,7 @@ namespace WMS.Migrations
 
                     b.HasIndex("Room_Id");
 
-                    b.ToTable("Racks");
+                    b.ToTable("Rack");
                 });
 
             modelBuilder.Entity("whm.Models.Receipt", b =>
@@ -969,7 +972,7 @@ namespace WMS.Migrations
 
                     b.HasIndex("Warehouse_Id");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("Room");
                 });
 
             modelBuilder.Entity("whm.Models.Shelf", b =>
@@ -1008,7 +1011,7 @@ namespace WMS.Migrations
 
                     b.HasIndex("Row_Id");
 
-                    b.ToTable("Shelves");
+                    b.ToTable("Shelf");
                 });
 
             modelBuilder.Entity("whm.Models.Site", b =>

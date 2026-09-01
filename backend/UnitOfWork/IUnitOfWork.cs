@@ -1,4 +1,5 @@
-﻿using whm.Repositories.Interfaces;
+﻿using whm.Repositories;
+using whm.Repositories.Interfaces;
 
 namespace whm.UnitOfWork
 {
@@ -24,6 +25,10 @@ namespace whm.UnitOfWork
         ISupplierRepository Suppliers { get; }
          IWarehouseRepository Warehouses { get; }
         ILocationRepository Locations { get; }
+        IRoomRepository Rooms { get; }
+        IRackRepository Racks { get; }
+        IShelfRepository Shelves { get; }
+        IBinRepository Bins { get; }
 
 
         Task<int> SaveAsync();

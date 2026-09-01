@@ -31,10 +31,15 @@ namespace whm.Repositories
                 {
                     LocationId = x.LocationId,
 
+                    // Warehouse OPTIONAL
                     WarehouseId = x.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName =
+                        x.Warehouse != null
+                            ? x.Warehouse.Name
+                            : null,
 
+                    // Parent Location OPTIONAL
                     ParentLocationId = x.ParentLocationId,
 
                     ParentLocationName =
@@ -59,6 +64,171 @@ namespace whm.Repositories
                 })
                 .ToListAsync();
         }
+        // =====================================================
+        // GET LOCATION STRUCTURE
+        // GET /api/locations/{id}/structure
+        // =====================================================
+
+        public async Task<LocationStructureDto?> GetStructureAsync(
+            int locationId)
+        {
+            // =================================================
+            // LOCATION
+            // =================================================
+
+            var location = await _context.Locations
+                .AsNoTracking()
+                .Where(x => x.LocationId == locationId)
+                .Select(x => new LocationStructureDto
+                {
+                    LocationId = x.LocationId,
+
+                    WarehouseId = x.WarehouseId,
+
+                    WarehouseName =
+                        x.Warehouse != null
+                            ? x.Warehouse.Name
+                            : null,
+
+                    ParentLocationId =
+                        x.ParentLocationId,
+
+                    ParentLocationName =
+                        x.ParentLocation != null
+                            ? x.ParentLocation.Name
+                            : null,
+
+                    Code = x.Code,
+
+                    Name = x.Name,
+
+                    Type = x.Type,
+
+                    IsActive = x.IsActive,
+
+                  
+                })
+                .FirstOrDefaultAsync();
+
+            if (location == null)
+                return null;
+
+
+            // =================================================
+            // ROOMS
+            // =================================================
+
+            location.Rooms = await _context.Rooms
+                .AsNoTracking()
+                .Where(x => x.LocationId == locationId)
+                .OrderBy(x => x.Room_Id)
+                .Select(x => new LocationRoomDto
+                {
+                    RoomId = x.Room_Id,
+
+                    Code = x.Room_Code ?? string.Empty,
+
+                    Name = x.Room_Name,
+
+                    IsActive = x.IsActive,
+
+                    RackCount = x.Rows.Count
+                })
+                .ToListAsync();
+
+
+            // =================================================
+            // RACKS
+            // =================================================
+
+            location.Racks = await _context.Racks
+                .AsNoTracking()
+                .Where(x => x.LocationId == locationId)
+                .OrderBy(x => x.Rack_Id)
+                .Select(x => new LocationRackDto
+                {
+                    RackId = x.Rack_Id,
+
+                    RoomId = x.Room_Id,
+
+                    RoomName =
+                        x.Room != null
+                            ? x.Room.Room_Name
+                            : null,
+
+                    Code = x.Rack_Code ?? string.Empty,
+
+                    Name = x.Rack_Name,
+
+                    IsActive = x.IsActive,
+
+                    ShelfCount = x.Shelves.Count
+                })
+                .ToListAsync();
+
+
+            // =================================================
+            // SHELVES
+            // =================================================
+
+            location.Shelves = await _context.Shelves
+                .AsNoTracking()
+                .Where(x => x.LocationId == locationId)
+                .OrderBy(x => x.Shelf_Id)
+                .Select(x => new LocationShelfDto
+                {
+                    ShelfId = x.Shelf_Id,
+
+                    RackId = x.Row_Id,
+
+                    RackName =
+                        x.Row != null
+                            ? x.Row.Rack_Name
+                            : null,
+
+                    Code = x.Shelf_Code ?? string.Empty,
+
+                    Name = x.Shelf_Name,
+
+                    IsActive = x.IsActive,
+
+                    BinCount = x.Bins.Count
+                })
+                .ToListAsync();
+
+
+            // =================================================
+            // BINS
+            // =================================================
+
+            location.Bins = await _context.Bins
+                .AsNoTracking()
+                .Where(x => x.LocationId == locationId)
+                .OrderBy(x => x.Bin_Id)
+                .Select(x => new LocationBinDto
+                {
+                    BinId = x.Bin_Id,
+
+                    ShelfId = x.Shelf_Id,
+
+                    ShelfName =
+                        x.Shelf != null
+                            ? x.Shelf.Shelf_Name
+                            : null,
+
+                    Code = x.Bin_Code ?? string.Empty,
+
+                    Name = x.Bin_Name,
+
+                    IsActive = x.IsActive,
+
+                    StockCount = x.Stocks.Count
+                })
+                .ToListAsync();
+
+
+            return location;
+        }
 
 
         // =====================================================
@@ -75,10 +245,15 @@ namespace whm.Repositories
                 {
                     LocationId = x.LocationId,
 
+                    // Warehouse OPTIONAL
                     WarehouseId = x.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName =
+                        x.Warehouse != null
+                            ? x.Warehouse.Name
+                            : null,
 
+                    // Parent OPTIONAL
                     ParentLocationId = x.ParentLocationId,
 
                     ParentLocationName =
@@ -134,11 +309,16 @@ namespace whm.Repositories
                 {
                     LocationId = x.LocationId,
 
+                    // Warehouse OPTIONAL
                     WarehouseId = x.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName =
+                        x.Warehouse != null
+                            ? x.Warehouse.Name
+                            : null,
 
-                    ParentLocationId = x.ParentLocationId,
+                    ParentLocationId =
+                        x.ParentLocationId,
 
                     ParentLocationName =
                         x.ParentLocation != null
@@ -182,7 +362,8 @@ namespace whm.Repositories
 
                     ProductId = x.ProductId,
 
-                    ProductName = x.Product.Name,
+                    ProductName =
+                        x.Product.Name,
 
                     CategoryName =
                         _context.Categories
@@ -195,26 +376,36 @@ namespace whm.Repositories
 
                     SKU = x.Product.SKU,
 
-                    WarehouseId = x.WarehouseId,
+                    WarehouseId =
+                        x.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName =
+                        x.Warehouse != null
+                            ? x.Warehouse.Name
+                            : null,
 
-                    LocationId = x.LocationId,
+                    LocationId =
+                        x.LocationId,
 
                     LocationName =
                         x.Location != null
                             ? x.Location.Name
                             : null,
 
-                    StockCode = x.StockCode,
+                    StockCode =
+                        x.StockCode,
 
-                    BatchNumber = x.BatchNumber,
+                    BatchNumber =
+                        x.BatchNumber,
 
-                    Barcode = x.Product.Barcode,
+                    Barcode =
+                        x.Product.Barcode,
 
-                    ExpiryDate = x.ExpiryDate,
+                    ExpiryDate =
+                        x.ExpiryDate,
 
-                    Quantity = x.Quantity,
+                    Quantity =
+                        x.Quantity,
 
                     ReservedQuantity =
                         x.ReservedQuantity,
@@ -222,7 +413,8 @@ namespace whm.Repositories
                     AvailableQuantity =
                         x.AvailableQuantity,
 
-                    UnitPrice = x.UnitPrice,
+                    UnitPrice =
+                        x.UnitPrice,
 
                     MinimumStock =
                         x.Product.MinimumStock,
@@ -230,9 +422,11 @@ namespace whm.Repositories
                     StockStatus =
                         x.stockStatus.ToString(),
 
-                    CreatedAt = x.CreatedAt,
+                    CreatedAt =
+                        x.CreatedAt,
 
-                    UpdatedAt = x.UpdatedAt
+                    UpdatedAt =
+                        x.UpdatedAt
                 })
                 .ToListAsync();
         }
@@ -391,7 +585,8 @@ namespace whm.Repositories
                 var warehouseLocations =
                     locations
                         .Where(x =>
-                            x.WarehouseId ==
+                            x.WarehouseId.HasValue &&
+                            x.WarehouseId.Value ==
                             warehouse.WarehouseId)
                         .ToList();
 
@@ -429,7 +624,10 @@ namespace whm.Repositories
                             location.LocationId];
 
 
+                    // =========================================
                     // Parent exists
+                    // =========================================
+
                     if (location.ParentLocationId.HasValue &&
                         locationDictionary.ContainsKey(
                             location.ParentLocationId.Value))
@@ -441,7 +639,10 @@ namespace whm.Repositories
                     }
                     else
                     {
-                        // Root location
+                        // =====================================
+                        // Root Location
+                        // =====================================
+
                         warehouse.Locations.Add(current);
                     }
                 }
