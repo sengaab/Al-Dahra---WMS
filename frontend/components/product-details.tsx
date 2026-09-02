@@ -1,7 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import Card from "@/components/card";
 import Status from "@/components/status";
+import Button from "@/components/button";
 import { useStockByProductId } from "@/hooks/useStock";
 
 interface ProductDetailsProps {
@@ -15,6 +18,8 @@ export default function ProductDetails({
     onClose,
     status,
 }: ProductDetailsProps) {
+    const router = useRouter();
+
     const {
         stock,
         loading,
@@ -36,6 +41,10 @@ export default function ProductDetails({
             default:
                 return "red";
         }
+    };
+
+    const handleViewFullDetails = () => {
+        router.push(`/product?productId=${productId}`);
     };
 
     if (loading) {
@@ -124,12 +133,14 @@ export default function ProductDetails({
     );
 
     const totalAvailable = stockRecords.reduce(
-        (total, item) => total + item.availableQuantity,
+        (total, item) =>
+            total + item.availableQuantity,
         0
     );
 
     const totalReserved = stockRecords.reduce(
-        (total, item) => total + item.reservedQuantity,
+        (total, item) =>
+            total + item.reservedQuantity,
         0
     );
 
@@ -148,7 +159,8 @@ export default function ProductDetails({
                     style={{
                         marginLeft: "auto",
                         fontSize: "var(--icon-sm)",
-                        fontWeight: "var(--weight-regular)",
+                        fontWeight:
+                            "var(--weight-regular)",
                         fontFamily:
                             "var(--font-roboto-serif)",
                         cursor: "pointer",
@@ -163,7 +175,8 @@ export default function ProductDetails({
         >
             <div
                 style={{
-                    borderTop: "var(--border-default)",
+                    borderTop:
+                        "var(--border-default)",
                     padding: "var(--space-3)",
                     display: "flex",
                     flexDirection: "column",
@@ -191,10 +204,12 @@ export default function ProductDetails({
                             width: "100%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
                         }}
                     >
                         <p className="body">SKU</p>
+
                         <p className="body-title">
                             {firstStock.sku}
                         </p>
@@ -210,9 +225,13 @@ export default function ProductDetails({
                                     "space-between",
                             }}
                         >
-                            <p className="body">Barcode</p>
+                            <p className="body">
+                                Barcode
+                            </p>
+
                             <p className="body-title">
-                                {firstStock.barcode || "-"}
+                                {firstStock.barcode ||
+                                    "-"}
                             </p>
                         </div>
                     )}
@@ -222,10 +241,14 @@ export default function ProductDetails({
                             width: "100%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
                         }}
                     >
-                        <p className="body">Category</p>
+                        <p className="body">
+                            Category
+                        </p>
+
                         <p className="body-title">
                             {firstStock.categoryName}
                         </p>
@@ -241,9 +264,13 @@ export default function ProductDetails({
                                     "space-between",
                             }}
                         >
-                            <p className="body">Unit</p>
+                            <p className="body">
+                                Unit
+                            </p>
+
                             <p className="body-title">
-                                {firstStock.unitName || "-"}
+                                {firstStock.unitName ||
+                                    "-"}
                             </p>
                         </div>
                     )}
@@ -253,12 +280,14 @@ export default function ProductDetails({
                             width: "100%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
                         }}
                     >
                         <p className="body">
                             Minimum Stock
                         </p>
+
                         <p className="body-title">
                             {firstStock.minimumStock}
                         </p>
@@ -269,9 +298,12 @@ export default function ProductDetails({
                 <div
                     style={{
                         width: "100%",
-                        border: "var(--border-default)",
-                        borderRadius: "var(--radius-md)",
-                        backgroundColor: "var(--beige)",
+                        border:
+                            "var(--border-default)",
+                        borderRadius:
+                            "var(--radius-md)",
+                        backgroundColor:
+                            "var(--beige)",
                         padding: "var(--space-3)",
                         display: "flex",
                         flexDirection: "column",
@@ -290,10 +322,14 @@ export default function ProductDetails({
                             width: "100%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
                         }}
                     >
-                        <p className="body">Total Qty</p>
+                        <p className="body">
+                            Total Qty
+                        </p>
+
                         <p className="body-title">
                             {totalQuantity}
                         </p>
@@ -304,14 +340,19 @@ export default function ProductDetails({
                             width: "100%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
                         }}
                     >
-                        <p className="body">Available</p>
+                        <p className="body">
+                            Available
+                        </p>
+
                         <p
                             className="body-title"
                             style={{
-                                color: "var(--dark-green)",
+                                color:
+                                    "var(--dark-green)",
                             }}
                         >
                             {totalAvailable}
@@ -323,10 +364,14 @@ export default function ProductDetails({
                             width: "100%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
                         }}
                     >
-                        <p className="body">Reserved</p>
+                        <p className="body">
+                            Reserved
+                        </p>
+
                         <p
                             className="body-title"
                             style={{
@@ -342,12 +387,14 @@ export default function ProductDetails({
                             width: "100%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
+                            justifyContent:
+                                "space-between",
                         }}
                     >
                         <p className="body">
                             Stock Value
                         </p>
+
                         <p className="body-title">
                             {totalStockValue.toLocaleString(
                                 undefined,
@@ -366,7 +413,8 @@ export default function ProductDetails({
                         width: "100%",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "flex-start",
+                        justifyContent:
+                            "flex-start",
                         gap: "var(--space-1)",
                     }}
                 >
@@ -375,7 +423,9 @@ export default function ProductDetails({
                     </p>
 
                     <Status
-                        variant={getStatusVariant(status)}
+                        variant={getStatusVariant(
+                            status
+                        )}
                         text={status}
                     />
                 </div>
@@ -409,7 +459,8 @@ export default function ProductDetails({
                                 key={item.stockId}
                                 style={{
                                     width: "100%",
-                                    border: "var(--border-default)",
+                                    border:
+                                        "var(--border-default)",
                                     borderRadius:
                                         "var(--radius-md)",
                                     backgroundColor:
@@ -447,13 +498,16 @@ export default function ProductDetails({
                                         variant={getStatusVariant(
                                             locationStatus
                                         )}
-                                        text={locationStatus}
+                                        text={
+                                            locationStatus
+                                        }
                                     />
                                 </div>
 
                                 {/* Location */}
                                 <p className="small-body">
-                                    {item.warehouseName} /{" "}
+                                    {item.warehouseName}{" "}
+                                    /{" "}
                                     {item.locationName}
                                 </p>
 
@@ -471,7 +525,8 @@ export default function ProductDetails({
                                 >
                                     <div
                                         style={{
-                                            display: "flex",
+                                            display:
+                                                "flex",
                                             flexDirection:
                                                 "column",
                                             alignItems:
@@ -481,6 +536,7 @@ export default function ProductDetails({
                                         <p className="small-body">
                                             QTY
                                         </p>
+
                                         <p className="small-body">
                                             {item.quantity}
                                         </p>
@@ -488,7 +544,8 @@ export default function ProductDetails({
 
                                     <div
                                         style={{
-                                            display: "flex",
+                                            display:
+                                                "flex",
                                             flexDirection:
                                                 "column",
                                             alignItems:
@@ -498,19 +555,24 @@ export default function ProductDetails({
                                         <p className="small-body">
                                             AVAIL
                                         </p>
+
                                         <p
                                             className="small-body"
                                             style={{
-                                                color: "var(--dark-green)",
+                                                color:
+                                                    "var(--dark-green)",
                                             }}
                                         >
-                                            {item.availableQuantity}
+                                            {
+                                                item.availableQuantity
+                                            }
                                         </p>
                                     </div>
 
                                     <div
                                         style={{
-                                            display: "flex",
+                                            display:
+                                                "flex",
                                             flexDirection:
                                                 "column",
                                             alignItems:
@@ -520,13 +582,17 @@ export default function ProductDetails({
                                         <p className="small-body">
                                             RESV
                                         </p>
+
                                         <p
                                             className="small-body"
                                             style={{
-                                                color: "var(--red)",
+                                                color:
+                                                    "var(--red)",
                                             }}
                                         >
-                                            {item.reservedQuantity}
+                                            {
+                                                item.reservedQuantity
+                                            }
                                         </p>
                                     </div>
                                 </div>
@@ -534,6 +600,17 @@ export default function ProductDetails({
                         );
                     })}
                 </div>
+
+                {/* View Full Details */}
+                <Button
+                    variant="secondary"
+                    style={{
+                        width: "100%",
+                    }}
+                    onClick={handleViewFullDetails}
+                >
+                    View Full Details
+                </Button>
             </div>
         </Card>
     );
