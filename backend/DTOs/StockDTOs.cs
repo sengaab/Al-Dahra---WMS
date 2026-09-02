@@ -43,6 +43,50 @@
 
 
         // =========================
+        // Room
+        // =========================
+
+        public int? RoomId { get; set; }
+
+        public string? RoomName { get; set; }
+
+        public string? RoomCode { get; set; }
+
+
+        // =========================
+        // Rack
+        // =========================
+
+        public int? RackId { get; set; }
+
+        public string? RackName { get; set; }
+
+        public string? RackCode { get; set; }
+
+
+        // =========================
+        // Shelf
+        // =========================
+
+        public int? ShelfId { get; set; }
+
+        public string? ShelfName { get; set; }
+
+        public string? ShelfCode { get; set; }
+
+
+        // =========================
+        // Bin
+        // =========================
+
+        public int? BinId { get; set; }
+
+        public string? BinName { get; set; }
+
+        public string? BinCode { get; set; }
+
+
+        // =========================
         // Supplier
         // =========================
 
