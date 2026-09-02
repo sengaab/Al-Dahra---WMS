@@ -11,6 +11,7 @@ namespace whm.Models
         Expired,
         Blocked
     }
+
     public class Stock
     {
         [Key]
@@ -23,6 +24,12 @@ namespace whm.Models
         public int WarehouseId { get; set; }
 
         public int? LocationId { get; set; }
+
+        // =========================
+        // Supplier
+        // =========================
+
+        public int? SupplierId { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -50,7 +57,9 @@ namespace whm.Models
 
         [Required]
         [MaxLength(50)]
-        public StockStatus stockStatus { get; set; } = StockStatus.Available;
+        public StockStatus stockStatus { get; set; }
+            = StockStatus.Available;
+
         public DateTimeOffset CreatedAt { get; set; }
 
         public DateTimeOffset UpdatedAt { get; set; }
@@ -65,6 +74,9 @@ namespace whm.Models
         public Warehouse Warehouse { get; set; } = null!;
 
         public Location? Location { get; set; }
+
+        public Supplier? Supplier { get; set; }
+
 
         public List<PutawayItem> PutawayItems { get; set; }
             = new List<PutawayItem>();

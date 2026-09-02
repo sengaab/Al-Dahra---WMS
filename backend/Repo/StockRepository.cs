@@ -120,10 +120,15 @@ namespace whm.Repositories
 
         public async Task<StockSummaryDto> GetSummaryAsync()
         {
-            var stocks = _context.Stocks.AsNoTracking();
+            var stocks = _context.Stocks
+                .AsNoTracking();
 
             return new StockSummaryDto
             {
+                // =========================
+                // Totals
+                // =========================
+
                 TotalStockItems = await stocks.CountAsync(),
 
                 TotalQuantity = await stocks
@@ -137,6 +142,11 @@ namespace whm.Repositories
 
                 TotalValue = await stocks
                     .SumAsync(x => (decimal?)(x.Quantity * x.UnitPrice)) ?? 0,
+
+
+                // =========================
+                // Status
+                // =========================
 
                 AvailableItems = await stocks
                     .CountAsync(x =>
@@ -157,6 +167,11 @@ namespace whm.Repositories
                 BlockedItems = await stocks
                     .CountAsync(x =>
                         x.stockStatus == StockStatus.Blocked),
+
+
+                // =========================
+                // Stock Levels
+                // =========================
 
                 LowStockItems = await stocks
                     .CountAsync(x =>
@@ -195,7 +210,7 @@ namespace whm.Repositories
 
 
         // =====================================================
-        // ENTITY
+        // GET ENTITY BY ID
         // =====================================================
 
         public async Task<Stock?> GetEntityByIdAsync(int id)
@@ -245,31 +260,11 @@ namespace whm.Repositories
                 .AsNoTracking()
                 .Select(x => new StockDto
                 {
+                    // =================================================
+                    // STOCK
+                    // =================================================
+
                     StockId = x.StockId,
-
-                    ProductId = x.ProductId,
-
-                    ProductName = x.Product.Name,
-
-                    CategoryName = _context.Categories
-                        .Where(c => c.CategoryId == x.Product.CategoryId)
-                        .Select(c => c.Name)
-                        .FirstOrDefault() ?? string.Empty,
-
-                    SKU = x.Product.SKU,
-
-                    // Barcode from Product
-                    Barcode = x.Product.Barcode,
-
-                    WarehouseId = x.WarehouseId,
-
-                    WarehouseName = x.Warehouse.Name,
-
-                    LocationId = x.LocationId,
-
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
 
                     StockCode = x.StockCode,
 
@@ -285,13 +280,190 @@ namespace whm.Repositories
 
                     UnitPrice = x.UnitPrice,
 
-                    MinimumStock = x.Product.MinimumStock,
+                    MinimumStock = x.MinimumStock,
 
                     StockStatus = x.stockStatus.ToString(),
 
                     CreatedAt = x.CreatedAt,
 
-                    UpdatedAt = x.UpdatedAt
+                    UpdatedAt = x.UpdatedAt,
+
+
+                    // =================================================
+                    // PRODUCT
+                    // =================================================
+
+                    ProductId = x.ProductId,
+
+                    ProductName = x.Product.Name,
+
+                    SKU = x.Product.SKU,
+
+                    Barcode = x.Product.Barcode,
+
+
+                    // =================================================
+                    // CATEGORY
+                    // =================================================
+
+                    CategoryName = _context.Categories
+                        .Where(c =>
+                            c.CategoryId == x.Product.CategoryId)
+                        .Select(c => c.Name)
+                        .FirstOrDefault() ?? string.Empty,
+
+
+                    // =================================================
+                    // WAREHOUSE
+                    // =================================================
+
+                    WarehouseId = x.WarehouseId,
+
+                    WarehouseName = x.Warehouse.Name,
+
+
+                    // =================================================
+                    // LOCATION
+                    // =================================================
+
+                    LocationId = x.LocationId,
+
+                    LocationName = x.Location != null
+                        ? x.Location.Name
+                        : null,
+
+
+                    // =================================================
+                    // BIN
+                    // =================================================
+
+                    BinId = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId)
+                        .Select(b => (int?)b.Bin_Id)
+                        .FirstOrDefault(),
+
+                    BinName = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId)
+                        .Select(b => b.Bin_Name)
+                        .FirstOrDefault(),
+
+                    BinCode = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId)
+                        .Select(b => b.Bin_Code)
+                        .FirstOrDefault(),
+
+
+                    // =================================================
+                    // SHELF
+                    // =================================================
+
+                    ShelfId = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf_Id.HasValue)
+                        .Select(b => b.Shelf_Id)
+                        .FirstOrDefault(),
+
+                    ShelfName = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null)
+                        .Select(b => b.Shelf!.Shelf_Name)
+                        .FirstOrDefault(),
+
+                    ShelfCode = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null)
+                        .Select(b => b.Shelf!.Shelf_Code)
+                        .FirstOrDefault(),
+
+
+                    // =================================================
+                    // RACK
+                    // =================================================
+
+                    RackId = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null &&
+                            b.Shelf.Row_Id.HasValue)
+                        .Select(b => b.Shelf!.Row_Id)
+                        .FirstOrDefault(),
+
+                    RackName = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null &&
+                            b.Shelf.Row != null)
+                        .Select(b => b.Shelf!.Row!.Rack_Name)
+                        .FirstOrDefault(),
+
+                    RackCode = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null &&
+                            b.Shelf.Row != null)
+                        .Select(b => b.Shelf!.Row!.Rack_Code)
+                        .FirstOrDefault(),
+
+
+                    // =================================================
+                    // ROOM
+                    // =================================================
+
+                    RoomId = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null &&
+                            b.Shelf.Row != null &&
+                            b.Shelf.Row.Room_Id.HasValue)
+                        .Select(b => b.Shelf!.Row!.Room_Id)
+                        .FirstOrDefault(),
+
+                    RoomName = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null &&
+                            b.Shelf.Row != null &&
+                            b.Shelf.Row.Room != null)
+                        .Select(b => b.Shelf!.Row!.Room!.Room_Name)
+                        .FirstOrDefault(),
+
+                    RoomCode = _context.Bins
+                        .Where(b =>
+                            x.LocationId.HasValue &&
+                            b.LocationId == x.LocationId &&
+                            b.Shelf != null &&
+                            b.Shelf.Row != null &&
+                            b.Shelf.Row.Room != null)
+                        .Select(b => b.Shelf!.Row!.Room!.Room_Code)
+                        .FirstOrDefault(),
+
+
+                    // =================================================
+                    // SUPPLIER
+                    // =================================================
+
+                    SupplierId = x.SupplierId,
+
+                    SupplierName = x.Supplier != null
+                        ? x.Supplier.Name
+                        : null
                 });
         }
     }

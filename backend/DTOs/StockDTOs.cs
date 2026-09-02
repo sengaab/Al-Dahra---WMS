@@ -1,8 +1,17 @@
 ﻿namespace whm.DTOs.Stock
 {
+    // =====================================================
+    // STOCK RESPONSE DTO
+    // =====================================================
+
     public class StockDto
     {
         public int StockId { get; set; }
+
+
+        // =========================
+        // Product
+        // =========================
 
         public int ProductId { get; set; }
 
@@ -12,18 +21,87 @@
 
         public string SKU { get; set; } = string.Empty;
 
+        public string? Barcode { get; set; }
+
+
+        // =========================
+        // Warehouse
+        // =========================
+
         public int WarehouseId { get; set; }
 
         public string WarehouseName { get; set; } = string.Empty;
+
+
+        // =========================
+        // Location
+        // =========================
 
         public int? LocationId { get; set; }
 
         public string? LocationName { get; set; }
 
+
+        // =========================
+        // Room
+        // =========================
+
+        public int? RoomId { get; set; }
+
+        public string? RoomName { get; set; }
+
+        public string? RoomCode { get; set; }
+
+
+        // =========================
+        // Rack
+        // =========================
+
+        public int? RackId { get; set; }
+
+        public string? RackName { get; set; }
+
+        public string? RackCode { get; set; }
+
+
+        // =========================
+        // Shelf
+        // =========================
+
+        public int? ShelfId { get; set; }
+
+        public string? ShelfName { get; set; }
+
+        public string? ShelfCode { get; set; }
+
+
+        // =========================
+        // Bin
+        // =========================
+
+        public int? BinId { get; set; }
+
+        public string? BinName { get; set; }
+
+        public string? BinCode { get; set; }
+
+
+        // =========================
+        // Supplier
+        // =========================
+
+        public int? SupplierId { get; set; }
+
+        public string? SupplierName { get; set; }
+
+
+        // =========================
+        // Stock Details
+        // =========================
+
         public string StockCode { get; set; } = string.Empty;
 
         public string? BatchNumber { get; set; }
-        public string ? Barcode {  get; set; } 
 
         public DateOnly? ExpiryDate { get; set; }
 
@@ -43,6 +121,13 @@
 
         public DateTimeOffset UpdatedAt { get; set; }
     }
+
+
+    // =====================================================
+    // CREATE STOCK DTO
+    // POST /api/stocks
+    // =====================================================
+
     public class CreateStockDto
     {
         public int ProductId { get; set; }
@@ -50,6 +135,8 @@
         public int WarehouseId { get; set; }
 
         public int? LocationId { get; set; }
+
+        public int? SupplierId { get; set; }
 
         public string? BatchNumber { get; set; }
 
@@ -63,9 +150,18 @@
 
         public decimal MinimumStock { get; set; }
     }
+
+
+    // =====================================================
+    // UPDATE STOCK DTO
+    // PUT /api/stocks/{id}
+    // =====================================================
+
     public class UpdateStockDto
     {
         public int? LocationId { get; set; }
+
+        public int? SupplierId { get; set; }
 
         public string? BatchNumber { get; set; }
 
@@ -81,6 +177,12 @@
 
         public string? StockStatus { get; set; }
     }
+
+
+    // =====================================================
+    // STOCK SUMMARY DTO
+    // =====================================================
+
     public class StockSummaryDto
     {
         public int TotalStockItems { get; set; }
@@ -107,5 +209,4 @@
 
         public int OutOfStockItems { get; set; }
     }
-
 }

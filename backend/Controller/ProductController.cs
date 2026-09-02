@@ -104,7 +104,8 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Product with this barcode was not found."
+                    message =
+                        "Product with this barcode was not found."
                 });
             }
 
@@ -137,7 +138,8 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Product with this SKU was not found."
+                    message =
+                        "Product with this SKU was not found."
                 });
             }
 
@@ -160,58 +162,69 @@ namespace whm.Controllers
             }
 
 
-            // -------------------------------------------------
-            // Check SKU
-            // -------------------------------------------------
+            // =================================================
+            // 1. SKU
+            // =================================================
 
-            if (!string.IsNullOrWhiteSpace(dto.SKU))
+            string sku;
+
+            // If user provided a real SKU
+            if (!string.IsNullOrWhiteSpace(dto.SKU) &&
+                !IsSwaggerPlaceholder(dto.SKU))
             {
+                sku = dto.SKU.Trim();
+
+                // Check if SKU already exists
                 var existingSku =
                     await _unitOfWork.Products
-                        .GetBySkuAsync(dto.SKU);
+                        .GetBySkuAsync(sku);
 
                 if (existingSku != null)
                 {
                     return Conflict(new
                     {
-                        message = "A product with this SKU already exists."
-                    });
-                }
-            }
-
-
-            // -------------------------------------------------
-            // Check Barcode
-            // -------------------------------------------------
-
-            if (!string.IsNullOrWhiteSpace(dto.Barcode))
-            {
-                var existingBarcode =
-                    await _unitOfWork.Products
-                        .GetByBarcodeAsync(dto.Barcode);
-
-                if (existingBarcode != null)
-                {
-                    return Conflict(new
-                    {
                         message =
-                            "A product with this barcode already exists."
+                            "A product with this SKU already exists."
                     });
                 }
             }
+            else
+            {
+                // Generate SKU automatically
+                sku = await GenerateUniqueSkuAsync();
+            }
 
 
-            // -------------------------------------------------
-            // Create Product
-            // -------------------------------------------------
+            // =================================================
+            // 2. Generate Barcode + QRValue
+            // =================================================
+
+            // They will have EXACTLY the same value.
+            // Example:
+            //
+            // Barcode = "839274615203"
+            // QRValue = "839274615203"
+            //
+
+            string barcode =
+                await GenerateUniqueBarcodeAsync();
+
+            string qrValue = barcode;
+
+
+            // =================================================
+            // 3. Create Product
+            // =================================================
 
             var product = new Product
             {
-                SKU = dto.SKU,
+                SKU = sku,
 
-                Barcode = dto.Barcode,
+                // Automatically generated
+                Barcode = barcode,
 
-                QRValue = dto.QRValue,
+                // Same value as Barcode
+                QRValue = qrValue,
 
                 Name = dto.Name,
 
@@ -235,15 +248,19 @@ namespace whm.Controllers
             };
 
 
+            // =================================================
+            // 4. Save
+            // =================================================
+
             await _unitOfWork.Products
                 .AddAsync(product);
 
             await _unitOfWork.SaveAsync();
 
 
-            // -------------------------------------------------
-            // Get Created Product
-            // -------------------------------------------------
+            // =================================================
+            // 5. Get Created Product
+            // =================================================
 
             var result =
                 await _unitOfWork.Products
@@ -276,9 +293,9 @@ namespace whm.Controllers
             }
 
 
-            // -------------------------------------------------
+            // =================================================
             // Find Product
-            // -------------------------------------------------
+            // =================================================
 
             var product =
                 await _unitOfWork.Products
@@ -293,11 +310,12 @@ namespace whm.Controllers
             }
 
 
-            // -------------------------------------------------
+            // =================================================
             // Check Barcode
-            // -------------------------------------------------
+            // =================================================
 
-            if (!string.IsNullOrWhiteSpace(dto.Barcode))
+            if (!string.IsNullOrWhiteSpace(dto.Barcode) &&
+                !IsSwaggerPlaceholder(dto.Barcode))
             {
                 var existingBarcode =
                     await _unitOfWork.Products
@@ -315,35 +333,101 @@ namespace whm.Controllers
             }
 
 
-            // -------------------------------------------------
-            // Update Product
-            // -------------------------------------------------
+            // =================================================
+            // Update Barcode
+            // =================================================
 
-            if (dto.Barcode != null)
-                product.Barcode = dto.Barcode;
+            if (!string.IsNullOrWhiteSpace(dto.Barcode) &&
+                !IsSwaggerPlaceholder(dto.Barcode))
+            {
+                product.Barcode = dto.Barcode.Trim();
 
-            if (dto.QRValue != null)
-                product.QRValue = dto.QRValue;
+                // Keep QRValue identical to Barcode
+                product.QRValue = product.Barcode;
+            }
 
-            if (dto.Name != null)
-                product.Name = dto.Name;
+
+            // =================================================
+            // Update QR
+            // =================================================
+
+            // We don't allow QRValue to be different.
+            // QRValue always follows Barcode.
+            //
+            // So we intentionally DO NOT use dto.QRValue.
+
+
+            // =================================================
+            // Update Name
+            // =================================================
+
+            if (!string.IsNullOrWhiteSpace(dto.Name) &&
+                !IsSwaggerPlaceholder(dto.Name))
+            {
+                product.Name = dto.Name.Trim();
+            }
+
+
+            // =================================================
+            // Update Category
+            // =================================================
 
             if (dto.CategoryId.HasValue)
+            {
                 product.CategoryId = dto.CategoryId;
+            }
+
+
+            // =================================================
+            // Update Unit
+            // =================================================
 
             if (dto.UnitId.HasValue)
+            {
                 product.UnitId = dto.UnitId;
+            }
+
+
+            // =================================================
+            // Update Unit Price
+            // =================================================
 
             if (dto.UnitPrice.HasValue)
-                product.UnitPrice = dto.UnitPrice.Value;
+            {
+                product.UnitPrice =
+                    dto.UnitPrice.Value;
+            }
+
+
+            // =================================================
+            // Update Minimum Stock
+            // =================================================
 
             if (dto.MinimumStock.HasValue)
-                product.MinimumStock = dto.MinimumStock.Value;
+            {
+                product.MinimumStock =
+                    dto.MinimumStock.Value;
+            }
 
-            if (dto.Description != null)
-                product.Description = dto.Description;
+
+            // =================================================
+            // Update Description
+            // =================================================
+
+            if (dto.Description != null &&
+                !IsSwaggerPlaceholder(dto.Description))
+            {
+                product.Description =
+                    dto.Description.Trim();
+            }
+
+
+            // =================================================
+            // Update Product Status
+            // =================================================
 
             if (!string.IsNullOrWhiteSpace(dto.ProductStatus) &&
+                !IsSwaggerPlaceholder(dto.ProductStatus) &&
                 Enum.TryParse<ProductStatus>(
                     dto.ProductStatus,
                     true,
@@ -355,13 +439,29 @@ namespace whm.Controllers
                     status == ProductStatus.Active;
             }
 
-            if (dto.IsActive.HasValue)
-                product.IsActive = dto.IsActive.Value;
 
+            // =================================================
+            // Update IsActive
+            // =================================================
+
+            if (dto.IsActive.HasValue)
+            {
+                product.IsActive =
+                    dto.IsActive.Value;
+            }
+
+
+            // =================================================
+            // Updated At
+            // =================================================
 
             product.UpdatedAt =
                 DateTimeOffset.UtcNow;
 
+
+            // =================================================
+            // Save
+            // =================================================
 
             _unitOfWork.Products
                 .Update(product);
@@ -369,9 +469,9 @@ namespace whm.Controllers
             await _unitOfWork.SaveAsync();
 
 
-            // -------------------------------------------------
+            // =================================================
             // Return Updated Product
-            // -------------------------------------------------
+            // =================================================
 
             var result =
                 await _unitOfWork.Products
@@ -401,16 +501,15 @@ namespace whm.Controllers
                 });
             }
 
-
             _unitOfWork.Products
                 .Delete(product);
 
             await _unitOfWork.SaveAsync();
 
-
             return Ok(new
             {
-                message = "Product deleted successfully."
+                message =
+                    "Product deleted successfully."
             });
         }
 
@@ -664,6 +763,76 @@ namespace whm.Controllers
                     .GetStockByLocationAsync(id);
 
             return Ok(result);
+        }
+
+
+        // =====================================================
+        // GENERATE UNIQUE SKU
+        // =====================================================
+
+        private async Task<string> GenerateUniqueSkuAsync()
+        {
+            string sku;
+
+            do
+            {
+                // Example:
+                // SKU-58392417
+
+                sku =
+                    $"SKU-{Random.Shared.Next(10000000, 99999999)}";
+
+            } while (
+                await _unitOfWork.Products
+                    .GetBySkuAsync(sku) != null
+            );
+
+            return sku;
+        }
+
+
+        // =====================================================
+        // GENERATE UNIQUE BARCODE
+        // =====================================================
+
+        private async Task<string> GenerateUniqueBarcodeAsync()
+        {
+            string barcode;
+
+            do
+            {
+                // 12 digit numeric barcode
+                //
+                // Example:
+                // 583924176251
+
+                barcode =
+                    Random.Shared
+                        .NextInt64(
+                            100000000000,
+                            999999999999)
+                        .ToString();
+
+            } while (
+                await _unitOfWork.Products
+                    .GetByBarcodeAsync(barcode) != null
+            );
+
+            return barcode;
+        }
+
+
+        // =====================================================
+        // CHECK SWAGGER PLACEHOLDER
+        // =====================================================
+
+        private static bool IsSwaggerPlaceholder(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return true;
+
+            return value.Trim()
+                .Equals("string", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

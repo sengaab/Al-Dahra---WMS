@@ -8,6 +8,7 @@
     {
         public int WarehouseId { get; set; }
 
+        // Warehouse MUST belong to a Site
         public int SiteId { get; set; }
 
         public string SiteName { get; set; } = string.Empty;
@@ -35,6 +36,7 @@
 
     public class CreateWarehouseDto
     {
+        // REQUIRED
         public int SiteId { get; set; }
 
         public string Code { get; set; } = string.Empty;
@@ -72,8 +74,10 @@
     {
         public int LocationId { get; set; }
 
-        public int WarehouseId { get; set; }
+        // OPTIONAL
+        public int? WarehouseId { get; set; }
 
+        // OPTIONAL
         public int? ParentLocationId { get; set; }
 
         public string Code { get; set; } = string.Empty;

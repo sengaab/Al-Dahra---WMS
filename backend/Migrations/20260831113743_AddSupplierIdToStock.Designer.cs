@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using whm.Data;
@@ -11,9 +12,11 @@ using whm.Data;
 namespace WMS.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260831113743_AddSupplierIdToStock")]
+    partial class AddSupplierIdToStock
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,63 +24,6 @@ namespace WMS.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Location", b =>
-                {
-                    b.Property<int>("LocationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LocationId"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<int?>("ParentLocationId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("WarehouseId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("WarehouseId1")
-                        .HasColumnType("integer");
-
-                    b.HasKey("LocationId");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.HasIndex("ParentLocationId");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.HasIndex("WarehouseId1");
-
-                    b.ToTable("Locations");
-                });
 
             modelBuilder.Entity("whm.Models.AuditLog", b =>
                 {
@@ -170,45 +116,6 @@ namespace WMS.Migrations
                     b.HasIndex("StockId");
 
                     b.ToTable("BarcodeScans");
-                });
-
-            modelBuilder.Entity("whm.Models.Bin", b =>
-                {
-                    b.Property<int>("Bin_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Bin_Id"));
-
-                    b.Property<string>("Bin_Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Bin_Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Bin_Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("LocationId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Shelf_Id")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Bin_Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("Shelf_Id");
-
-                    b.ToTable("Bins");
                 });
 
             modelBuilder.Entity("whm.Models.Category", b =>
@@ -304,6 +211,58 @@ namespace WMS.Migrations
                         .IsUnique();
 
                     b.ToTable("Inspections");
+                });
+
+            modelBuilder.Entity("whm.Models.Location", b =>
+                {
+                    b.Property<int>("LocationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("LocationId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int?>("ParentLocationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("LocationId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("ParentLocationId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("Locations");
                 });
 
             modelBuilder.Entity("whm.Models.PickItem", b =>
@@ -660,45 +619,6 @@ namespace WMS.Migrations
                     b.ToTable("PutawayItems");
                 });
 
-            modelBuilder.Entity("whm.Models.Rack", b =>
-                {
-                    b.Property<int>("Rack_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Rack_Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("LocationId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Rack_Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Rack_Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Rack_Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int?>("Room_Id")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Rack_Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("Room_Id");
-
-                    b.ToTable("Racks");
-                });
-
             modelBuilder.Entity("whm.Models.Receipt", b =>
                 {
                     b.Property<int>("ReceiptId")
@@ -933,84 +853,6 @@ namespace WMS.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("whm.Models.Room", b =>
-                {
-                    b.Property<int>("Room_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Room_Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("LocationId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Room_Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Room_Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Room_Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int?>("Warehouse_Id")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Room_Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("Warehouse_Id");
-
-                    b.ToTable("Rooms");
-                });
-
-            modelBuilder.Entity("whm.Models.Shelf", b =>
-                {
-                    b.Property<int>("Shelf_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Shelf_Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("LocationId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Row_Id")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Shelf_Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Shelf_Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Shelf_Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Shelf_Id");
-
-                    b.HasIndex("LocationId");
-
-                    b.HasIndex("Row_Id");
-
-                    b.ToTable("Shelves");
-                });
-
             modelBuilder.Entity("whm.Models.Site", b =>
                 {
                     b.Property<int>("SiteId")
@@ -1067,9 +909,6 @@ namespace WMS.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int?>("Bin_Id")
-                        .HasColumnType("integer");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1114,8 +953,6 @@ namespace WMS.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("StockId");
-
-                    b.HasIndex("Bin_Id");
 
                     b.HasIndex("LocationId");
 
@@ -1925,27 +1762,6 @@ namespace WMS.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("Location", b =>
-                {
-                    b.HasOne("Location", "ParentLocation")
-                        .WithMany("ChildLocations")
-                        .HasForeignKey("ParentLocationId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("whm.Models.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("whm.Models.Warehouse", null)
-                        .WithMany("Locations")
-                        .HasForeignKey("WarehouseId1");
-
-                    b.Navigation("ParentLocation");
-
-                    b.Navigation("Warehouse");
-                });
-
             modelBuilder.Entity("whm.Models.AuditLog", b =>
                 {
                     b.HasOne("whm.Models.User", "User")
@@ -1959,7 +1775,7 @@ namespace WMS.Migrations
 
             modelBuilder.Entity("whm.Models.BarcodeScan", b =>
                 {
-                    b.HasOne("Location", "Location")
+                    b.HasOne("whm.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -1989,23 +1805,6 @@ namespace WMS.Migrations
                     b.Navigation("Stock");
                 });
 
-            modelBuilder.Entity("whm.Models.Bin", b =>
-                {
-                    b.HasOne("Location", "Location")
-                        .WithMany("Bins")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("whm.Models.Shelf", "Shelf")
-                        .WithMany("Bins")
-                        .HasForeignKey("Shelf_Id")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Location");
-
-                    b.Navigation("Shelf");
-                });
-
             modelBuilder.Entity("whm.Models.Inspection", b =>
                 {
                     b.HasOne("whm.Models.User", "Inspector")
@@ -2025,9 +1824,27 @@ namespace WMS.Migrations
                     b.Navigation("ReceiptItem");
                 });
 
+            modelBuilder.Entity("whm.Models.Location", b =>
+                {
+                    b.HasOne("whm.Models.Location", "ParentLocation")
+                        .WithMany("ChildLocations")
+                        .HasForeignKey("ParentLocationId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("whm.Models.Warehouse", "Warehouse")
+                        .WithMany("Locations")
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentLocation");
+
+                    b.Navigation("Warehouse");
+                });
+
             modelBuilder.Entity("whm.Models.PickItem", b =>
                 {
-                    b.HasOne("Location", "Location")
+                    b.HasOne("whm.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2185,7 +2002,7 @@ namespace WMS.Migrations
 
             modelBuilder.Entity("whm.Models.PutawayItem", b =>
                 {
-                    b.HasOne("Location", "Location")
+                    b.HasOne("whm.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2224,23 +2041,6 @@ namespace WMS.Migrations
                     b.Navigation("ReceiptItem");
 
                     b.Navigation("Stock");
-                });
-
-            modelBuilder.Entity("whm.Models.Rack", b =>
-                {
-                    b.HasOne("Location", "Location")
-                        .WithMany("Racks")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("whm.Models.Room", "Room")
-                        .WithMany("Rows")
-                        .HasForeignKey("Room_Id")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Location");
-
-                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("whm.Models.Receipt", b =>
@@ -2354,47 +2154,9 @@ namespace WMS.Migrations
                     b.Navigation("StockRequest");
                 });
 
-            modelBuilder.Entity("whm.Models.Room", b =>
-                {
-                    b.HasOne("Location", "Location")
-                        .WithMany("Rooms")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("whm.Models.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("Warehouse_Id")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Location");
-
-                    b.Navigation("Warehouse");
-                });
-
-            modelBuilder.Entity("whm.Models.Shelf", b =>
-                {
-                    b.HasOne("Location", "Location")
-                        .WithMany("Shelves")
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("whm.Models.Rack", "Row")
-                        .WithMany("Shelves")
-                        .HasForeignKey("Row_Id")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Location");
-
-                    b.Navigation("Row");
-                });
-
             modelBuilder.Entity("whm.Models.Stock", b =>
                 {
-                    b.HasOne("whm.Models.Bin", null)
-                        .WithMany("Stocks")
-                        .HasForeignKey("Bin_Id");
-
-                    b.HasOne("Location", "Location")
+                    b.HasOne("whm.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -2472,7 +2234,7 @@ namespace WMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Location", "Location")
+                    b.HasOne("whm.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -2705,7 +2467,7 @@ namespace WMS.Migrations
 
             modelBuilder.Entity("whm.Models.StockTransaction", b =>
                 {
-                    b.HasOne("Location", "DestinationLocation")
+                    b.HasOne("whm.Models.Location", "DestinationLocation")
                         .WithMany()
                         .HasForeignKey("DestinationLocationId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -2722,7 +2484,7 @@ namespace WMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Location", "SourceLocation")
+                    b.HasOne("whm.Models.Location", "SourceLocation")
                         .WithMany()
                         .HasForeignKey("SourceLocationId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -2780,7 +2542,7 @@ namespace WMS.Migrations
 
             modelBuilder.Entity("whm.Models.StockTransferItem", b =>
                 {
-                    b.HasOne("Location", "DestinationLocation")
+                    b.HasOne("whm.Models.Location", "DestinationLocation")
                         .WithMany()
                         .HasForeignKey("DestinationLocationId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -2791,7 +2553,7 @@ namespace WMS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Location", "SourceLocation")
+                    b.HasOne("whm.Models.Location", "SourceLocation")
                         .WithMany()
                         .HasForeignKey("SourceLocationId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -2867,24 +2629,6 @@ namespace WMS.Migrations
                     b.Navigation("Site");
                 });
 
-            modelBuilder.Entity("Location", b =>
-                {
-                    b.Navigation("Bins");
-
-                    b.Navigation("ChildLocations");
-
-                    b.Navigation("Racks");
-
-                    b.Navigation("Rooms");
-
-                    b.Navigation("Shelves");
-                });
-
-            modelBuilder.Entity("whm.Models.Bin", b =>
-                {
-                    b.Navigation("Stocks");
-                });
-
             modelBuilder.Entity("whm.Models.Category", b =>
                 {
                     b.Navigation("Products");
@@ -2893,6 +2637,11 @@ namespace WMS.Migrations
             modelBuilder.Entity("whm.Models.Department", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("whm.Models.Location", b =>
+                {
+                    b.Navigation("ChildLocations");
                 });
 
             modelBuilder.Entity("whm.Models.PickList", b =>
@@ -2924,11 +2673,6 @@ namespace WMS.Migrations
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("whm.Models.Rack", b =>
-                {
-                    b.Navigation("Shelves");
-                });
-
             modelBuilder.Entity("whm.Models.Receipt", b =>
                 {
                     b.Navigation("Items");
@@ -2951,16 +2695,6 @@ namespace WMS.Migrations
             modelBuilder.Entity("whm.Models.Role", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("whm.Models.Room", b =>
-                {
-                    b.Navigation("Rows");
-                });
-
-            modelBuilder.Entity("whm.Models.Shelf", b =>
-                {
-                    b.Navigation("Bins");
                 });
 
             modelBuilder.Entity("whm.Models.Site", b =>

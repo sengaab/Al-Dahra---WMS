@@ -69,6 +69,10 @@ namespace whm.Data
         public DbSet<ReportSchedule> ReportSchedules { get; set; }
 
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<Rack> Racks { get; set; }
+        public DbSet<Shelf> Shelves { get; set; }
+        public DbSet<Bin> Bins { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -315,15 +319,7 @@ namespace whm.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
 
-            // =====================================================
-            // WAREHOUSE -> LOCATIONS
-            // =====================================================
-
-            modelBuilder.Entity<Location>()
-                .HasOne(x => x.Warehouse)
-                .WithMany(x => x.Locations)
-                .HasForeignKey(x => x.WarehouseId)
-                .OnDelete(DeleteBehavior.Cascade);
+           
 
 
             // =====================================================
@@ -1079,6 +1075,145 @@ namespace whm.Data
             modelBuilder.Entity<Supplier>()
                 .Property(x => x.IsActive)
                 .HasDefaultValue(true);
+
+            modelBuilder.Entity<Stock>()
+          .HasOne(x => x.Supplier)
+          .WithMany(x => x.Stocks)
+         .HasForeignKey(x => x.SupplierId)
+         .OnDelete(DeleteBehavior.Restrict);
+            // =====================================================
+            // LOCATION RELATIONSHIPS
+            // =====================================================
+
+
+            // =====================================================
+            // LOCATION -> WAREHOUSE
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Location>()
+                .HasOne(x => x.Warehouse)
+                .WithMany()
+                .HasForeignKey(x => x.WarehouseId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // LOCATION -> PARENT LOCATION
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Location>()
+                .HasOne(x => x.ParentLocation)
+                .WithMany(x => x.ChildLocations)
+                .HasForeignKey(x => x.ParentLocationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // =====================================================
+            // ROOM -> WAREHOUSE
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Room>()
+                .HasOne(x => x.Warehouse)
+                .WithMany()
+                .HasForeignKey(x => x.Warehouse_Id)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // ROOM -> LOCATION
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Room>()
+                .HasOne(x => x.Location)
+                .WithMany(x => x.Rooms)
+                .HasForeignKey(x => x.LocationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // RACK -> ROOM
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Rack>()
+                .HasOne(x => x.Room)
+                .WithMany(x => x.Rows)
+                .HasForeignKey(x => x.Room_Id)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // RACK -> LOCATION
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Rack>()
+                .HasOne(x => x.Location)
+                .WithMany(x => x.Racks)
+                .HasForeignKey(x => x.LocationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // SHELF -> RACK
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Shelf>()
+                .HasOne(x => x.Row)
+                .WithMany(x => x.Shelves)
+                .HasForeignKey(x => x.Row_Id)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // SHELF -> LOCATION
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Shelf>()
+                .HasOne(x => x.Location)
+                .WithMany(x => x.Shelves)
+                .HasForeignKey(x => x.LocationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // BIN -> SHELF
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Bin>()
+                .HasOne(x => x.Shelf)
+                .WithMany(x => x.Bins)
+                .HasForeignKey(x => x.Shelf_Id)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // BIN -> LOCATION
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Bin>()
+                .HasOne(x => x.Location)
+                .WithMany(x => x.Bins)
+                .HasForeignKey(x => x.LocationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

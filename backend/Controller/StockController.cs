@@ -40,10 +40,12 @@ namespace whm.Controllers
             var stock = await _unitOfWork.Stocks.GetByIdAsync(id);
 
             if (stock == null)
+            {
                 return NotFound(new
                 {
                     message = "Stock not found."
                 });
+            }
 
             return Ok(stock);
         }
@@ -189,6 +191,10 @@ namespace whm.Controllers
         public async Task<IActionResult> CreateStock(
             [FromBody] CreateStockDto dto)
         {
+            // =========================
+            // Validate Quantity
+            // =========================
+
             if (dto.Quantity < 0)
             {
                 return BadRequest(new
@@ -197,6 +203,11 @@ namespace whm.Controllers
                 });
             }
 
+
+            // =========================
+            // Validate Reserved Quantity
+            // =========================
+
             if (dto.ReservedQuantity < 0)
             {
                 return BadRequest(new
@@ -204,6 +215,7 @@ namespace whm.Controllers
                     message = "Reserved quantity cannot be negative."
                 });
             }
+
 
             if (dto.ReservedQuantity > dto.Quantity)
             {
@@ -215,6 +227,29 @@ namespace whm.Controllers
             }
 
 
+            // =========================
+            // Validate Supplier
+            // =========================
+
+            if (dto.SupplierId.HasValue)
+            {
+                var supplier = await _unitOfWork.Suppliers
+                    .GetEntityByIdAsync(dto.SupplierId.Value);
+
+                if (supplier == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Supplier not found."
+                    });
+                }
+            }
+
+
+            // =========================
+            // Create Stock
+            // =========================
+
             var stock = new Stock
             {
                 ProductId = dto.ProductId,
@@ -222,6 +257,8 @@ namespace whm.Controllers
                 WarehouseId = dto.WarehouseId,
 
                 LocationId = dto.LocationId,
+
+                SupplierId = dto.SupplierId,
 
                 BatchNumber = dto.BatchNumber,
 
@@ -253,6 +290,10 @@ namespace whm.Controllers
             await _unitOfWork.SaveAsync();
 
 
+            // =========================
+            // Return Created Stock
+            // =========================
+
             var result =
                 await _unitOfWork.Stocks.GetByIdAsync(stock.StockId);
 
@@ -272,15 +313,25 @@ namespace whm.Controllers
             int id,
             [FromBody] UpdateStockDto dto)
         {
+            // =========================
+            // Get Stock
+            // =========================
+
             var stock =
                 await _unitOfWork.Stocks.GetEntityByIdAsync(id);
 
             if (stock == null)
+            {
                 return NotFound(new
                 {
                     message = "Stock not found."
                 });
+            }
 
+
+            // =========================
+            // Validate Quantity
+            // =========================
 
             if (dto.Quantity < 0)
             {
@@ -290,6 +341,10 @@ namespace whm.Controllers
                 });
             }
 
+
+            // =========================
+            // Validate Reserved Quantity
+            // =========================
 
             if (dto.ReservedQuantity < 0)
             {
@@ -310,7 +365,32 @@ namespace whm.Controllers
             }
 
 
+            // =========================
+            // Validate Supplier
+            // =========================
+
+            if (dto.SupplierId.HasValue)
+            {
+                var supplier = await _unitOfWork.Suppliers
+                    .GetEntityByIdAsync(dto.SupplierId.Value);
+
+                if (supplier == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Supplier not found."
+                    });
+                }
+            }
+
+
+            // =========================
+            // Update Stock
+            // =========================
+
             stock.LocationId = dto.LocationId;
+
+            stock.SupplierId = dto.SupplierId;
 
             stock.BatchNumber = dto.BatchNumber;
 
@@ -329,6 +409,11 @@ namespace whm.Controllers
             stock.MinimumStock =
                 dto.MinimumStock;
 
+
+            // =========================
+            // Update Status
+            // =========================
+
             if (!string.IsNullOrWhiteSpace(dto.StockStatus) &&
                 Enum.TryParse<StockStatus>(
                     dto.StockStatus,
@@ -338,6 +423,7 @@ namespace whm.Controllers
                 stock.stockStatus = status;
             }
 
+
             stock.UpdatedAt =
                 DateTimeOffset.UtcNow;
 
@@ -346,6 +432,10 @@ namespace whm.Controllers
 
             await _unitOfWork.SaveAsync();
 
+
+            // =========================
+            // Return Updated Stock
+            // =========================
 
             var result =
                 await _unitOfWork.Stocks.GetByIdAsync(id);
@@ -365,10 +455,12 @@ namespace whm.Controllers
                 await _unitOfWork.Stocks.GetEntityByIdAsync(id);
 
             if (stock == null)
+            {
                 return NotFound(new
                 {
                     message = "Stock not found."
                 });
+            }
 
 
             _unitOfWork.Stocks.Delete(stock);
