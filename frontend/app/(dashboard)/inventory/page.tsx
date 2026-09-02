@@ -46,7 +46,10 @@ export default function Inventory() {
         );
 
         return [
-            { label: "All Categories", value: "All" },
+            {
+                label: "All Categories",
+                value: "All",
+            },
             ...uniqueCategories.map((category) => ({
                 label: category,
                 value: category,
@@ -263,28 +266,32 @@ export default function Inventory() {
 
     return (
         <>
+            {/* Main Page */}
             <div
+                className="page"
                 style={{
-                    width: "100%",
-                    minHeight: "100vh",
                     display: "flex",
-                    alignItems: "flex-start",
-                    padding: "var(--content-padding)",
-                    boxSizing: "border-box",
+                    alignItems: "stretch",
                     gap: "var(--content-gap)",
+                    height: "100%",
+                    minHeight: 0,
                     overflow: "hidden",
                 }}
             >
-                {/* Inventory Card */}
+                {/* =========================
+                    Inventory Section
+                ========================== */}
                 <div
                     style={{
                         flex: detailsOpen
                             ? "1 1 0"
                             : "1 1 100%",
-                        minWidth: 0,
                         width: detailsOpen
                             ? "calc(100% - var(--sidebar-width) - var(--content-gap))"
                             : "100%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        height: "100%",
                         transition:
                             "width 0.25s ease, flex 0.25s ease",
                     }}
@@ -351,26 +358,37 @@ export default function Inventory() {
                                 </Button>
                             </div>
                         }
+                        style={{
+                            height: "100%",
+                            minHeight: 0,
+                            boxSizing: "border-box",
+                        }}
                     >
+                        {/* Loading */}
                         {loading && (
                             <div
                                 style={{
+                                    flex: 1,
                                     padding:
                                         "var(--space-6)",
                                     textAlign: "center",
+                                    overflow: "auto",
                                 }}
                             >
                                 Loading inventory...
                             </div>
                         )}
 
+                        {/* Error */}
                         {error && !loading && (
                             <div
                                 style={{
+                                    flex: 1,
                                     padding:
                                         "var(--space-6)",
                                     textAlign: "center",
                                     color: "var(--blood-red)",
+                                    overflow: "auto",
                                 }}
                             >
                                 Failed to load
@@ -380,11 +398,14 @@ export default function Inventory() {
                             </div>
                         )}
 
+                        {/* Inventory Table */}
                         {!loading && !error && (
                             <div
                                 style={{
                                     width: "100%",
-                                    overflowX: "auto",
+                                    flex: 1,
+                                    minHeight: 0,
+                                    overflow: "auto",
                                 }}
                             >
                                 <table
@@ -645,25 +666,25 @@ export default function Inventory() {
 
                                         {inventoryData.length ===
                                             0 && (
-                                                <tr>
-                                                    <td
-                                                        colSpan={
-                                                            11
-                                                        }
-                                                        style={{
-                                                            padding:
-                                                                "var(--space-6)",
-                                                            textAlign:
-                                                                "center",
-                                                        }}
-                                                    >
-                                                        No
-                                                        inventory
-                                                        records
-                                                        found.
-                                                    </td>
-                                                </tr>
-                                            )}
+                                            <tr>
+                                                <td
+                                                    colSpan={
+                                                        11
+                                                    }
+                                                    style={{
+                                                        padding:
+                                                            "var(--space-6)",
+                                                        textAlign:
+                                                            "center",
+                                                    }}
+                                                >
+                                                    No
+                                                    inventory
+                                                    records
+                                                    found.
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
@@ -671,7 +692,9 @@ export default function Inventory() {
                     </Card>
                 </div>
 
-                {/* Product Details */}
+                {/* =========================
+                    Product Details Section
+                ========================== */}
                 {detailsOpen && (
                     <div
                         style={{
@@ -680,9 +703,9 @@ export default function Inventory() {
                             maxWidth:
                                 "var(--sidebar-width)",
                             minWidth: 0,
-                            maxHeight:
-                                "calc(100vh - 2 * var(--content-padding))",
-                            overflowY: "auto",
+                            minHeight: 0,
+                            height: "100%",
+                            overflow: "hidden",
                         }}
                     >
                         <ProductDetails
@@ -707,7 +730,9 @@ export default function Inventory() {
                 )}
             </div>
 
-            {/* Add Product Popup */}
+            {/* =========================
+                Add Product Popup
+            ========================== */}
             {addProductOpen && (
                 <div
                     style={{
@@ -719,7 +744,8 @@ export default function Inventory() {
                         justifyContent: "center",
                         backgroundColor:
                             "rgba(0, 0, 0, 0.35)",
-                        padding: "var(--content-padding)",
+                        padding:
+                            "var(--content-padding)",
                         boxSizing: "border-box",
                     }}
                     onClick={() =>

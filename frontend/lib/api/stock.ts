@@ -4,7 +4,6 @@ import type {
     CreateStockDto,
     UpdateStockDto,
     StockSummaryDto,
-    StockByProductDto,
 } from "@/types";
 
 export async function getStock(): Promise<StockDto[]> {
@@ -60,8 +59,8 @@ export async function getStockSummary(): Promise<StockSummaryDto> {
 
 export async function getStockByProduct(
     productId: number
-): Promise<StockByProductDto> {
-    return apiFetch<StockByProductDto>(
+): Promise<StockDto[]> {
+    return apiFetch<StockDto[]>(
         `/api/stock/product/${productId}`
     );
 }
