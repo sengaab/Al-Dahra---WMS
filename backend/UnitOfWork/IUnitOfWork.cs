@@ -29,6 +29,7 @@ namespace whm.UnitOfWork
         IRackRepository Racks { get; }
         IShelfRepository Shelves { get; }
         IBinRepository Bins { get; }
+        ISiteRepository Sites { get; }
 
 
         Task<int> SaveAsync();

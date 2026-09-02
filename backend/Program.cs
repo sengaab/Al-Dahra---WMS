@@ -67,6 +67,7 @@ namespace whm
             builder.Services.AddScoped<IRackRepository, RackRepository>();
             builder.Services.AddScoped<IShelfRepository, ShelfRepository>();
             builder.Services.AddScoped<IBinRepository, BinRepository>();
+            builder.Services.AddScoped<ISiteRepository, SiteRepository>();
 
 
 
