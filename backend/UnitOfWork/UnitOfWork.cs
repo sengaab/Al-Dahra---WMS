@@ -38,7 +38,7 @@ namespace whm.UnitOfWork
         public IRackRepository Racks { get; }
         public IShelfRepository Shelves { get; }
         public IBinRepository Bins { get; }
-
+        public ISiteRepository Sites { get; }
 
 
         public UnitOfWork(
@@ -64,7 +64,8 @@ namespace whm.UnitOfWork
             ILocationRepository locationRepository,
             IRackRepository rackRepository,
             IShelfRepository shelfRepository,
-            IBinRepository binRepository
+            IBinRepository binRepository,
+            ISiteRepository siteRepository
             
 
             )
@@ -99,6 +100,7 @@ namespace whm.UnitOfWork
             Racks = rackRepository;
             Shelves = shelfRepository;
             Bins = binRepository;
+            Sites = siteRepository;
 
 
         }
