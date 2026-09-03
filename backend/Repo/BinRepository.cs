@@ -14,11 +14,6 @@ namespace whm.Repositories
             _context = context;
         }
 
-
-        // =====================================================
-        // GET ALL
-        // =====================================================
-
         public async Task<IEnumerable<BinDto>> GetAllAsync(
             int? shelfId = null,
             int? locationId = null,
@@ -29,54 +24,37 @@ namespace whm.Repositories
         {
             var query = _context.Bins
                 .AsNoTracking()
-                .Include(x => x.Shelf)
-                .Include(x => x.Location)
-                .Include(x => x.Stocks)
                 .AsQueryable();
 
-
-            // =====================================================
-            // FILTER BY SHELF
-            // =====================================================
-
+            // Filter by Shelf
             if (shelfId.HasValue)
             {
                 query = query.Where(x =>
                     x.Shelf_Id == shelfId.Value);
             }
 
-
-            // =====================================================
-            // FILTER BY LOCATION
-            // =====================================================
-
+            // Filter by Location
             if (locationId.HasValue)
             {
                 query = query.Where(x =>
-                    x.LocationId == locationId.Value);
+                    _context.Locations.Any(l =>
+                        l.LocationId == locationId.Value &&
+                        l.BinId == x.Bin_Id));
             }
 
-
-            // =====================================================
-            // SEARCH
-            // =====================================================
-
+            // Search
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
 
                 query = query.Where(x =>
-                    x.Bin_Code != null &&
-                    x.Bin_Code.Contains(search)
+                    (x.Bin_Code != null &&
+                     x.Bin_Code.Contains(search))
                     ||
                     x.Bin_Name.Contains(search));
             }
 
-
-            // =====================================================
-            // STATUS
-            // =====================================================
-
+            // Status
             if (!string.IsNullOrWhiteSpace(status))
             {
                 if (status.Equals(
@@ -93,10 +71,15 @@ namespace whm.Repositories
                 }
             }
 
+            // Pagination
+            if (page < 1)
+                page = 1;
 
-            // =====================================================
-            // RESULT
-            // =====================================================
+            if (pageSize < 1)
+                pageSize = 20;
+
+            if (pageSize > 100)
+                pageSize = 100;
 
             return await query
                 .OrderBy(x => x.Bin_Name)
@@ -112,11 +95,15 @@ namespace whm.Repositories
                         ? x.Shelf.Shelf_Name
                         : null,
 
-                    LocationId = x.LocationId,
+                    LocationId = _context.Locations
+                        .Where(l => l.BinId == x.Bin_Id)
+                        .Select(l => (int?)l.LocationId)
+                        .FirstOrDefault(),
 
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
+                    LocationName = _context.Locations
+                        .Where(l => l.BinId == x.Bin_Id)
+                        .Select(l => l.Name)
+                        .FirstOrDefault(),
 
                     Code = x.Bin_Code ?? string.Empty,
 
@@ -128,11 +115,6 @@ namespace whm.Repositories
                 })
                 .ToListAsync();
         }
-
-
-        // =====================================================
-        // GET BY ID
-        // =====================================================
 
         public async Task<BinDto?> GetByIdAsync(int id)
         {
@@ -149,11 +131,15 @@ namespace whm.Repositories
                         ? x.Shelf.Shelf_Name
                         : null,
 
-                    LocationId = x.LocationId,
+                    LocationId = _context.Locations
+                        .Where(l => l.BinId == x.Bin_Id)
+                        .Select(l => (int?)l.LocationId)
+                        .FirstOrDefault(),
 
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
+                    LocationName = _context.Locations
+                        .Where(l => l.BinId == x.Bin_Id)
+                        .Select(l => l.Name)
+                        .FirstOrDefault(),
 
                     Code = x.Bin_Code ?? string.Empty,
 
@@ -166,28 +152,21 @@ namespace whm.Repositories
                 .FirstOrDefaultAsync();
         }
 
-
-        // =====================================================
-        // GET ENTITY BY ID
-        // =====================================================
-
         public async Task<Bin?> GetEntityByIdAsync(int id)
         {
             return await _context.Bins
-                .FirstOrDefaultAsync(x => x.Bin_Id == id);
+                .FirstOrDefaultAsync(x =>
+                    x.Bin_Id == id);
         }
-
-
-        // =====================================================
-        // GET BY SHELF
-        // =====================================================
 
         public async Task<IEnumerable<BinDto>> GetByShelfIdAsync(
             int shelfId)
         {
             return await _context.Bins
                 .AsNoTracking()
-                .Where(x => x.Shelf_Id == shelfId)
+                .Where(x =>
+                    x.Shelf_Id == shelfId)
+                .OrderBy(x => x.Bin_Name)
                 .Select(x => new BinDto
                 {
                     BinId = x.Bin_Id,
@@ -198,11 +177,15 @@ namespace whm.Repositories
                         ? x.Shelf.Shelf_Name
                         : null,
 
-                    LocationId = x.LocationId,
+                    LocationId = _context.Locations
+                        .Where(l => l.BinId == x.Bin_Id)
+                        .Select(l => (int?)l.LocationId)
+                        .FirstOrDefault(),
 
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
+                    LocationName = _context.Locations
+                        .Where(l => l.BinId == x.Bin_Id)
+                        .Select(l => l.Name)
+                        .FirstOrDefault(),
 
                     Code = x.Bin_Code ?? string.Empty,
 
@@ -212,21 +195,19 @@ namespace whm.Repositories
 
                     StockCount = x.Stocks.Count
                 })
-                .OrderBy(x => x.Name)
                 .ToListAsync();
         }
-
-
-        // =====================================================
-        // GET BY LOCATION
-        // =====================================================
 
         public async Task<IEnumerable<BinDto>> GetByLocationIdAsync(
             int locationId)
         {
             return await _context.Bins
                 .AsNoTracking()
-                .Where(x => x.LocationId == locationId)
+                .Where(x =>
+                    _context.Locations.Any(l =>
+                        l.LocationId == locationId &&
+                        l.BinId == x.Bin_Id))
+                .OrderBy(x => x.Bin_Name)
                 .Select(x => new BinDto
                 {
                     BinId = x.Bin_Id,
@@ -237,11 +218,19 @@ namespace whm.Repositories
                         ? x.Shelf.Shelf_Name
                         : null,
 
-                    LocationId = x.LocationId,
+                    LocationId = _context.Locations
+                        .Where(l =>
+                            l.LocationId == locationId &&
+                            l.BinId == x.Bin_Id)
+                        .Select(l => (int?)l.LocationId)
+                        .FirstOrDefault(),
 
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
+                    LocationName = _context.Locations
+                        .Where(l =>
+                            l.LocationId == locationId &&
+                            l.BinId == x.Bin_Id)
+                        .Select(l => l.Name)
+                        .FirstOrDefault(),
 
                     Code = x.Bin_Code ?? string.Empty,
 
@@ -251,34 +240,18 @@ namespace whm.Repositories
 
                     StockCount = x.Stocks.Count
                 })
-                .OrderBy(x => x.Name)
                 .ToListAsync();
         }
-
-
-        // =====================================================
-        // ADD
-        // =====================================================
 
         public async Task AddAsync(Bin bin)
         {
             await _context.Bins.AddAsync(bin);
         }
 
-
-        // =====================================================
-        // UPDATE
-        // =====================================================
-
         public void Update(Bin bin)
         {
             _context.Bins.Update(bin);
         }
-
-
-        // =====================================================
-        // DELETE
-        // =====================================================
 
         public void Delete(Bin bin)
         {

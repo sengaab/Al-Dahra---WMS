@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.Unit;
 using whm.Models;
 using whm.UnitOfWork;
@@ -7,6 +8,7 @@ namespace whm.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UnitsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;

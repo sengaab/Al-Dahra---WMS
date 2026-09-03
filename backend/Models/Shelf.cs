@@ -24,18 +24,16 @@ namespace whm.Models
         // Rack - OPTIONAL
         // ==========================================
 
-        public int? Row_Id { get; set; }
+        public int? Rack_Id { get; set; }
 
-        public Rack? Row { get; set; }
+        public Rack? Rack { get; set; }
 
 
         // ==========================================
         // Location - OPTIONAL
         // ==========================================
 
-        public int? LocationId { get; set; }
-
-        public Location? Location { get; set; }
+     
 
 
         // ==========================================
@@ -44,5 +42,6 @@ namespace whm.Models
 
         public List<Bin> Bins { get; set; }
             = new List<Bin>();
+        public List<Location> Locations { get; set; }= new List<Location>();
     }
 }

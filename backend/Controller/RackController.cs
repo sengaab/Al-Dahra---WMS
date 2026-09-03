@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.Rack;
 using whm.Models;
 using whm.UnitOfWork;
@@ -7,6 +8,7 @@ namespace whm.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class RacksController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -15,7 +17,6 @@ namespace whm.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-
 
         // =====================================================
         // GET /api/racks
@@ -39,18 +40,16 @@ namespace whm.Controllers
             if (pageSize > 100)
                 pageSize = 100;
 
-            var racks =
-                await _unitOfWork.Racks.GetAllAsync(
-                    roomId,
-                    locationId,
-                    search,
-                    status,
-                    page,
-                    pageSize);
+            var racks = await _unitOfWork.Racks.GetAllAsync(
+                roomId,
+                locationId,
+                search,
+                status,
+                page,
+                pageSize);
 
             return Ok(racks);
         }
-
 
         // =====================================================
         // GET /api/racks/{id}
@@ -59,9 +58,16 @@ namespace whm.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetRack(int id)
         {
-            var rack =
-                await _unitOfWork.Racks
-                    .GetByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RackId."
+                });
+            }
+
+            var rack = await _unitOfWork.Racks
+                .GetByIdAsync(id);
 
             if (rack == null)
             {
@@ -74,7 +80,6 @@ namespace whm.Controllers
             return Ok(rack);
         }
 
-
         // =====================================================
         // POST /api/racks
         // =====================================================
@@ -86,6 +91,17 @@ namespace whm.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
+            // =================================================
+            // VALIDATE NAME
+            // =================================================
+
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return BadRequest(new
+                {
+                    message = "Rack name is required."
+                });
+            }
 
             // =================================================
             // VALIDATE ROOM
@@ -101,9 +117,8 @@ namespace whm.Controllers
                     });
                 }
 
-                var room =
-                    await _unitOfWork.Rooms
-                        .GetEntityByIdAsync(dto.RoomId.Value);
+                var room = await _unitOfWork.Rooms
+                    .GetEntityByIdAsync(dto.RoomId.Value);
 
                 if (room == null)
                 {
@@ -114,10 +129,11 @@ namespace whm.Controllers
                 }
             }
 
-
             // =================================================
             // VALIDATE LOCATION
             // =================================================
+
+            Location? location = null;
 
             if (dto.LocationId.HasValue)
             {
@@ -129,9 +145,8 @@ namespace whm.Controllers
                     });
                 }
 
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(dto.LocationId.Value);
+                location = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(dto.LocationId.Value);
 
                 if (location == null)
                 {
@@ -140,31 +155,35 @@ namespace whm.Controllers
                         message = "Location not found."
                     });
                 }
-            }
 
-
-            // =================================================
-            // VALIDATE NAME
-            // =================================================
-
-            if (string.IsNullOrWhiteSpace(dto.Name))
-            {
-                return BadRequest(new
+                // A Location should not already belong to another Rack
+                if (location.RackId.HasValue)
                 {
-                    message = "Rack name is required."
-                });
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to a Rack."
+                    });
+                }
+
+                // If Location already belongs to another physical level,
+                // prevent invalid hierarchy.
+                if (location.ShelfId.HasValue ||
+                    location.BinId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to a lower-level location."
+                    });
+                }
             }
 
-
             // =================================================
-            // CREATE
+            // CREATE RACK
             // =================================================
 
             var rack = new Rack
             {
                 Room_Id = dto.RoomId,
-
-                LocationId = dto.LocationId,
 
                 Rack_Code = string.IsNullOrWhiteSpace(dto.Code)
                     ? null
@@ -175,27 +194,39 @@ namespace whm.Controllers
                 IsActive = true
             };
 
-
-            await _unitOfWork.Racks
-                .AddAsync(rack);
+            await _unitOfWork.Racks.AddAsync(rack);
 
             await _unitOfWork.SaveAsync();
 
+            // =================================================
+            // ASSIGN LOCATION → RACK
+            // Location contains RackId
+            // =================================================
+
+            if (location != null)
+            {
+                location.RackId = rack.Rack_Id;
+
+                _unitOfWork.Locations.Update(location);
+
+                await _unitOfWork.SaveAsync();
+            }
 
             // =================================================
             // RETURN CREATED RACK
             // =================================================
 
-            var result =
-                await _unitOfWork.Racks
-                    .GetByIdAsync(rack.Rack_Id);
+            var result = await _unitOfWork.Racks
+                .GetByIdAsync(rack.Rack_Id);
 
             return CreatedAtAction(
                 nameof(GetRack),
-                new { id = rack.Rack_Id },
+                new
+                {
+                    id = rack.Rack_Id
+                },
                 result);
         }
-
 
         // =====================================================
         // PUT /api/racks/{id}
@@ -209,14 +240,20 @@ namespace whm.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RackId."
+                });
+            }
 
             // =================================================
             // GET RACK
             // =================================================
 
-            var rack =
-                await _unitOfWork.Racks
-                    .GetEntityByIdAsync(id);
+            var rack = await _unitOfWork.Racks
+                .GetEntityByIdAsync(id);
 
             if (rack == null)
             {
@@ -225,7 +262,6 @@ namespace whm.Controllers
                     message = "Rack not found."
                 });
             }
-
 
             // =================================================
             // UPDATE ROOM
@@ -241,9 +277,8 @@ namespace whm.Controllers
                     });
                 }
 
-                var room =
-                    await _unitOfWork.Rooms
-                        .GetEntityByIdAsync(dto.RoomId.Value);
+                var room = await _unitOfWork.Rooms
+                    .GetEntityByIdAsync(dto.RoomId.Value);
 
                 if (room == null)
                 {
@@ -255,7 +290,6 @@ namespace whm.Controllers
 
                 rack.Room_Id = dto.RoomId.Value;
             }
-
 
             // =================================================
             // UPDATE LOCATION
@@ -271,11 +305,10 @@ namespace whm.Controllers
                     });
                 }
 
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(dto.LocationId.Value);
+                var newLocation = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(dto.LocationId.Value);
 
-                if (location == null)
+                if (newLocation == null)
                 {
                     return BadRequest(new
                     {
@@ -283,9 +316,44 @@ namespace whm.Controllers
                     });
                 }
 
-                rack.LocationId = dto.LocationId.Value;
-            }
+                // Check if this location belongs to another Rack
+                if (newLocation.RackId.HasValue &&
+                    newLocation.RackId.Value != rack.Rack_Id)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to another Rack."
+                    });
+                }
 
+                // A Rack location cannot already be a Shelf/Bin location
+                if (newLocation.ShelfId.HasValue ||
+                    newLocation.BinId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to a lower-level location."
+                    });
+                }
+
+                // Find current Location assigned to this Rack
+                var currentLocation = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(rack.Rack_Id);
+
+                // Remove old Rack → Location relation
+                if (currentLocation != null &&
+                    currentLocation.LocationId != newLocation.LocationId)
+                {
+                    currentLocation.RackId = null;
+
+                    _unitOfWork.Locations.Update(currentLocation);
+                }
+
+                // Assign new Location → Rack
+                newLocation.RackId = rack.Rack_Id;
+
+                _unitOfWork.Locations.Update(newLocation);
+            }
 
             // =================================================
             // UPDATE CODE
@@ -298,7 +366,6 @@ namespace whm.Controllers
                         ? null
                         : dto.Code.Trim();
             }
-
 
             // =================================================
             // UPDATE NAME
@@ -317,7 +384,6 @@ namespace whm.Controllers
                 rack.Rack_Name = dto.Name.Trim();
             }
 
-
             // =================================================
             // UPDATE STATUS
             // =================================================
@@ -327,19 +393,23 @@ namespace whm.Controllers
                 rack.IsActive = dto.IsActive.Value;
             }
 
+            // =================================================
+            // SAVE RACK
+            // =================================================
 
             _unitOfWork.Racks.Update(rack);
 
             await _unitOfWork.SaveAsync();
 
+            // =================================================
+            // RETURN UPDATED RACK
+            // =================================================
 
-            var result =
-                await _unitOfWork.Racks
-                    .GetByIdAsync(id);
+            var result = await _unitOfWork.Racks
+                .GetByIdAsync(id);
 
             return Ok(result);
         }
-
 
         // =====================================================
         // DELETE /api/racks/{id}
@@ -348,9 +418,16 @@ namespace whm.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteRack(int id)
         {
-            var rack =
-                await _unitOfWork.Racks
-                    .GetEntityByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RackId."
+                });
+            }
+
+            var rack = await _unitOfWork.Racks
+                .GetEntityByIdAsync(id);
 
             if (rack == null)
             {
@@ -360,6 +437,38 @@ namespace whm.Controllers
                 });
             }
 
+            // =================================================
+            // PREVENT DELETE IF RACK HAS SHELVES
+            // =================================================
+
+            var shelves = await _unitOfWork.Shelves
+                .GetByRackIdAsync(id);
+
+            if (shelves.Any())
+            {
+                return BadRequest(new
+                {
+                    message = "Cannot delete rack because it contains shelves."
+                });
+            }
+
+            // =================================================
+            // REMOVE LOCATION → RACK RELATION
+            // =================================================
+
+            var location = await _unitOfWork.Locations
+                .GetEntityByIdAsync(id);
+
+            if (location != null)
+            {
+                location.RackId = null;
+
+                _unitOfWork.Locations.Update(location);
+            }
+
+            // =================================================
+            // DELETE RACK
+            // =================================================
 
             _unitOfWork.Racks.Delete(rack);
 
@@ -371,18 +480,23 @@ namespace whm.Controllers
             });
         }
 
-
         // =====================================================
         // GET /api/racks/room/{roomId}
         // =====================================================
 
         [HttpGet("room/{roomId:int}")]
-        public async Task<IActionResult> GetByRoom(
-            int roomId)
+        public async Task<IActionResult> GetByRoom(int roomId)
         {
-            var room =
-                await _unitOfWork.Rooms
-                    .GetEntityByIdAsync(roomId);
+            if (roomId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RoomId."
+                });
+            }
+
+            var room = await _unitOfWork.Rooms
+                .GetEntityByIdAsync(roomId);
 
             if (room == null)
             {
@@ -392,26 +506,29 @@ namespace whm.Controllers
                 });
             }
 
-
-            var racks =
-                await _unitOfWork.Racks
-                    .GetByRoomIdAsync(roomId);
+            var racks = await _unitOfWork.Racks
+                .GetByRoomIdAsync(roomId);
 
             return Ok(racks);
         }
-
 
         // =====================================================
         // GET /api/racks/location/{locationId}
         // =====================================================
 
         [HttpGet("location/{locationId:int}")]
-        public async Task<IActionResult> GetByLocation(
-            int locationId)
+        public async Task<IActionResult> GetByLocation(int locationId)
         {
-            var location =
-                await _unitOfWork.Locations
-                    .GetEntityByIdAsync(locationId);
+            if (locationId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid LocationId."
+                });
+            }
+
+            var location = await _unitOfWork.Locations
+                .GetEntityByIdAsync(locationId);
 
             if (location == null)
             {
@@ -421,10 +538,8 @@ namespace whm.Controllers
                 });
             }
 
-
-            var racks =
-                await _unitOfWork.Racks
-                    .GetByLocationIdAsync(locationId);
+            var racks = await _unitOfWork.Racks
+                .GetByLocationIdAsync(locationId);
 
             return Ok(racks);
         }

@@ -31,9 +31,8 @@ namespace whm.Models
 
         // ==========================================
         // Location - OPTIONAL
+        // Location contains the FK: BinId
         // ==========================================
-
-        public int? LocationId { get; set; }
 
         public Location? Location { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.Bin;
 using whm.Models;
 using whm.UnitOfWork;
@@ -7,6 +8,7 @@ namespace whm.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BinsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -16,10 +18,9 @@ namespace whm.Controllers
             _unitOfWork = unitOfWork;
         }
 
-
-        // =====================================================
-        // GET /api/bins
-        // =====================================================
+        // =========================================================
+        // GET: api/bins
+        // =========================================================
 
         [HttpGet]
         public async Task<IActionResult> GetBins(
@@ -39,30 +40,33 @@ namespace whm.Controllers
             if (pageSize > 100)
                 pageSize = 100;
 
-
-            var bins =
-                await _unitOfWork.Bins.GetAllAsync(
-                    shelfId,
-                    locationId,
-                    search,
-                    status,
-                    page,
-                    pageSize);
+            var bins = await _unitOfWork.Bins.GetAllAsync(
+                shelfId,
+                locationId,
+                search,
+                status,
+                page,
+                pageSize);
 
             return Ok(bins);
         }
 
-
-        // =====================================================
-        // GET /api/bins/{id}
-        // =====================================================
+        // =========================================================
+        // GET: api/bins/{id}
+        // =========================================================
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetBin(int id)
         {
-            var bin =
-                await _unitOfWork.Bins
-                    .GetByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid BinId."
+                });
+            }
+
+            var bin = await _unitOfWork.Bins.GetByIdAsync(id);
 
             if (bin == null)
             {
@@ -75,10 +79,73 @@ namespace whm.Controllers
             return Ok(bin);
         }
 
+        // =========================================================
+        // GET: api/bins/shelf/{shelfId}
+        // =========================================================
 
-        // =====================================================
-        // POST /api/bins
-        // =====================================================
+        [HttpGet("shelf/{shelfId:int}")]
+        public async Task<IActionResult> GetBinsByShelf(int shelfId)
+        {
+            if (shelfId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid ShelfId."
+                });
+            }
+
+            var shelf = await _unitOfWork.Shelves
+                .GetEntityByIdAsync(shelfId);
+
+            if (shelf == null)
+            {
+                return NotFound(new
+                {
+                    message = "Shelf not found."
+                });
+            }
+
+            var bins = await _unitOfWork.Bins
+                .GetByShelfIdAsync(shelfId);
+
+            return Ok(bins);
+        }
+
+        // =========================================================
+        // GET: api/bins/location/{locationId}
+        // =========================================================
+
+        [HttpGet("location/{locationId:int}")]
+        public async Task<IActionResult> GetBinsByLocation(int locationId)
+        {
+            if (locationId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid LocationId."
+                });
+            }
+
+            var location = await _unitOfWork.Locations
+                .GetEntityByIdAsync(locationId);
+
+            if (location == null)
+            {
+                return NotFound(new
+                {
+                    message = "Location not found."
+                });
+            }
+
+            var bins = await _unitOfWork.Bins
+                .GetByLocationIdAsync(locationId);
+
+            return Ok(bins);
+        }
+
+        // =========================================================
+        // POST: api/bins
+        // =========================================================
 
         [HttpPost]
         public async Task<IActionResult> CreateBin(
@@ -86,82 +153,6 @@ namespace whm.Controllers
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
-
-
-            // =================================================
-            // VALIDATE SHELF
-            // =================================================
-
-            if (dto.ShelfId.HasValue)
-            {
-                if (dto.ShelfId.Value <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Invalid ShelfId."
-                    });
-                }
-
-                var shelf =
-                    await _unitOfWork.Shelves
-                        .GetEntityByIdAsync(
-                            dto.ShelfId.Value);
-
-                if (shelf == null)
-                {
-                    return NotFound(new
-                    {
-                        message = "Shelf not found."
-                    });
-                }
-            }
-
-
-            // =================================================
-            // VALIDATE LOCATION
-            // =================================================
-
-            if (dto.LocationId.HasValue)
-            {
-                if (dto.LocationId.Value <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Invalid LocationId."
-                    });
-                }
-
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(
-                            dto.LocationId.Value);
-
-                if (location == null)
-                {
-                    return NotFound(new
-                    {
-                        message = "Location not found."
-                    });
-                }
-            }
-
-
-            // =================================================
-            // VALIDATE CODE
-            // =================================================
-
-            if (string.IsNullOrWhiteSpace(dto.Code))
-            {
-                return BadRequest(new
-                {
-                    message = "Bin code is required."
-                });
-            }
-
-
-            // =================================================
-            // VALIDATE NAME
-            // =================================================
 
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
@@ -171,74 +162,17 @@ namespace whm.Controllers
                 });
             }
 
-
-            // =================================================
-            // CREATE
-            // =================================================
-
-            var bin = new Bin
+            if (string.IsNullOrWhiteSpace(dto.Code))
             {
-                Shelf_Id = dto.ShelfId,
-
-                LocationId = dto.LocationId,
-
-                Bin_Code = dto.Code.Trim(),
-
-                Bin_Name = dto.Name.Trim(),
-
-                IsActive = true
-            };
-
-
-            await _unitOfWork.Bins.AddAsync(bin);
-
-            await _unitOfWork.SaveAsync();
-
-
-            // =================================================
-            // RETURN CREATED
-            // =================================================
-
-            var result =
-                await _unitOfWork.Bins
-                    .GetByIdAsync(bin.Bin_Id);
-
-            return CreatedAtAction(
-                nameof(GetBin),
-                new { id = bin.Bin_Id },
-                result);
-        }
-
-
-        // =====================================================
-        // PUT /api/bins/{id}
-        // =====================================================
-
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateBin(
-            int id,
-            [FromBody] UpdateBinDto dto)
-        {
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
-
-            var bin =
-                await _unitOfWork.Bins
-                    .GetEntityByIdAsync(id);
-
-            if (bin == null)
-            {
-                return NotFound(new
+                return BadRequest(new
                 {
-                    message = "Bin not found."
+                    message = "Bin code is required."
                 });
             }
 
-
-            // =================================================
-            // UPDATE SHELF
-            // =================================================
+            // =====================================================
+            // Validate Shelf
+            // =====================================================
 
             if (dto.ShelfId.HasValue)
             {
@@ -250,30 +184,23 @@ namespace whm.Controllers
                     });
                 }
 
-                var shelf =
-                    await _unitOfWork.Shelves
-                        .GetEntityByIdAsync(
-                            dto.ShelfId.Value);
+                var shelf = await _unitOfWork.Shelves
+                    .GetEntityByIdAsync(dto.ShelfId.Value);
 
                 if (shelf == null)
                 {
-                    return NotFound(new
+                    return BadRequest(new
                     {
                         message = "Shelf not found."
                     });
                 }
-
-                bin.Shelf_Id = dto.ShelfId.Value;
-            }
-            else
-            {
-                bin.Shelf_Id = null;
             }
 
+            // =====================================================
+            // Validate Location
+            // =====================================================
 
-            // =================================================
-            // UPDATE LOCATION
-            // =================================================
+            Location? location = null;
 
             if (dto.LocationId.HasValue)
             {
@@ -285,30 +212,228 @@ namespace whm.Controllers
                     });
                 }
 
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(
-                            dto.LocationId.Value);
+                location = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(dto.LocationId.Value);
 
                 if (location == null)
                 {
-                    return NotFound(new
+                    return BadRequest(new
                     {
                         message = "Location not found."
                     });
                 }
 
-                bin.LocationId = dto.LocationId.Value;
+                // Location already belongs to another Bin
+                if (location.BinId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "This Location is already assigned to a Bin."
+                    });
+                }
+
+                // Location already belongs to Rack/Shelf
+                if (location.RackId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "This Location is already assigned to a Rack."
+                    });
+                }
+
+                if (location.ShelfId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "This Location is already assigned to a Shelf."
+                    });
+                }
             }
-            else
+
+            // =====================================================
+            // Create Bin
+            // =====================================================
+
+            var bin = new Bin
             {
-                bin.LocationId = null;
+                Bin_Name = dto.Name.Trim(),
+
+                Bin_Code = dto.Code.Trim(),
+
+                Shelf_Id = dto.ShelfId,
+
+                IsActive = true
+            };
+
+            await _unitOfWork.Bins.AddAsync(bin);
+
+            await _unitOfWork.SaveAsync();
+
+            // =====================================================
+            // Assign Location -> Bin
+            // Location contains the FK: BinId
+            // =====================================================
+
+            if (location != null)
+            {
+                location.BinId = bin.Bin_Id;
+
+                _unitOfWork.Locations.Update(location);
+
+                await _unitOfWork.SaveAsync();
             }
 
+            var result = await _unitOfWork.Bins
+                .GetByIdAsync(bin.Bin_Id);
 
-            // =================================================
-            // UPDATE CODE
-            // =================================================
+            return CreatedAtAction(
+                nameof(GetBin),
+                new { id = bin.Bin_Id },
+                result);
+        }
+
+        // =========================================================
+        // PUT: api/bins/{id}
+        // =========================================================
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateBin(
+            int id,
+            [FromBody] UpdateBinDto dto)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid BinId."
+                });
+            }
+
+            var bin = await _unitOfWork.Bins
+                .GetEntityByIdAsync(id);
+
+            if (bin == null)
+            {
+                return NotFound(new
+                {
+                    message = "Bin not found."
+                });
+            }
+
+            // =====================================================
+            // Update Shelf
+            // =====================================================
+
+            if (dto.ShelfId.HasValue)
+            {
+                if (dto.ShelfId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid ShelfId."
+                    });
+                }
+
+                var shelf = await _unitOfWork.Shelves
+                    .GetEntityByIdAsync(dto.ShelfId.Value);
+
+                if (shelf == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Shelf not found."
+                    });
+                }
+
+                bin.Shelf_Id = dto.ShelfId.Value;
+            }
+
+            // =====================================================
+            // Update Location
+            // =====================================================
+
+            if (dto.LocationId.HasValue)
+            {
+                if (dto.LocationId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid LocationId."
+                    });
+                }
+
+                var newLocation = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(dto.LocationId.Value);
+
+                if (newLocation == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Location not found."
+                    });
+                }
+
+                // Location belongs to another Bin
+                if (newLocation.BinId.HasValue &&
+                    newLocation.BinId.Value != bin.Bin_Id)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "This Location is already assigned to another Bin."
+                    });
+                }
+
+                // Location belongs to Rack
+                if (newLocation.RackId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "This Location is already assigned to a Rack."
+                    });
+                }
+
+                // Location belongs to Shelf
+                if (newLocation.ShelfId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "This Location is already assigned to a Shelf."
+                    });
+                }
+
+                // =================================================
+                // Find current Location assigned to this Bin
+                // =================================================
+
+                var currentLocation = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(bin.Bin_Id);
+
+                if (currentLocation != null &&
+                    currentLocation.LocationId != newLocation.LocationId)
+                {
+                    currentLocation.BinId = null;
+
+                    _unitOfWork.Locations.Update(currentLocation);
+                }
+
+                // Assign new Location
+                newLocation.BinId = bin.Bin_Id;
+
+                _unitOfWork.Locations.Update(newLocation);
+            }
+
+            // =====================================================
+            // Update Code
+            // =====================================================
 
             if (dto.Code != null)
             {
@@ -323,10 +448,9 @@ namespace whm.Controllers
                 bin.Bin_Code = dto.Code.Trim();
             }
 
-
-            // =================================================
-            // UPDATE NAME
-            // =================================================
+            // =====================================================
+            // Update Name
+            // =====================================================
 
             if (dto.Name != null)
             {
@@ -341,44 +465,42 @@ namespace whm.Controllers
                 bin.Bin_Name = dto.Name.Trim();
             }
 
-
-            // =================================================
-            // UPDATE STATUS
-            // =================================================
+            // =====================================================
+            // Update Active Status
+            // =====================================================
 
             if (dto.IsActive.HasValue)
             {
                 bin.IsActive = dto.IsActive.Value;
             }
 
-
-            // =================================================
-            // SAVE
-            // =================================================
-
             _unitOfWork.Bins.Update(bin);
 
             await _unitOfWork.SaveAsync();
 
-
-            var result =
-                await _unitOfWork.Bins
-                    .GetByIdAsync(id);
+            var result = await _unitOfWork.Bins
+                .GetByIdAsync(id);
 
             return Ok(result);
         }
 
-
-        // =====================================================
-        // DELETE /api/bins/{id}
-        // =====================================================
+        // =========================================================
+        // DELETE: api/bins/{id}
+        // =========================================================
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteBin(int id)
         {
-            var bin =
-                await _unitOfWork.Bins
-                    .GetEntityByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid BinId."
+                });
+            }
+
+            var bin = await _unitOfWork.Bins
+                .GetEntityByIdAsync(id);
 
             if (bin == null)
             {
@@ -388,105 +510,45 @@ namespace whm.Controllers
                 });
             }
 
+            // =====================================================
+            // Prevent deleting Bin if it contains Stock
+            // =====================================================
+
+            if (bin.Stocks.Any())
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Cannot delete bin because it contains stock."
+                });
+            }
+
+            // =====================================================
+            // Clear Location -> Bin relation
+            // =====================================================
+
+            var location = await _unitOfWork.Locations
+                .GetEntityByIdAsync(id);
+
+            if (location != null)
+            {
+                location.BinId = null;
+
+                _unitOfWork.Locations.Update(location);
+            }
+
+            // =====================================================
+            // Delete Bin
+            // =====================================================
 
             _unitOfWork.Bins.Delete(bin);
 
             await _unitOfWork.SaveAsync();
 
-
             return Ok(new
             {
                 message = "Bin deleted successfully."
             });
-        }
-
-
-        // =====================================================
-        // GET /api/bins/{id}/stocks
-        // =====================================================
-
-        [HttpGet("{id:int}/stocks")]
-        public async Task<IActionResult> GetStocks(int id)
-        {
-            var bin =
-                await _unitOfWork.Bins
-                    .GetByIdAsync(id);
-
-            if (bin == null)
-            {
-                return NotFound(new
-                {
-                    message = "Bin not found."
-                });
-            }
-
-
-            // لو عندك StockRepository فيه GetByBinIdAsync
-            // نقدر نستخدمه هنا.
-            return Ok(new
-            {
-                binId = bin.BinId,
-                binName = bin.Name,
-                stockCount = bin.StockCount
-            });
-        }
-
-
-        // =====================================================
-        // GET /api/bins/by-shelf/{shelfId}
-        // =====================================================
-
-        [HttpGet("by-shelf/{shelfId:int}")]
-        public async Task<IActionResult> GetByShelf(
-            int shelfId)
-        {
-            var shelf =
-                await _unitOfWork.Shelves
-                    .GetEntityByIdAsync(shelfId);
-
-            if (shelf == null)
-            {
-                return NotFound(new
-                {
-                    message = "Shelf not found."
-                });
-            }
-
-
-            var bins =
-                await _unitOfWork.Bins
-                    .GetByShelfIdAsync(shelfId);
-
-            return Ok(bins);
-        }
-
-
-        // =====================================================
-        // GET /api/bins/by-location/{locationId}
-        // =====================================================
-
-        [HttpGet("by-location/{locationId:int}")]
-        public async Task<IActionResult> GetByLocation(
-            int locationId)
-        {
-            var location =
-                await _unitOfWork.Locations
-                    .GetEntityByIdAsync(locationId);
-
-            if (location == null)
-            {
-                return NotFound(new
-                {
-                    message = "Location not found."
-                });
-            }
-
-
-            var bins =
-                await _unitOfWork.Bins
-                    .GetByLocationIdAsync(locationId);
-
-            return Ok(bins);
         }
     }
 }

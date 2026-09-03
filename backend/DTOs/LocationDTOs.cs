@@ -8,16 +8,31 @@
     {
         public int LocationId { get; set; }
 
-        // Warehouse OPTIONAL
+        // Warehouse - OPTIONAL
         public int? WarehouseId { get; set; }
-
         public string? WarehouseName { get; set; }
 
-        // Parent Location OPTIONAL
+        // Parent Location - OPTIONAL
         public int? ParentLocationId { get; set; }
-
         public string? ParentLocationName { get; set; }
 
+        // Room - OPTIONAL
+        public int? RoomId { get; set; }
+        public string? RoomName { get; set; }
+
+        // Rack - OPTIONAL
+        public int? RackId { get; set; }
+        public string? RackName { get; set; }
+
+        // Shelf - OPTIONAL
+        public int? ShelfId { get; set; }
+        public string? ShelfName { get; set; }
+
+        // Bin - OPTIONAL
+        public int? BinId { get; set; }
+        public string? BinName { get; set; }
+
+        // Location Details
         public string Code { get; set; } = string.Empty;
 
         public string Name { get; set; } = string.Empty;
@@ -41,11 +56,23 @@
 
     public class CreateLocationDto
     {
-        // Warehouse OPTIONAL
+        // Warehouse - OPTIONAL
         public int? WarehouseId { get; set; }
 
-        // Parent Location OPTIONAL
+        // Parent Location - OPTIONAL
         public int? ParentLocationId { get; set; }
+
+        // Room - OPTIONAL
+        public int? RoomId { get; set; }
+
+        // Rack - OPTIONAL
+        public int? RackId { get; set; }
+
+        // Shelf - OPTIONAL
+        public int? ShelfId { get; set; }
+
+        // Bin - OPTIONAL
+        public int? BinId { get; set; }
 
         public string Code { get; set; } = string.Empty;
 
@@ -62,11 +89,23 @@
 
     public class UpdateLocationDto
     {
-        // Warehouse OPTIONAL
+        // Warehouse - OPTIONAL
         public int? WarehouseId { get; set; }
 
-        // Parent Location OPTIONAL
+        // Parent Location - OPTIONAL
         public int? ParentLocationId { get; set; }
+
+        // Room - OPTIONAL
+        public int? RoomId { get; set; }
+
+        // Rack - OPTIONAL
+        public int? RackId { get; set; }
+
+        // Shelf - OPTIONAL
+        public int? ShelfId { get; set; }
+
+        // Bin - OPTIONAL
+        public int? BinId { get; set; }
 
         public string? Code { get; set; }
 
@@ -86,8 +125,15 @@
     {
         public int LocationId { get; set; }
 
-        // Warehouse OPTIONAL
         public int? WarehouseId { get; set; }
+
+        public int? RoomId { get; set; }
+
+        public int? RackId { get; set; }
+
+        public int? ShelfId { get; set; }
+
+        public int? BinId { get; set; }
 
         public string Code { get; set; } = string.Empty;
 
@@ -146,6 +192,11 @@
         public bool IsOccupied { get; set; }
     }
 
+
+    // =====================================================
+    // LOCATION STRUCTURE
+    // =====================================================
+
     public class LocationStructureDto
     {
         public int LocationId { get; set; }
@@ -158,6 +209,14 @@
 
         public string? ParentLocationName { get; set; }
 
+        public int? RoomId { get; set; }
+
+        public int? RackId { get; set; }
+
+        public int? ShelfId { get; set; }
+
+        public int? BinId { get; set; }
+
         public string Code { get; set; } = string.Empty;
 
         public string Name { get; set; } = string.Empty;
@@ -166,31 +225,19 @@
 
         public bool IsActive { get; set; }
 
-        // ==========================================
         // ROOMS
-        // ==========================================
-
         public List<LocationRoomDto> Rooms { get; set; }
             = new();
 
-        // ==========================================
         // RACKS
-        // ==========================================
-
         public List<LocationRackDto> Racks { get; set; }
             = new();
 
-        // ==========================================
         // SHELVES
-        // ==========================================
-
         public List<LocationShelfDto> Shelves { get; set; }
             = new();
 
-        // ==========================================
         // BINS
-        // ==========================================
-
         public List<LocationBinDto> Bins { get; set; }
             = new();
     }

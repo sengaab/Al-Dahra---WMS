@@ -13,13 +13,6 @@
 
         public string? WarehouseName { get; set; }
 
-
-        // Location - OPTIONAL
-        public int? LocationId { get; set; }
-
-        public string? LocationName { get; set; }
-
-
         public string Code { get; set; } = string.Empty;
 
         public string Name { get; set; } = string.Empty;
@@ -42,11 +35,6 @@
         // Warehouse - OPTIONAL
         public int? WarehouseId { get; set; }
 
-
-        // Location - OPTIONAL
-        public int? LocationId { get; set; }
-
-
         public string Code { get; set; } = string.Empty;
 
         public string Name { get; set; } = string.Empty;
@@ -64,11 +52,6 @@
     {
         // Warehouse - OPTIONAL
         public int? WarehouseId { get; set; }
-
-
-        // Location - OPTIONAL
-        public int? LocationId { get; set; }
-
 
         public string? Code { get; set; }
 

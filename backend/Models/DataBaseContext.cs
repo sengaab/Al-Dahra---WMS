@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
+using whm.Data;
 using whm.Models;
 
 namespace whm.Data
@@ -69,6 +71,7 @@ namespace whm.Data
         public DbSet<ReportSchedule> ReportSchedules { get; set; }
 
         public DbSet<AuditLog> AuditLogs { get; set; }
+
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Rack> Racks { get; set; }
         public DbSet<Shelf> Shelves { get; set; }
@@ -78,6 +81,7 @@ namespace whm.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
 
             // =====================================================
             // ENUMS -> TEXT
@@ -229,6 +233,13 @@ namespace whm.Data
                 .HasIndex(x => x.Code)
                 .IsUnique();
 
+            // One Bin -> One Location
+            // Multiple Locations may have BinId = NULL
+            modelBuilder.Entity<Location>()
+                .HasIndex(x => x.BinId)
+                .IsUnique()
+                .HasFilter("\"BinId\" IS NOT NULL");
+
             modelBuilder.Entity<Supplier>()
                 .HasIndex(x => x.Code)
                 .IsUnique();
@@ -316,20 +327,6 @@ namespace whm.Data
                 .HasOne(x => x.Site)
                 .WithMany(x => x.Warehouses)
                 .HasForeignKey(x => x.SiteId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-
-           
-
-
-            // =====================================================
-            // LOCATION -> CHILD LOCATIONS
-            // =====================================================
-
-            modelBuilder.Entity<Location>()
-                .HasOne(x => x.ParentLocation)
-                .WithMany(x => x.ChildLocations)
-                .HasForeignKey(x => x.ParentLocationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
 
@@ -988,10 +985,10 @@ namespace whm.Data
             // =====================================================
 
             modelBuilder.Entity<BarcodeScan>()
-      .HasOne(x => x.Product)
-      .WithMany(x => x.BarcodeScans)
-      .HasForeignKey(x => x.ProductId)
-      .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(x => x.Product)
+                .WithMany(x => x.BarcodeScans)
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<BarcodeScan>()
                 .HasOne(x => x.Stock)
@@ -1076,11 +1073,18 @@ namespace whm.Data
                 .Property(x => x.IsActive)
                 .HasDefaultValue(true);
 
+
+            // =====================================================
+            // STOCK -> SUPPLIER
+            // =====================================================
+
             modelBuilder.Entity<Stock>()
-          .HasOne(x => x.Supplier)
-          .WithMany(x => x.Stocks)
-         .HasForeignKey(x => x.SupplierId)
-         .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(x => x.Supplier)
+                .WithMany(x => x.Stocks)
+                .HasForeignKey(x => x.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             // =====================================================
             // LOCATION RELATIONSHIPS
             // =====================================================
@@ -1092,11 +1096,11 @@ namespace whm.Data
             // =====================================================
 
             modelBuilder.Entity<Location>()
-                .HasOne(x => x.Warehouse)
-                .WithMany()
-                .HasForeignKey(x => x.WarehouseId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
+      .HasOne(x => x.Warehouse)
+      .WithMany(x => x.Locations)
+      .HasForeignKey(x => x.WarehouseId)
+      .IsRequired(false)
+      .OnDelete(DeleteBehavior.SetNull);
 
 
             // =====================================================
@@ -1113,6 +1117,66 @@ namespace whm.Data
 
 
             // =====================================================
+            // LOCATION -> ROOM
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Location>()
+                .HasOne(x => x.Room)
+                .WithMany(x => x.Locations)
+                .HasForeignKey(x => x.RoomId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // LOCATION -> RACK
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Location>()
+                .HasOne(x => x.Rack)
+                .WithMany(x => x.Locations)
+                .HasForeignKey(x => x.RackId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // LOCATION -> SHELF
+            // OPTIONAL
+            // =====================================================
+
+            modelBuilder.Entity<Location>()
+                .HasOne(x => x.Shelf)
+                .WithMany(x => x.Locations)
+                .HasForeignKey(x => x.ShelfId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // LOCATION -> BIN
+            // ONE-TO-ONE
+            // OPTIONAL
+            // Location contains the FK: BinId
+            // =====================================================
+
+            modelBuilder.Entity<Location>()
+                .HasOne(x => x.Bin)
+                .WithOne(x => x.Location)
+                .HasForeignKey<Location>(x => x.BinId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+            // =====================================================
+            // PHYSICAL HIERARCHY
+            // Warehouse -> Room -> Rack -> Shelf -> Bin
+            // =====================================================
+
+
+            // =====================================================
             // ROOM -> WAREHOUSE
             // OPTIONAL
             // =====================================================
@@ -1126,40 +1190,14 @@ namespace whm.Data
 
 
             // =====================================================
-            // ROOM -> LOCATION
-            // OPTIONAL
-            // =====================================================
-
-            modelBuilder.Entity<Room>()
-                .HasOne(x => x.Location)
-                .WithMany(x => x.Rooms)
-                .HasForeignKey(x => x.LocationId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
-
-
-            // =====================================================
             // RACK -> ROOM
             // OPTIONAL
             // =====================================================
 
             modelBuilder.Entity<Rack>()
                 .HasOne(x => x.Room)
-                .WithMany(x => x.Rows)
-                .HasForeignKey(x => x.Room_Id)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
-
-
-            // =====================================================
-            // RACK -> LOCATION
-            // OPTIONAL
-            // =====================================================
-
-            modelBuilder.Entity<Rack>()
-                .HasOne(x => x.Location)
                 .WithMany(x => x.Racks)
-                .HasForeignKey(x => x.LocationId)
+                .HasForeignKey(x => x.Room_Id)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
@@ -1170,22 +1208,9 @@ namespace whm.Data
             // =====================================================
 
             modelBuilder.Entity<Shelf>()
-                .HasOne(x => x.Row)
+                .HasOne(x => x.Rack)
                 .WithMany(x => x.Shelves)
-                .HasForeignKey(x => x.Row_Id)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
-
-
-            // =====================================================
-            // SHELF -> LOCATION
-            // OPTIONAL
-            // =====================================================
-
-            modelBuilder.Entity<Shelf>()
-                .HasOne(x => x.Location)
-                .WithMany(x => x.Shelves)
-                .HasForeignKey(x => x.LocationId)
+                .HasForeignKey(x => x.Rack_Id)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
@@ -1199,19 +1224,6 @@ namespace whm.Data
                 .HasOne(x => x.Shelf)
                 .WithMany(x => x.Bins)
                 .HasForeignKey(x => x.Shelf_Id)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
-
-
-            // =====================================================
-            // BIN -> LOCATION
-            // OPTIONAL
-            // =====================================================
-
-            modelBuilder.Entity<Bin>()
-                .HasOne(x => x.Location)
-                .WithMany(x => x.Bins)
-                .HasForeignKey(x => x.LocationId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
         }

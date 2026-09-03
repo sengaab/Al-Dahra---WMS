@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.Room;
 using whm.Models;
 using whm.UnitOfWork;
@@ -7,6 +8,7 @@ namespace whm.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class RoomsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -15,7 +17,6 @@ namespace whm.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-
 
         // =====================================================
         // GET /api/rooms
@@ -39,20 +40,16 @@ namespace whm.Controllers
             if (pageSize > 100)
                 pageSize = 100;
 
-
-            var rooms =
-                await _unitOfWork.Rooms.GetAllAsync(
-                    warehouseId,
-                    locationId,
-                    search,
-                    status,
-                    page,
-                    pageSize);
-
+            var rooms = await _unitOfWork.Rooms.GetAllAsync(
+                warehouseId,
+                locationId,
+                search,
+                status,
+                page,
+                pageSize);
 
             return Ok(rooms);
         }
-
 
         // =====================================================
         // GET /api/rooms/{id}
@@ -61,10 +58,16 @@ namespace whm.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetRoom(int id)
         {
-            var room =
-                await _unitOfWork.Rooms
-                    .GetByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RoomId."
+                });
+            }
 
+            var room = await _unitOfWork.Rooms
+                .GetByIdAsync(id);
 
             if (room == null)
             {
@@ -74,10 +77,8 @@ namespace whm.Controllers
                 });
             }
 
-
             return Ok(room);
         }
-
 
         // =====================================================
         // GET /api/rooms/warehouse/{warehouseId}
@@ -95,15 +96,22 @@ namespace whm.Controllers
                 });
             }
 
+            var warehouse = await _unitOfWork.Warehouses
+                .GetEntityByIdAsync(warehouseId);
 
-            var rooms =
-                await _unitOfWork.Rooms
-                    .GetByWarehouseIdAsync(warehouseId);
+            if (warehouse == null)
+            {
+                return NotFound(new
+                {
+                    message = "Warehouse not found."
+                });
+            }
 
+            var rooms = await _unitOfWork.Rooms
+                .GetByWarehouseIdAsync(warehouseId);
 
             return Ok(rooms);
         }
-
 
         // =====================================================
         // GET /api/rooms/location/{locationId}
@@ -121,15 +129,22 @@ namespace whm.Controllers
                 });
             }
 
+            var location = await _unitOfWork.Locations
+                .GetEntityByIdAsync(locationId);
 
-            var rooms =
-                await _unitOfWork.Rooms
-                    .GetByLocationIdAsync(locationId);
+            if (location == null)
+            {
+                return NotFound(new
+                {
+                    message = "Location not found."
+                });
+            }
 
+            var rooms = await _unitOfWork.Rooms
+                .GetByLocationIdAsync(locationId);
 
             return Ok(rooms);
         }
-
 
         // =====================================================
         // POST /api/rooms
@@ -142,6 +157,29 @@ namespace whm.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
+            // =================================================
+            // VALIDATE NAME
+            // =================================================
+
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return BadRequest(new
+                {
+                    message = "Room name is required."
+                });
+            }
+
+            // =================================================
+            // VALIDATE CODE
+            // =================================================
+
+            if (string.IsNullOrWhiteSpace(dto.Code))
+            {
+                return BadRequest(new
+                {
+                    message = "Room code is required."
+                });
+            }
 
             // =================================================
             // VALIDATE WAREHOUSE
@@ -157,12 +195,8 @@ namespace whm.Controllers
                     });
                 }
 
-
-                var warehouse =
-                    await _unitOfWork.Warehouses
-                        .GetEntityByIdAsync(
-                            dto.WarehouseId.Value);
-
+                var warehouse = await _unitOfWork.Warehouses
+                    .GetEntityByIdAsync(dto.WarehouseId.Value);
 
                 if (warehouse == null)
                 {
@@ -173,66 +207,8 @@ namespace whm.Controllers
                 }
             }
 
-
             // =================================================
-            // VALIDATE LOCATION
-            // =================================================
-
-            if (dto.LocationId.HasValue)
-            {
-                if (dto.LocationId.Value <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Invalid LocationId."
-                    });
-                }
-
-
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(
-                            dto.LocationId.Value);
-
-
-                if (location == null)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Location not found."
-                    });
-                }
-            }
-
-
-            // =================================================
-            // VALIDATE NAME
-            // =================================================
-
-            if (string.IsNullOrWhiteSpace(dto.Name))
-            {
-                return BadRequest(new
-                {
-                    message = "Room name is required."
-                });
-            }
-
-
-            // =================================================
-            // VALIDATE CODE
-            // =================================================
-
-            if (string.IsNullOrWhiteSpace(dto.Code))
-            {
-                return BadRequest(new
-                {
-                    message = "Room code is required."
-                });
-            }
-
-
-            // =================================================
-            // CREATE
+            // CREATE ROOM
             // =================================================
 
             var room = new Room
@@ -248,23 +224,15 @@ namespace whm.Controllers
 
                 Warehouse_Id = dto.WarehouseId,
 
-                LocationId = dto.LocationId,
-
                 IsActive = true
             };
 
-
-            await _unitOfWork.Rooms
-                .AddAsync(room);
-
+            await _unitOfWork.Rooms.AddAsync(room);
 
             await _unitOfWork.SaveAsync();
 
-
-            var result =
-                await _unitOfWork.Rooms
-                    .GetByIdAsync(room.Room_Id);
-
+            var result = await _unitOfWork.Rooms
+                .GetByIdAsync(room.Room_Id);
 
             return CreatedAtAction(
                 nameof(GetRoom),
@@ -274,7 +242,6 @@ namespace whm.Controllers
                 },
                 result);
         }
-
 
         // =====================================================
         // PUT /api/rooms/{id}
@@ -288,15 +255,20 @@ namespace whm.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RoomId."
+                });
+            }
 
             // =================================================
             // GET ROOM
             // =================================================
 
-            var room =
-                await _unitOfWork.Rooms
-                    .GetEntityByIdAsync(id);
-
+            var room = await _unitOfWork.Rooms
+                .GetEntityByIdAsync(id);
 
             if (room == null)
             {
@@ -306,9 +278,8 @@ namespace whm.Controllers
                 });
             }
 
-
             // =================================================
-            // VALIDATE WAREHOUSE
+            // WAREHOUSE
             // =================================================
 
             if (dto.WarehouseId.HasValue)
@@ -321,12 +292,8 @@ namespace whm.Controllers
                     });
                 }
 
-
-                var warehouse =
-                    await _unitOfWork.Warehouses
-                        .GetEntityByIdAsync(
-                            dto.WarehouseId.Value);
-
+                var warehouse = await _unitOfWork.Warehouses
+                    .GetEntityByIdAsync(dto.WarehouseId.Value);
 
                 if (warehouse == null)
                 {
@@ -336,54 +303,8 @@ namespace whm.Controllers
                     });
                 }
 
-
-                room.Warehouse_Id =
-                    dto.WarehouseId.Value;
+                room.Warehouse_Id = dto.WarehouseId.Value;
             }
-            else
-            {
-                room.Warehouse_Id = null;
-            }
-
-
-            // =================================================
-            // VALIDATE LOCATION
-            // =================================================
-
-            if (dto.LocationId.HasValue)
-            {
-                if (dto.LocationId.Value <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Invalid LocationId."
-                    });
-                }
-
-
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(
-                            dto.LocationId.Value);
-
-
-                if (location == null)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Location not found."
-                    });
-                }
-
-
-                room.LocationId =
-                    dto.LocationId.Value;
-            }
-            else
-            {
-                room.LocationId = null;
-            }
-
 
             // =================================================
             // NAME
@@ -399,11 +320,8 @@ namespace whm.Controllers
                     });
                 }
 
-
-                room.Room_Name =
-                    dto.Name.Trim();
+                room.Room_Name = dto.Name.Trim();
             }
-
 
             // =================================================
             // CODE
@@ -419,11 +337,8 @@ namespace whm.Controllers
                     });
                 }
 
-
-                room.Room_Code =
-                    dto.Code.Trim();
+                room.Room_Code = dto.Code.Trim();
             }
-
 
             // =================================================
             // DESCRIPTION
@@ -437,37 +352,28 @@ namespace whm.Controllers
                         : dto.Description.Trim();
             }
 
-
             // =================================================
             // STATUS
             // =================================================
 
             if (dto.IsActive.HasValue)
             {
-                room.IsActive =
-                    dto.IsActive.Value;
+                room.IsActive = dto.IsActive.Value;
             }
-
 
             // =================================================
             // UPDATE
             // =================================================
 
-            _unitOfWork.Rooms
-                .Update(room);
-
+            _unitOfWork.Rooms.Update(room);
 
             await _unitOfWork.SaveAsync();
 
-
-            var result =
-                await _unitOfWork.Rooms
-                    .GetByIdAsync(id);
-
+            var result = await _unitOfWork.Rooms
+                .GetByIdAsync(id);
 
             return Ok(result);
         }
-
 
         // =====================================================
         // DELETE /api/rooms/{id}
@@ -476,10 +382,16 @@ namespace whm.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteRoom(int id)
         {
-            var room =
-                await _unitOfWork.Rooms
-                    .GetEntityByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RoomId."
+                });
+            }
 
+            var room = await _unitOfWork.Rooms
+                .GetEntityByIdAsync(id);
 
             if (room == null)
             {
@@ -489,13 +401,28 @@ namespace whm.Controllers
                 });
             }
 
+            // =================================================
+            // CHECK RACKS
+            // =================================================
 
-            _unitOfWork.Rooms
-                .Delete(room);
+            var racks = await _unitOfWork.Racks
+                .GetByRoomIdAsync(id);
 
+            if (racks.Any())
+            {
+                return BadRequest(new
+                {
+                    message = "Cannot delete room because it contains racks."
+                });
+            }
+
+            // =================================================
+            // DELETE
+            // =================================================
+
+            _unitOfWork.Rooms.Delete(room);
 
             await _unitOfWork.SaveAsync();
-
 
             return Ok(new
             {

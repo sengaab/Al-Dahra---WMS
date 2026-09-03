@@ -2,63 +2,43 @@
 using whm.DTOs.Stock;
 using whm.Models;
 
-namespace whm.Repositories.Interfaces
+namespace whm.Repositories
 {
     public interface ILocationRepository
     {
-        // =====================================================
-        // GET
-        // =====================================================
-
-        Task<List<LocationDto>> GetAllAsync();
+        Task<IEnumerable<LocationDto>> GetAllAsync(
+            int? warehouseId = null,
+            int? parentLocationId = null,
+            int? roomId = null,
+            int? rackId = null,
+            int? shelfId = null,
+            int? binId = null,
+            string? search = null,
+            string? type = null,
+            string? status = null,
+            int page = 1,
+            int pageSize = 20);
 
         Task<LocationDto?> GetByIdAsync(int id);
 
         Task<Location?> GetEntityByIdAsync(int id);
 
-
-        // =====================================================
-        // CHILDREN
-        // =====================================================
-
-        Task<List<LocationDto>> GetChildrenAsync(
-            int locationId);
-
-
-        // =====================================================
-        // INVENTORY
-        // =====================================================
-
-        Task<List<StockDto>> GetInventoryAsync(
-            int locationId);
-
-
-        // =====================================================
-        // OCCUPANCY
-        // =====================================================
-
-        Task<LocationOccupancyDto?> GetOccupancyAsync(
-            int locationId);
-
-
-        // =====================================================
-        // TREE
-        // =====================================================
-
-        Task<List<WarehouseTreeDto>> GetTreeAsync();
-
-
-        // =====================================================
-        // STRUCTURE
-        // =====================================================
+        Task<IEnumerable<LocationDto>> GetChildrenAsync(
+            int parentLocationId);
 
         Task<LocationStructureDto?> GetStructureAsync(
             int locationId);
 
+        Task<LocationOccupancyDto?> GetOccupancyAsync(
+            int locationId);
 
-        // =====================================================
-        // CRUD
-        // =====================================================
+        Task<IEnumerable<StockDto>> GetInventoryAsync(
+            int locationId);
+
+        Task<IEnumerable<LocationTreeDto>> GetTreeAsync();
+
+        Task<int> GetLocationIdByBinIdAsync(
+            int binId);
 
         Task AddAsync(Location location);
 

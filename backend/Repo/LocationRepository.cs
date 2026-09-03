@@ -3,7 +3,6 @@ using whm.Data;
 using whm.DTOs.Location;
 using whm.DTOs.Stock;
 using whm.Models;
-using whm.Repositories.Interfaces;
 
 namespace whm.Repositories
 {
@@ -16,224 +15,154 @@ namespace whm.Repositories
             _context = context;
         }
 
-
         // =====================================================
         // GET ALL
-        // GET /api/locations
         // =====================================================
 
-        public async Task<List<LocationDto>> GetAllAsync()
+        public async Task<IEnumerable<LocationDto>> GetAllAsync(
+            int? warehouseId = null,
+            int? parentLocationId = null,
+            int? roomId = null,
+            int? rackId = null,
+            int? shelfId = null,
+            int? binId = null,
+            string? search = null,
+            string? type = null,
+            string? status = null,
+            int page = 1,
+            int pageSize = 20)
         {
-            return await _context.Locations
+            var query = _context.Locations
                 .AsNoTracking()
-                .OrderBy(x => x.LocationId)
+                .AsQueryable();
+
+            if (warehouseId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.WarehouseId == warehouseId.Value);
+            }
+
+            if (parentLocationId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.ParentLocationId == parentLocationId.Value);
+            }
+
+            if (roomId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.RoomId == roomId.Value);
+            }
+
+            if (rackId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.RackId == rackId.Value);
+            }
+
+            if (shelfId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.ShelfId == shelfId.Value);
+            }
+
+            if (binId.HasValue)
+            {
+                query = query.Where(x =>
+                    x.BinId == binId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(x =>
+                    x.Code.Contains(search) ||
+                    x.Name.Contains(search));
+            }
+
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                type = type.Trim();
+
+                query = query.Where(x =>
+                    x.Type == type);
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (status.Equals(
+                    "active",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => x.IsActive);
+                }
+                else if (status.Equals(
+                    "inactive",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => !x.IsActive);
+                }
+            }
+
+            if (page < 1)
+                page = 1;
+
+            if (pageSize < 1)
+                pageSize = 20;
+
+            return await query
+                .OrderBy(x => x.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(x => new LocationDto
                 {
                     LocationId = x.LocationId,
 
-                    // Warehouse OPTIONAL
                     WarehouseId = x.WarehouseId,
+                    WarehouseName = x.Warehouse != null
+                        ? x.Warehouse.Name
+                        : null,
 
-                    WarehouseName =
-                        x.Warehouse != null
-                            ? x.Warehouse.Name
-                            : null,
-
-                    // Parent Location OPTIONAL
                     ParentLocationId = x.ParentLocationId,
+                    ParentLocationName = x.ParentLocation != null
+                        ? x.ParentLocation.Name
+                        : null,
 
-                    ParentLocationName =
-                        x.ParentLocation != null
-                            ? x.ParentLocation.Name
-                            : null,
+                    RoomId = x.RoomId,
+                    RoomName = x.Room != null
+                        ? x.Room.Room_Name
+                        : null,
+
+                    RackId = x.RackId,
+                    RackName = x.Rack != null
+                        ? x.Rack.Rack_Name
+                        : null,
+
+                    ShelfId = x.ShelfId,
+                    ShelfName = x.Shelf != null
+                        ? x.Shelf.Shelf_Name
+                        : null,
+
+                    BinId = x.BinId,
+                    BinName = x.Bin != null
+                        ? x.Bin.Bin_Name
+                        : null,
 
                     Code = x.Code,
-
                     Name = x.Name,
-
                     Type = x.Type,
-
                     IsActive = x.IsActive,
-
                     CreatedAt = x.CreatedAt,
-
                     UpdatedAt = x.UpdatedAt,
 
-                    ChildrenCount =
-                        x.ChildLocations.Count()
+                    ChildrenCount = x.ChildLocations.Count
                 })
                 .ToListAsync();
         }
-        // =====================================================
-        // GET LOCATION STRUCTURE
-        // GET /api/locations/{id}/structure
-        // =====================================================
-
-        public async Task<LocationStructureDto?> GetStructureAsync(
-            int locationId)
-        {
-            // =================================================
-            // LOCATION
-            // =================================================
-
-            var location = await _context.Locations
-                .AsNoTracking()
-                .Where(x => x.LocationId == locationId)
-                .Select(x => new LocationStructureDto
-                {
-                    LocationId = x.LocationId,
-
-                    WarehouseId = x.WarehouseId,
-
-                    WarehouseName =
-                        x.Warehouse != null
-                            ? x.Warehouse.Name
-                            : null,
-
-                    ParentLocationId =
-                        x.ParentLocationId,
-
-                    ParentLocationName =
-                        x.ParentLocation != null
-                            ? x.ParentLocation.Name
-                            : null,
-
-                    Code = x.Code,
-
-                    Name = x.Name,
-
-                    Type = x.Type,
-
-                    IsActive = x.IsActive,
-
-                  
-                })
-                .FirstOrDefaultAsync();
-
-            if (location == null)
-                return null;
-
-
-            // =================================================
-            // ROOMS
-            // =================================================
-
-            location.Rooms = await _context.Rooms
-                .AsNoTracking()
-                .Where(x => x.LocationId == locationId)
-                .OrderBy(x => x.Room_Id)
-                .Select(x => new LocationRoomDto
-                {
-                    RoomId = x.Room_Id,
-
-                    Code = x.Room_Code ?? string.Empty,
-
-                    Name = x.Room_Name,
-
-                    IsActive = x.IsActive,
-
-                    RackCount = x.Rows.Count
-                })
-                .ToListAsync();
-
-
-            // =================================================
-            // RACKS
-            // =================================================
-
-            location.Racks = await _context.Racks
-                .AsNoTracking()
-                .Where(x => x.LocationId == locationId)
-                .OrderBy(x => x.Rack_Id)
-                .Select(x => new LocationRackDto
-                {
-                    RackId = x.Rack_Id,
-
-                    RoomId = x.Room_Id,
-
-                    RoomName =
-                        x.Room != null
-                            ? x.Room.Room_Name
-                            : null,
-
-                    Code = x.Rack_Code ?? string.Empty,
-
-                    Name = x.Rack_Name,
-
-                    IsActive = x.IsActive,
-
-                    ShelfCount = x.Shelves.Count
-                })
-                .ToListAsync();
-
-
-            // =================================================
-            // SHELVES
-            // =================================================
-
-            location.Shelves = await _context.Shelves
-                .AsNoTracking()
-                .Where(x => x.LocationId == locationId)
-                .OrderBy(x => x.Shelf_Id)
-                .Select(x => new LocationShelfDto
-                {
-                    ShelfId = x.Shelf_Id,
-
-                    RackId = x.Row_Id,
-
-                    RackName =
-                        x.Row != null
-                            ? x.Row.Rack_Name
-                            : null,
-
-                    Code = x.Shelf_Code ?? string.Empty,
-
-                    Name = x.Shelf_Name,
-
-                    IsActive = x.IsActive,
-
-                    BinCount = x.Bins.Count
-                })
-                .ToListAsync();
-
-
-            // =================================================
-            // BINS
-            // =================================================
-
-            location.Bins = await _context.Bins
-                .AsNoTracking()
-                .Where(x => x.LocationId == locationId)
-                .OrderBy(x => x.Bin_Id)
-                .Select(x => new LocationBinDto
-                {
-                    BinId = x.Bin_Id,
-
-                    ShelfId = x.Shelf_Id,
-
-                    ShelfName =
-                        x.Shelf != null
-                            ? x.Shelf.Shelf_Name
-                            : null,
-
-                    Code = x.Bin_Code ?? string.Empty,
-
-                    Name = x.Bin_Name,
-
-                    IsActive = x.IsActive,
-
-                    StockCount = x.Stocks.Count
-                })
-                .ToListAsync();
-
-
-            return location;
-        }
-
 
         // =====================================================
         // GET BY ID
-        // GET /api/locations/{id}
         // =====================================================
 
         public async Task<LocationDto?> GetByIdAsync(int id)
@@ -245,413 +174,555 @@ namespace whm.Repositories
                 {
                     LocationId = x.LocationId,
 
-                    // Warehouse OPTIONAL
                     WarehouseId = x.WarehouseId,
+                    WarehouseName = x.Warehouse != null
+                        ? x.Warehouse.Name
+                        : null,
 
-                    WarehouseName =
-                        x.Warehouse != null
-                            ? x.Warehouse.Name
-                            : null,
-
-                    // Parent OPTIONAL
                     ParentLocationId = x.ParentLocationId,
+                    ParentLocationName = x.ParentLocation != null
+                        ? x.ParentLocation.Name
+                        : null,
 
-                    ParentLocationName =
-                        x.ParentLocation != null
-                            ? x.ParentLocation.Name
-                            : null,
+                    RoomId = x.RoomId,
+                    RoomName = x.Room != null
+                        ? x.Room.Room_Name
+                        : null,
+
+                    RackId = x.RackId,
+                    RackName = x.Rack != null
+                        ? x.Rack.Rack_Name
+                        : null,
+
+                    ShelfId = x.ShelfId,
+                    ShelfName = x.Shelf != null
+                        ? x.Shelf.Shelf_Name
+                        : null,
+
+                    BinId = x.BinId,
+                    BinName = x.Bin != null
+                        ? x.Bin.Bin_Name
+                        : null,
 
                     Code = x.Code,
-
                     Name = x.Name,
-
                     Type = x.Type,
-
                     IsActive = x.IsActive,
-
                     CreatedAt = x.CreatedAt,
-
                     UpdatedAt = x.UpdatedAt,
 
-                    ChildrenCount =
-                        x.ChildLocations.Count()
+                    ChildrenCount = x.ChildLocations.Count
                 })
                 .FirstOrDefaultAsync();
         }
 
-
         // =====================================================
-        // GET ENTITY
+        // GET ENTITY BY ID
         // =====================================================
 
         public async Task<Location?> GetEntityByIdAsync(int id)
         {
             return await _context.Locations
-                .FirstOrDefaultAsync(x =>
-                    x.LocationId == id);
+                .FirstOrDefaultAsync(x => x.LocationId == id);
         }
-
 
         // =====================================================
         // GET CHILDREN
-        // GET /api/locations/{id}/children
         // =====================================================
 
-        public async Task<List<LocationDto>> GetChildrenAsync(
-            int locationId)
+        public async Task<IEnumerable<LocationDto>> GetChildrenAsync(
+            int parentLocationId)
         {
             return await _context.Locations
                 .AsNoTracking()
                 .Where(x =>
-                    x.ParentLocationId == locationId)
-                .OrderBy(x => x.LocationId)
+                    x.ParentLocationId == parentLocationId)
+                .OrderBy(x => x.Name)
                 .Select(x => new LocationDto
                 {
                     LocationId = x.LocationId,
 
-                    // Warehouse OPTIONAL
                     WarehouseId = x.WarehouseId,
+                    WarehouseName = x.Warehouse != null
+                        ? x.Warehouse.Name
+                        : null,
 
-                    WarehouseName =
-                        x.Warehouse != null
-                            ? x.Warehouse.Name
-                            : null,
+                    ParentLocationId = x.ParentLocationId,
+                    ParentLocationName = x.ParentLocation != null
+                        ? x.ParentLocation.Name
+                        : null,
 
-                    ParentLocationId =
-                        x.ParentLocationId,
+                    RoomId = x.RoomId,
+                    RoomName = x.Room != null
+                        ? x.Room.Room_Name
+                        : null,
 
-                    ParentLocationName =
-                        x.ParentLocation != null
-                            ? x.ParentLocation.Name
-                            : null,
+                    RackId = x.RackId,
+                    RackName = x.Rack != null
+                        ? x.Rack.Rack_Name
+                        : null,
+
+                    ShelfId = x.ShelfId,
+                    ShelfName = x.Shelf != null
+                        ? x.Shelf.Shelf_Name
+                        : null,
+
+                    BinId = x.BinId,
+                    BinName = x.Bin != null
+                        ? x.Bin.Bin_Name
+                        : null,
 
                     Code = x.Code,
-
                     Name = x.Name,
-
                     Type = x.Type,
-
                     IsActive = x.IsActive,
-
                     CreatedAt = x.CreatedAt,
-
                     UpdatedAt = x.UpdatedAt,
 
-                    ChildrenCount =
-                        x.ChildLocations.Count()
+                    ChildrenCount = x.ChildLocations.Count
                 })
                 .ToListAsync();
         }
 
+        // =====================================================
+        // GET LOCATION ID BY BIN ID
+        // =====================================================
+
+        public async Task<int> GetLocationIdByBinIdAsync(
+            int binId)
+        {
+            return await _context.Locations
+                .Where(x => x.BinId == binId)
+                .Select(x => x.LocationId)
+                .FirstOrDefaultAsync();
+        }
+
+        // =====================================================
+        // GET STRUCTURE
+        // =====================================================
+
+        public async Task<LocationStructureDto?> GetStructureAsync(
+            int locationId)
+        {
+            var location = await _context.Locations
+                .AsNoTracking()
+                .Where(x => x.LocationId == locationId)
+                .Select(x => new
+                {
+                    x.LocationId,
+                    x.WarehouseId,
+                    WarehouseName = x.Warehouse != null
+                        ? x.Warehouse.Name
+                        : null,
+
+                    x.ParentLocationId,
+
+                    ParentLocationName = x.ParentLocation != null
+                        ? x.ParentLocation.Name
+                        : null,
+
+                    x.RoomId,
+                    x.RackId,
+                    x.ShelfId,
+                    x.BinId,
+
+                    x.Code,
+                    x.Name,
+                    x.Type,
+                    x.IsActive
+                })
+                .FirstOrDefaultAsync();
+
+            if (location == null)
+                return null;
+
+            var result = new LocationStructureDto
+            {
+                LocationId = location.LocationId,
+                WarehouseId = location.WarehouseId,
+                WarehouseName = location.WarehouseName,
+
+                ParentLocationId = location.ParentLocationId,
+                ParentLocationName = location.ParentLocationName,
+
+                RoomId = location.RoomId,
+                RackId = location.RackId,
+                ShelfId = location.ShelfId,
+                BinId = location.BinId,
+
+                Code = location.Code,
+                Name = location.Name,
+                Type = location.Type,
+                IsActive = location.IsActive
+            };
+
+            if (!location.WarehouseId.HasValue)
+                return result;
+
+            var warehouseId = location.WarehouseId.Value;
+
+            // -------------------------------------------------
+            // ROOMS
+            // -------------------------------------------------
+
+            result.Rooms = await _context.Rooms
+                .AsNoTracking()
+                .Where(x =>
+                    x.Warehouse_Id == warehouseId)
+                .OrderBy(x => x.Room_Name)
+                .Select(x => new LocationRoomDto
+                {
+                    RoomId = x.Room_Id,
+                    Code = x.Room_Code ?? string.Empty,
+                    Name = x.Room_Name,
+                    IsActive = x.IsActive,
+                    RackCount = x.Racks.Count
+                })
+                .ToListAsync();
+
+            // -------------------------------------------------
+            // RACKS
+            // -------------------------------------------------
+
+            result.Racks = await _context.Racks
+                .AsNoTracking()
+                .Where(x =>
+                    x.Room != null &&
+                    x.Room.Warehouse_Id == warehouseId)
+                .OrderBy(x => x.Rack_Name)
+                .Select(x => new LocationRackDto
+                {
+                    RackId = x.Rack_Id,
+                    RoomId = x.Room_Id,
+
+                    RoomName = x.Room != null
+                        ? x.Room.Room_Name
+                        : null,
+
+                    Code = x.Rack_Code ?? string.Empty,
+                    Name = x.Rack_Name,
+                    IsActive = x.IsActive,
+                    ShelfCount = x.Shelves.Count
+                })
+                .ToListAsync();
+
+            // -------------------------------------------------
+            // SHELVES
+            // -------------------------------------------------
+
+            result.Shelves = await _context.Shelves
+                .AsNoTracking()
+                .Where(x =>
+                    x.Rack != null &&
+                    x.Rack.Room != null &&
+                    x.Rack.Room.Warehouse_Id == warehouseId)
+                .OrderBy(x => x.Shelf_Name)
+                .Select(x => new LocationShelfDto
+                {
+                    ShelfId = x.Shelf_Id,
+                    RackId = x.Rack_Id,
+
+                    RackName = x.Rack != null
+                        ? x.Rack.Rack_Name
+                        : null,
+
+                    Code = x.Shelf_Code ?? string.Empty,
+                    Name = x.Shelf_Name,
+                    IsActive = x.IsActive,
+                    BinCount = x.Bins.Count
+                })
+                .ToListAsync();
+
+            // -------------------------------------------------
+            // BINS
+            // -------------------------------------------------
+
+            result.Bins = await _context.Bins
+                .AsNoTracking()
+                .Where(x =>
+                    x.Shelf != null &&
+                    x.Shelf.Rack != null &&
+                    x.Shelf.Rack.Room != null &&
+                    x.Shelf.Rack.Room.Warehouse_Id == warehouseId)
+                .OrderBy(x => x.Bin_Name)
+                .Select(x => new LocationBinDto
+                {
+                    BinId = x.Bin_Id,
+                    ShelfId = x.Shelf_Id,
+
+                    ShelfName = x.Shelf != null
+                        ? x.Shelf.Shelf_Name
+                        : null,
+
+                    Code = x.Bin_Code ?? string.Empty,
+                    Name = x.Bin_Name,
+                    IsActive = x.IsActive,
+
+                    StockCount = x.Stocks.Count
+                })
+                .ToListAsync();
+
+            return result;
+        }
 
         // =====================================================
         // GET INVENTORY
-        // GET /api/locations/{id}/inventory
         // =====================================================
 
-        public async Task<List<StockDto>> GetInventoryAsync(
+        public async Task<IEnumerable<StockDto>> GetInventoryAsync(
             int locationId)
         {
             return await _context.Stocks
                 .AsNoTracking()
-                .Where(x =>
-                    x.LocationId == locationId)
+                .Where(x => x.LocationId == locationId)
+                .OrderBy(x => x.StockId)
                 .Select(x => new StockDto
                 {
                     StockId = x.StockId,
 
+                    // Product
                     ProductId = x.ProductId,
 
-                    ProductName =
-                        x.Product.Name,
+                    ProductName = x.Product != null
+                        ? x.Product.Name
+                        : string.Empty,
 
                     CategoryName =
-                        _context.Categories
-                            .Where(c =>
-                                c.CategoryId ==
-                                x.Product.CategoryId)
-                            .Select(c => c.Name)
-                            .FirstOrDefault()
-                            ?? string.Empty,
+                        x.Product != null &&
+                        x.Product.Category != null
+                            ? x.Product.Category.Name
+                            : string.Empty,
 
-                    SKU = x.Product.SKU,
+                    SKU = x.Product != null
+                        ? x.Product.SKU
+                        : string.Empty,
 
-                    WarehouseId =
-                        x.WarehouseId,
+                    Barcode = x.Product != null
+                        ? x.Product.Barcode
+                        : null,
 
-                    WarehouseName =
-                        x.Warehouse != null
-                            ? x.Warehouse.Name
+                    // Warehouse
+                    WarehouseId = x.WarehouseId,
+
+                    WarehouseName = x.Warehouse != null
+                        ? x.Warehouse.Name
+                        : string.Empty,
+
+                    // Location
+                    LocationId = x.LocationId,
+
+                    LocationName = x.Location != null
+                        ? x.Location.Name
+                        : null,
+
+                    // Room
+                    RoomId = x.Location != null
+                        ? x.Location.RoomId
+                        : null,
+
+                    RoomName =
+                        x.Location != null &&
+                        x.Location.Room != null
+                            ? x.Location.Room.Room_Name
                             : null,
 
-                    LocationId =
-                        x.LocationId,
-
-                    LocationName =
-                        x.Location != null
-                            ? x.Location.Name
+                    RoomCode =
+                        x.Location != null &&
+                        x.Location.Room != null
+                            ? x.Location.Room.Room_Code
                             : null,
 
-                    StockCode =
-                        x.StockCode,
+                    // Rack
+                    RackId = x.Location != null
+                        ? x.Location.RackId
+                        : null,
 
-                    BatchNumber =
-                        x.BatchNumber,
+                    RackName =
+                        x.Location != null &&
+                        x.Location.Rack != null
+                            ? x.Location.Rack.Rack_Name
+                            : null,
 
-                    Barcode =
-                        x.Product.Barcode,
+                    RackCode =
+                        x.Location != null &&
+                        x.Location.Rack != null
+                            ? x.Location.Rack.Rack_Code
+                            : null,
 
-                    ExpiryDate =
-                        x.ExpiryDate,
+                    // Shelf
+                    ShelfId = x.Location != null
+                        ? x.Location.ShelfId
+                        : null,
 
-                    Quantity =
-                        x.Quantity,
+                    ShelfName =
+                        x.Location != null &&
+                        x.Location.Shelf != null
+                            ? x.Location.Shelf.Shelf_Name
+                            : null,
 
-                    ReservedQuantity =
-                        x.ReservedQuantity,
+                    ShelfCode =
+                        x.Location != null &&
+                        x.Location.Shelf != null
+                            ? x.Location.Shelf.Shelf_Code
+                            : null,
 
-                    AvailableQuantity =
-                        x.AvailableQuantity,
+                    // Bin
+                    BinId = x.Location != null
+                        ? x.Location.BinId
+                        : null,
 
-                    UnitPrice =
-                        x.UnitPrice,
+                    BinName =
+                        x.Location != null &&
+                        x.Location.Bin != null
+                            ? x.Location.Bin.Bin_Name
+                            : null,
 
-                    MinimumStock =
-                        x.Product.MinimumStock,
+                    BinCode =
+                        x.Location != null &&
+                        x.Location.Bin != null
+                            ? x.Location.Bin.Bin_Code
+                            : null,
 
-                    StockStatus =
-                        x.stockStatus.ToString(),
+                    // Supplier
+                    SupplierId = x.SupplierId,
 
-                    CreatedAt =
-                        x.CreatedAt,
+                    SupplierName = x.Supplier != null
+                        ? x.Supplier.Name
+                        : null,
 
-                    UpdatedAt =
-                        x.UpdatedAt
+                    // Stock data
+                    StockCode = x.StockCode,
+                    BatchNumber = x.BatchNumber,
+                    ExpiryDate = x.ExpiryDate,
+
+                    Quantity = x.Quantity,
+                    ReservedQuantity = x.ReservedQuantity,
+                    AvailableQuantity = x.AvailableQuantity,
+
+                    UnitPrice = x.UnitPrice,
+                    MinimumStock = x.MinimumStock,
+
+                    StockStatus = x.stockStatus.ToString(),
+
+                    CreatedAt = x.CreatedAt,
+                    UpdatedAt = x.UpdatedAt
                 })
                 .ToListAsync();
         }
 
-
         // =====================================================
-        // OCCUPANCY
-        // GET /api/locations/{id}/occupancy
+        // GET OCCUPANCY
         // =====================================================
 
         public async Task<LocationOccupancyDto?> GetOccupancyAsync(
             int locationId)
         {
-            var location =
-                await _context.Locations
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x =>
-                        x.LocationId == locationId);
-
-            if (location == null)
-                return null;
-
-
-            var stocks = _context.Stocks
+            return await _context.Stocks
                 .AsNoTracking()
-                .Where(x =>
-                    x.LocationId == locationId);
+                .Where(x => x.LocationId == locationId)
+                .GroupBy(x => new
+                {
+                    x.LocationId,
+                    LocationName = x.Location != null
+                        ? x.Location.Name
+                        : string.Empty,
 
+                    LocationType = x.Location != null
+                        ? x.Location.Type
+                        : string.Empty
+                })
+                .Select(g => new LocationOccupancyDto
+                {
+                    LocationId = g.Key.LocationId!.Value,
 
-            var totalStockItems =
-                await stocks.CountAsync();
+                    LocationName = g.Key.LocationName,
 
+                    LocationType = g.Key.LocationType,
 
-            var totalQuantity =
-                await stocks
-                    .SumAsync(x =>
-                        (decimal?)x.Quantity) ?? 0;
+                    TotalStockItems = g.Count(),
 
+                    TotalQuantity = g.Sum(x => x.Quantity),
 
-            var totalReservedQuantity =
-                await stocks
-                    .SumAsync(x =>
-                        (decimal?)x.ReservedQuantity) ?? 0;
+                    TotalReservedQuantity =
+                        g.Sum(x => x.ReservedQuantity),
 
+                    TotalAvailableQuantity =
+                        g.Sum(x => x.AvailableQuantity),
 
-            var totalAvailableQuantity =
-                await stocks
-                    .SumAsync(x =>
-                        (decimal?)x.AvailableQuantity) ?? 0;
+                    TotalValue =
+                        g.Sum(x =>
+                            x.Quantity * x.UnitPrice),
 
-
-            var totalValue =
-                await stocks
-                    .SumAsync(x =>
-                        (decimal?)
-                        (x.Quantity * x.UnitPrice)) ?? 0;
-
-
-            return new LocationOccupancyDto
-            {
-                LocationId =
-                    location.LocationId,
-
-                LocationName =
-                    location.Name,
-
-                LocationType =
-                    location.Type,
-
-                TotalStockItems =
-                    totalStockItems,
-
-                TotalQuantity =
-                    totalQuantity,
-
-                TotalReservedQuantity =
-                    totalReservedQuantity,
-
-                TotalAvailableQuantity =
-                    totalAvailableQuantity,
-
-                TotalValue =
-                    totalValue,
-
-                IsOccupied =
-                    totalAvailableQuantity > 0
-            };
+                    IsOccupied = g.Any()
+                })
+                .FirstOrDefaultAsync();
         }
 
-
         // =====================================================
-        // TREE
-        // GET /api/locations/tree
+        // GET LOCATION TREE
         // =====================================================
 
-        public async Task<List<WarehouseTreeDto>> GetTreeAsync()
+        public async Task<IEnumerable<LocationTreeDto>> GetTreeAsync()
         {
-            // =================================================
-            // GET WAREHOUSES
-            // =================================================
-
-            var warehouses =
-                await _context.Warehouses
-                    .AsNoTracking()
-                    .OrderBy(x => x.WarehouseId)
-                    .Select(x => new WarehouseTreeDto
-                    {
-                        WarehouseId =
-                            x.WarehouseId,
-
-                        Code =
-                            x.Code,
-
-                        Name =
-                            x.Name,
-
-                        IsActive =
-                            x.IsActive
-                    })
-                    .ToListAsync();
-
-
-            // =================================================
-            // GET LOCATIONS
-            // =================================================
-
-            var locations =
-                await _context.Locations
-                    .AsNoTracking()
-                    .OrderBy(x => x.LocationId)
-                    .Select(x => new
-                    {
-                        x.LocationId,
-
-                        x.WarehouseId,
-
-                        x.ParentLocationId,
-
-                        x.Code,
-
-                        x.Name,
-
-                        x.Type,
-
-                        x.IsActive
-                    })
-                    .ToListAsync();
-
-
-            // =================================================
-            // BUILD TREE
-            // =================================================
-
-            foreach (var warehouse in warehouses)
-            {
-                var warehouseLocations =
-                    locations
-                        .Where(x =>
-                            x.WarehouseId.HasValue &&
-                            x.WarehouseId.Value ==
-                            warehouse.WarehouseId)
-                        .ToList();
-
-
-                var locationDictionary =
-                    warehouseLocations
-                        .ToDictionary(
-                            x => x.LocationId,
-                            x => new LocationTreeDto
-                            {
-                                LocationId =
-                                    x.LocationId,
-
-                                WarehouseId =
-                                    x.WarehouseId,
-
-                                Code =
-                                    x.Code,
-
-                                Name =
-                                    x.Name,
-
-                                Type =
-                                    x.Type,
-
-                                IsActive =
-                                    x.IsActive
-                            });
-
-
-                foreach (var location in warehouseLocations)
+            var locations = await _context.Locations
+                .AsNoTracking()
+                .OrderBy(x => x.Name)
+                .Select(x => new LocationTreeDto
                 {
-                    var current =
-                        locationDictionary[
-                            location.LocationId];
+                    LocationId = x.LocationId,
+                    WarehouseId = x.WarehouseId,
 
+                    Code = x.Code,
+                    Name = x.Name,
+                    Type = x.Type,
+                    IsActive = x.IsActive,
 
-                    // =========================================
-                    // Parent exists
-                    // =========================================
+                    Children = new List<LocationTreeDto>()
+                })
+                .ToListAsync();
 
-                    if (location.ParentLocationId.HasValue &&
-                        locationDictionary.ContainsKey(
-                            location.ParentLocationId.Value))
-                    {
-                        locationDictionary[
-                            location.ParentLocationId.Value]
-                            .Children
-                            .Add(current);
-                    }
-                    else
-                    {
-                        // =====================================
-                        // Root Location
-                        // =====================================
+            var lookup = locations
+                .ToDictionary(x => x.LocationId);
 
-                        warehouse.Locations.Add(current);
-                    }
+            var childrenMap = await _context.Locations
+                .AsNoTracking()
+                .Select(x => new
+                {
+                    x.LocationId,
+                    x.ParentLocationId
+                })
+                .ToListAsync();
+
+            foreach (var item in childrenMap)
+            {
+                if (!item.ParentLocationId.HasValue)
+                    continue;
+
+                if (!lookup.TryGetValue(
+                    item.ParentLocationId.Value,
+                    out var parent))
+                {
+                    continue;
+                }
+
+                if (lookup.TryGetValue(
+                    item.LocationId,
+                    out var child))
+                {
+                    parent.Children.Add(child);
                 }
             }
 
+            var rootLocations = locations
+                .Where(x =>
+                    !childrenMap.Any(c =>
+                        c.LocationId == x.LocationId &&
+                        c.ParentLocationId.HasValue))
+                .OrderBy(x => x.Name)
+                .ToList();
 
-            return warehouses;
+            return rootLocations;
         }
-
 
         // =====================================================
         // ADD
@@ -659,10 +730,8 @@ namespace whm.Repositories
 
         public async Task AddAsync(Location location)
         {
-            await _context.Locations
-                .AddAsync(location);
+            await _context.Locations.AddAsync(location);
         }
-
 
         // =====================================================
         // UPDATE
@@ -670,10 +739,8 @@ namespace whm.Repositories
 
         public void Update(Location location)
         {
-            _context.Locations
-                .Update(location);
+            _context.Locations.Update(location);
         }
-
 
         // =====================================================
         // DELETE
@@ -681,8 +748,7 @@ namespace whm.Repositories
 
         public void Delete(Location location)
         {
-            _context.Locations
-                .Remove(location);
+            _context.Locations.Remove(location);
         }
     }
 }
