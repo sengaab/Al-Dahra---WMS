@@ -33,16 +33,14 @@ namespace whm.Models
         // Location - OPTIONAL
         // ==========================================
 
-        public int? LocationId { get; set; }
-
-        public Location? Location { get; set; }
-
+        public List<Location> Locations { get; set; }
+     = new List<Location>();
 
         // ==========================================
         // Racks
         // ==========================================
 
-        public List<Rack> Rows { get; set; }
+        public List<Rack> Racks { get; set; }
             = new List<Rack>();
     }
 }

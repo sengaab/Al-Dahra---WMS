@@ -17,11 +17,9 @@ namespace whm.Repositories
 
         Task<Bin?> GetEntityByIdAsync(int id);
 
-        Task<IEnumerable<BinDto>> GetByShelfIdAsync(
-            int shelfId);
+        Task<IEnumerable<BinDto>> GetByShelfIdAsync(int shelfId);
 
-        Task<IEnumerable<BinDto>> GetByLocationIdAsync(
-            int locationId);
+        Task<IEnumerable<BinDto>> GetByLocationIdAsync(int locationId);
 
         Task AddAsync(Bin bin);
 

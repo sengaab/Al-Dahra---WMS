@@ -16,9 +16,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // GET ALL
-        // =====================================================
+         //=====================================================
+         //GET ALL
+         //=====================================================
 
         public async Task<List<StockDto>> GetAllAsync()
         {
@@ -27,9 +27,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // GET BY ID
-        // =====================================================
+         //=====================================================
+         //GET BY ID
+         //=====================================================
 
         public async Task<StockDto?> GetByIdAsync(int id)
         {
@@ -38,9 +38,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // GET BY PRODUCT
-        // =====================================================
+         //=====================================================
+         //GET BY PRODUCT
+         //=====================================================
 
         public async Task<List<StockDto>> GetByProductAsync(int productId)
         {
@@ -50,9 +50,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // GET BY LOCATION
-        // =====================================================
+         //=====================================================
+         //GET BY LOCATION
+         //=====================================================
 
         public async Task<List<StockDto>> GetByLocationAsync(int locationId)
         {
@@ -62,9 +62,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // GET BY WAREHOUSE
-        // =====================================================
+         //=====================================================
+         //GET BY WAREHOUSE
+         //=====================================================
 
         public async Task<List<StockDto>> GetByWarehouseAsync(int warehouseId)
         {
@@ -74,9 +74,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // AVAILABLE STOCK
-        // =====================================================
+         //=====================================================
+         //AVAILABLE STOCK
+         //=====================================================
 
         public async Task<List<StockDto>> GetAvailableAsync()
         {
@@ -88,9 +88,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // LOW STOCK
-        // =====================================================
+         //=====================================================
+         //LOW STOCK
+         //=====================================================
 
         public async Task<List<StockDto>> GetLowStockAsync()
         {
@@ -102,9 +102,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // OUT OF STOCK
-        // =====================================================
+         //=====================================================
+         //OUT OF STOCK
+         //=====================================================
 
         public async Task<List<StockDto>> GetOutOfStockAsync()
         {
@@ -114,9 +114,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // SUMMARY
-        // =====================================================
+         //=====================================================
+         //SUMMARY
+         //=====================================================
 
         public async Task<StockSummaryDto> GetSummaryAsync()
         {
@@ -125,9 +125,9 @@ namespace whm.Repositories
 
             return new StockSummaryDto
             {
-                // =========================
-                // Totals
-                // =========================
+                 //=========================
+                 //Totals
+                 //=========================
 
                 TotalStockItems = await stocks.CountAsync(),
 
@@ -144,9 +144,9 @@ namespace whm.Repositories
                     .SumAsync(x => (decimal?)(x.Quantity * x.UnitPrice)) ?? 0,
 
 
-                // =========================
-                // Status
-                // =========================
+                 //=========================
+                 //Status
+                 //=========================
 
                 AvailableItems = await stocks
                     .CountAsync(x =>
@@ -169,9 +169,9 @@ namespace whm.Repositories
                         x.stockStatus == StockStatus.Blocked),
 
 
-                // =========================
-                // Stock Levels
-                // =========================
+                 //=========================
+                 //Stock Levels
+                 //=========================
 
                 LowStockItems = await stocks
                     .CountAsync(x =>
@@ -185,9 +185,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // TOTAL QUANTITY
-        // =====================================================
+         //=====================================================
+         //TOTAL QUANTITY
+         //=====================================================
 
         public async Task<decimal> GetTotalQuantityAsync()
         {
@@ -197,9 +197,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // TOTAL VALUE
-        // =====================================================
+         //=====================================================
+         //TOTAL VALUE
+         //=====================================================
 
         public async Task<decimal> GetTotalValueAsync()
         {
@@ -209,9 +209,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // GET ENTITY BY ID
-        // =====================================================
+         //=====================================================
+         //GET ENTITY BY ID
+         //=====================================================
 
         public async Task<Stock?> GetEntityByIdAsync(int id)
         {
@@ -220,9 +220,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // ADD
-        // =====================================================
+         //=====================================================
+         //ADD
+         //=====================================================
 
         public async Task AddAsync(Stock stock)
         {
@@ -230,9 +230,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // UPDATE
-        // =====================================================
+         //=====================================================
+         //UPDATE
+         //=====================================================
 
         public void Update(Stock stock)
         {
@@ -240,9 +240,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // DELETE
-        // =====================================================
+         //=====================================================
+         //DELETE
+         //=====================================================
 
         public void Delete(Stock stock)
         {
@@ -250,9 +250,9 @@ namespace whm.Repositories
         }
 
 
-        // =====================================================
-        // COMMON QUERY
-        // =====================================================
+         //=====================================================
+         //COMMON QUERY
+         //=====================================================
 
         private IQueryable<StockDto> BuildQuery()
         {
@@ -260,9 +260,9 @@ namespace whm.Repositories
                 .AsNoTracking()
                 .Select(x => new StockDto
                 {
-                    // =================================================
-                    // STOCK
-                    // =================================================
+                     //=================================================
+                     //STOCK
+                     //=================================================
 
                     StockId = x.StockId,
 
@@ -289,9 +289,9 @@ namespace whm.Repositories
                     UpdatedAt = x.UpdatedAt,
 
 
-                    // =================================================
-                    // PRODUCT
-                    // =================================================
+                     //=================================================
+                     //PRODUCT
+                     //=================================================
 
                     ProductId = x.ProductId,
 
@@ -302,9 +302,9 @@ namespace whm.Repositories
                     Barcode = x.Product.Barcode,
 
 
-                    // =================================================
-                    // CATEGORY
-                    // =================================================
+                     //=================================================
+                     //CATEGORY
+                     //=================================================
 
                     CategoryName = _context.Categories
                         .Where(c =>
@@ -313,18 +313,18 @@ namespace whm.Repositories
                         .FirstOrDefault() ?? string.Empty,
 
 
-                    // =================================================
-                    // WAREHOUSE
-                    // =================================================
+                     //=================================================
+                     //WAREHOUSE
+                     //=================================================
 
                     WarehouseId = x.WarehouseId,
 
                     WarehouseName = x.Warehouse.Name,
 
 
-                    // =================================================
-                    // LOCATION
-                    // =================================================
+                     //=================================================
+                     //LOCATION
+                     //=================================================
 
                     LocationId = x.LocationId,
 
@@ -333,131 +333,118 @@ namespace whm.Repositories
                         : null,
 
 
-                    // =================================================
+                    //=================================================
+                    //BIN
+                    //=================================================
+
+                    //=================================================
                     // BIN
-                    // =================================================
+                    //=================================================
 
-                    BinId = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId)
-                        .Select(b => (int?)b.Bin_Id)
+                    BinId = _context.Locations
+                         .Where(l =>
+                           x.LocationId.HasValue &&
+                           l.LocationId == x.LocationId &&
+                           l.BinId.HasValue)
+                         .Select(l => l.BinId)
                         .FirstOrDefault(),
 
-                    BinName = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId)
-                        .Select(b => b.Bin_Name)
-                        .FirstOrDefault(),
+                       BinName = _context.Locations
+                      .Where(l =>
+                             x.LocationId.HasValue &&
+                             l.LocationId == x.LocationId &&
+                             l.BinId.HasValue)
+                      .Select(l => l.Bin != null
+                         ? l.Bin.Bin_Name
+                                : null)
+                                  .FirstOrDefault(),
 
-                    BinCode = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId)
-                        .Select(b => b.Bin_Code)
-                        .FirstOrDefault(),
-
-
-                    // =================================================
+                                BinCode = _context.Locations
+                          .Where(l =>
+                                  x.LocationId.HasValue &&
+                                   l.LocationId == x.LocationId &&
+                                    l.BinId.HasValue)
+                           .Select(l => l.Bin != null
+                                    ? l.Bin.Bin_Code
+                                             : null)
+                           .FirstOrDefault(),
+                    //=================================================
                     // SHELF
-                    // =================================================
+                    //=================================================
 
-                    ShelfId = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf_Id.HasValue)
-                        .Select(b => b.Shelf_Id)
-                        .FirstOrDefault(),
+                    ShelfId = x.Location != null
+    ? x.Location.ShelfId
+    : null,
 
-                    ShelfName = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null)
-                        .Select(b => b.Shelf!.Shelf_Name)
-                        .FirstOrDefault(),
+                    ShelfName = x.Location != null && x.Location.Shelf != null
+    ? x.Location.Shelf.Shelf_Name
+    : null,
 
-                    ShelfCode = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null)
-                        .Select(b => b.Shelf!.Shelf_Code)
-                        .FirstOrDefault(),
+                    ShelfCode = x.Location != null && x.Location.Shelf != null
+    ? x.Location.Shelf.Shelf_Code
+    : null,
 
 
                     // =================================================
                     // RACK
                     // =================================================
 
-                    RackId = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null &&
-                            b.Shelf.Row_Id.HasValue)
-                        .Select(b => b.Shelf!.Row_Id)
-                        .FirstOrDefault(),
+                    RackId = x.Location != null &&
+         x.Location.Bin != null &&
+         x.Location.Bin.Shelf != null
+    ? x.Location.Bin.Shelf.Rack_Id
+    : null,
 
-                    RackName = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null &&
-                            b.Shelf.Row != null)
-                        .Select(b => b.Shelf!.Row!.Rack_Name)
-                        .FirstOrDefault(),
+                    RackName = x.Location != null &&
+           x.Location.Bin != null &&
+           x.Location.Bin.Shelf != null &&
+           x.Location.Bin.Shelf.Rack != null
+    ? x.Location.Bin.Shelf.Rack.Rack_Name
+    : null,
 
-                    RackCode = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null &&
-                            b.Shelf.Row != null)
-                        .Select(b => b.Shelf!.Row!.Rack_Code)
-                        .FirstOrDefault(),
+                    RackCode = x.Location != null &&
+           x.Location.Bin != null &&
+           x.Location.Bin.Shelf != null &&
+           x.Location.Bin.Shelf.Rack != null
+    ? x.Location.Bin.Shelf.Rack.Rack_Code
+    : null,
 
 
                     // =================================================
                     // ROOM
                     // =================================================
 
-                    RoomId = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null &&
-                            b.Shelf.Row != null &&
-                            b.Shelf.Row.Room_Id.HasValue)
-                        .Select(b => b.Shelf!.Row!.Room_Id)
-                        .FirstOrDefault(),
-
-                    RoomName = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null &&
-                            b.Shelf.Row != null &&
-                            b.Shelf.Row.Room != null)
-                        .Select(b => b.Shelf!.Row!.Room!.Room_Name)
-                        .FirstOrDefault(),
-
-                    RoomCode = _context.Bins
-                        .Where(b =>
-                            x.LocationId.HasValue &&
-                            b.LocationId == x.LocationId &&
-                            b.Shelf != null &&
-                            b.Shelf.Row != null &&
-                            b.Shelf.Row.Room != null)
-                        .Select(b => b.Shelf!.Row!.Room!.Room_Code)
-                        .FirstOrDefault(),
-
-
                     // =================================================
-                    // SUPPLIER
+                    // ROOM
                     // =================================================
+
+                    RoomId = x.Location != null &&
+         x.Location.Bin != null &&
+         x.Location.Bin.Shelf != null &&
+         x.Location.Bin.Shelf.Rack != null
+    ? x.Location.Bin.Shelf.Rack.Room_Id
+    : null,
+
+                    RoomName = x.Location != null &&
+           x.Location.Bin != null &&
+           x.Location.Bin.Shelf != null &&
+           x.Location.Bin.Shelf.Rack != null &&
+           x.Location.Bin.Shelf.Rack.Room != null
+    ? x.Location.Bin.Shelf.Rack.Room.Room_Name
+    : null,
+
+                    RoomCode = x.Location != null &&
+           x.Location.Bin != null &&
+           x.Location.Bin.Shelf != null &&
+           x.Location.Bin.Shelf.Rack != null &&
+           x.Location.Bin.Shelf.Rack.Room != null
+    ? x.Location.Bin.Shelf.Rack.Room.Room_Code
+    : null,
+
+
+                    //=================================================
+                    //SUPPLIER
+                    //=================================================
 
                     SupplierId = x.SupplierId,
 

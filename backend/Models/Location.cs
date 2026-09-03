@@ -1,50 +1,89 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using whm.Models;
 
-public class Location
+namespace whm.Models
 {
-    [Key]
-    public int LocationId { get; set; }
+    public class Location
+    {
+        [Key]
+        public int LocationId { get; set; }
 
-    // Warehouse - OPTIONAL
-    public int? WarehouseId { get; set; }
-    public Warehouse? Warehouse { get; set; }
+        // ==========================================
+        // Warehouse - OPTIONAL
+        // ==========================================
 
-    // Parent Location - OPTIONAL
-    public int? ParentLocationId { get; set; }
-    public Location? ParentLocation { get; set; }
+        public int? WarehouseId { get; set; }
 
-    public ICollection<Location> ChildLocations { get; set; }
-        = new List<Location>();
+        public Warehouse? Warehouse { get; set; }
 
-    [Required]
-    [MaxLength(50)]
-    public string Code { get; set; } = string.Empty;
 
-    [Required]
-    [MaxLength(150)]
-    public string Name { get; set; } = string.Empty;
+        // ==========================================
+        // Parent Location - OPTIONAL
+        // ==========================================
 
-    [Required]
-    [MaxLength(50)]
-    public string Type { get; set; } = string.Empty;
+        public int? ParentLocationId { get; set; }
 
-    public bool IsActive { get; set; } = true;
+        public Location? ParentLocation { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+        public ICollection<Location> ChildLocations { get; set; }
+            = new List<Location>();
 
-    public DateTimeOffset UpdatedAt { get; set; }
 
-    // Physical Locations
-    public ICollection<Room> Rooms { get; set; }
-        = new List<Room>();
+        // ==========================================
+        // Room - OPTIONAL
+        // ==========================================
 
-    public ICollection<Rack> Racks { get; set; }
-        = new List<Rack>();
+        public int? RoomId { get; set; }
 
-    public ICollection<Shelf> Shelves { get; set; }
-        = new List<Shelf>();
+        public Room? Room { get; set; }
 
-    public ICollection<Bin> Bins { get; set; }
-        = new List<Bin>();
+
+        // ==========================================
+        // Rack - OPTIONAL
+        // ==========================================
+
+        public int? RackId { get; set; }
+
+        public Rack? Rack { get; set; }
+
+
+        // ==========================================
+        // Shelf - OPTIONAL
+        // ==========================================
+
+        public int? ShelfId { get; set; }
+
+        public Shelf? Shelf { get; set; }
+
+
+        // ==========================================
+        // Bin - OPTIONAL
+        // ==========================================
+
+        public int? BinId { get; set; }
+
+        public Bin? Bin { get; set; }
+
+
+        // ==========================================
+        // Location Details
+        // ==========================================
+
+        [Required]
+        [MaxLength(50)]
+        public string Code { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(150)]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(50)]
+        public string Type { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; } = true;
+
+        public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset UpdatedAt { get; set; }
+    }
 }

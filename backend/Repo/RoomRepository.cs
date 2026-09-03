@@ -14,7 +14,6 @@ namespace whm.Repositories
             _context = context;
         }
 
-
         // =====================================================
         // GET ALL
         // =====================================================
@@ -31,10 +30,9 @@ namespace whm.Repositories
                 .AsNoTracking()
                 .AsQueryable();
 
-
-            // =================================================
-            // WAREHOUSE FILTER
-            // =================================================
+            // -------------------------------------------------
+            // FILTER BY WAREHOUSE
+            // -------------------------------------------------
 
             if (warehouseId.HasValue)
             {
@@ -42,21 +40,21 @@ namespace whm.Repositories
                     x.Warehouse_Id == warehouseId.Value);
             }
 
-
-            // =================================================
-            // LOCATION FILTER
-            // =================================================
+            // -------------------------------------------------
+            // FILTER BY LOCATION
+            // -------------------------------------------------
 
             if (locationId.HasValue)
             {
                 query = query.Where(x =>
-                    x.LocationId == locationId.Value);
+                    _context.Locations.Any(l =>
+                        l.LocationId == locationId.Value &&
+                        l.RoomId == x.Room_Id));
             }
 
-
-            // =================================================
+            // -------------------------------------------------
             // SEARCH
-            // =================================================
+            // -------------------------------------------------
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -68,10 +66,9 @@ namespace whm.Repositories
                      x.Room_Code.Contains(search)));
             }
 
-
-            // =================================================
-            // STATUS FILTER
-            // =================================================
+            // -------------------------------------------------
+            // STATUS
+            // -------------------------------------------------
 
             if (!string.IsNullOrWhiteSpace(status))
             {
@@ -79,28 +76,36 @@ namespace whm.Repositories
                     "active",
                     StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(x => x.IsActive);
+                    query = query.Where(x =>
+                        x.IsActive);
                 }
                 else if (status.Equals(
                     "inactive",
                     StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(x => !x.IsActive);
+                    query = query.Where(x =>
+                        !x.IsActive);
                 }
             }
 
+            // -------------------------------------------------
+            // PAGINATION
+            // -------------------------------------------------
 
-            // =================================================
-            // SELECT
-            // =================================================
+            if (page < 1)
+                page = 1;
+
+            if (pageSize < 1)
+                pageSize = 20;
+
+            // -------------------------------------------------
+            // RESULT
+            // -------------------------------------------------
 
             return await query
                 .OrderBy(x => x.Room_Name)
-
                 .Skip((page - 1) * pageSize)
-
                 .Take(pageSize)
-
                 .Select(x => new RoomDto
                 {
                     RoomId = x.Room_Id,
@@ -111,12 +116,6 @@ namespace whm.Repositories
                         ? x.Warehouse.Name
                         : null,
 
-                    LocationId = x.LocationId,
-
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
-
                     Code = x.Room_Code ?? string.Empty,
 
                     Name = x.Room_Name,
@@ -125,9 +124,8 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    RackCount = x.Rows.Count
+                    RackCount = x.Racks.Count
                 })
-
                 .ToListAsync();
         }
 
@@ -139,11 +137,8 @@ namespace whm.Repositories
         public async Task<RoomDto?> GetByIdAsync(int id)
         {
             return await _context.Rooms
-
                 .AsNoTracking()
-
                 .Where(x => x.Room_Id == id)
-
                 .Select(x => new RoomDto
                 {
                     RoomId = x.Room_Id,
@@ -154,12 +149,6 @@ namespace whm.Repositories
                         ? x.Warehouse.Name
                         : null,
 
-                    LocationId = x.LocationId,
-
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
-
                     Code = x.Room_Code ?? string.Empty,
 
                     Name = x.Room_Name,
@@ -168,9 +157,8 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    RackCount = x.Rows.Count
+                    RackCount = x.Racks.Count
                 })
-
                 .FirstOrDefaultAsync();
         }
 
@@ -182,7 +170,8 @@ namespace whm.Repositories
         public async Task<Room?> GetEntityByIdAsync(int id)
         {
             return await _context.Rooms
-                .FirstOrDefaultAsync(x => x.Room_Id == id);
+                .FirstOrDefaultAsync(x =>
+                    x.Room_Id == id);
         }
 
 
@@ -194,14 +183,10 @@ namespace whm.Repositories
             int warehouseId)
         {
             return await _context.Rooms
-
                 .AsNoTracking()
-
                 .Where(x =>
                     x.Warehouse_Id == warehouseId)
-
                 .OrderBy(x => x.Room_Name)
-
                 .Select(x => new RoomDto
                 {
                     RoomId = x.Room_Id,
@@ -212,12 +197,6 @@ namespace whm.Repositories
                         ? x.Warehouse.Name
                         : null,
 
-                    LocationId = x.LocationId,
-
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
-
                     Code = x.Room_Code ?? string.Empty,
 
                     Name = x.Room_Name,
@@ -226,9 +205,8 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    RackCount = x.Rows.Count
+                    RackCount = x.Racks.Count
                 })
-
                 .ToListAsync();
         }
 
@@ -241,14 +219,12 @@ namespace whm.Repositories
             int locationId)
         {
             return await _context.Rooms
-
                 .AsNoTracking()
-
                 .Where(x =>
-                    x.LocationId == locationId)
-
+                    _context.Locations.Any(l =>
+                        l.LocationId == locationId &&
+                        l.RoomId == x.Room_Id))
                 .OrderBy(x => x.Room_Name)
-
                 .Select(x => new RoomDto
                 {
                     RoomId = x.Room_Id,
@@ -259,12 +235,6 @@ namespace whm.Repositories
                         ? x.Warehouse.Name
                         : null,
 
-                    LocationId = x.LocationId,
-
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
-
                     Code = x.Room_Code ?? string.Empty,
 
                     Name = x.Room_Name,
@@ -273,9 +243,8 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    RackCount = x.Rows.Count
+                    RackCount = x.Racks.Count
                 })
-
                 .ToListAsync();
         }
 

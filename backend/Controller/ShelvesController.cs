@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.Shelf;
 using whm.Models;
 using whm.UnitOfWork;
@@ -7,6 +8,7 @@ namespace whm.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ShelvesController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -15,7 +17,6 @@ namespace whm.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-
 
         // =====================================================
         // GET /api/shelves
@@ -39,18 +40,16 @@ namespace whm.Controllers
             if (pageSize > 100)
                 pageSize = 100;
 
-            var shelves =
-                await _unitOfWork.Shelves.GetAllAsync(
-                    rackId,
-                    locationId,
-                    search,
-                    status,
-                    page,
-                    pageSize);
+            var shelves = await _unitOfWork.Shelves.GetAllAsync(
+                rackId,
+                locationId,
+                search,
+                status,
+                page,
+                pageSize);
 
             return Ok(shelves);
         }
-
 
         // =====================================================
         // GET /api/shelves/{id}
@@ -59,9 +58,16 @@ namespace whm.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetShelf(int id)
         {
-            var shelf =
-                await _unitOfWork.Shelves
-                    .GetByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid ShelfId."
+                });
+            }
+
+            var shelf = await _unitOfWork.Shelves
+                .GetByIdAsync(id);
 
             if (shelf == null)
             {
@@ -74,7 +80,6 @@ namespace whm.Controllers
             return Ok(shelf);
         }
 
-
         // =====================================================
         // POST /api/shelves
         // =====================================================
@@ -85,62 +90,6 @@ namespace whm.Controllers
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
-
-
-            // =================================================
-            // VALIDATE RACK
-            // =================================================
-
-            if (dto.RackId.HasValue)
-            {
-                var rack =
-                    await _unitOfWork.Racks
-                        .GetEntityByIdAsync(
-                            dto.RackId.Value);
-
-                if (rack == null)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Rack not found."
-                    });
-                }
-            }
-
-
-            // =================================================
-            // VALIDATE LOCATION
-            // =================================================
-
-            if (dto.LocationId.HasValue)
-            {
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(
-                            dto.LocationId.Value);
-
-                if (location == null)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Location not found."
-                    });
-                }
-            }
-
-
-            // =================================================
-            // VALIDATE CODE
-            // =================================================
-
-            if (string.IsNullOrWhiteSpace(dto.Code))
-            {
-                return BadRequest(new
-                {
-                    message = "Shelf code is required."
-                });
-            }
-
 
             // =================================================
             // VALIDATE NAME
@@ -154,16 +103,98 @@ namespace whm.Controllers
                 });
             }
 
+            // =================================================
+            // VALIDATE CODE
+            // =================================================
+
+            if (string.IsNullOrWhiteSpace(dto.Code))
+            {
+                return BadRequest(new
+                {
+                    message = "Shelf code is required."
+                });
+            }
 
             // =================================================
-            // CREATE
+            // VALIDATE RACK
+            // =================================================
+
+            if (dto.RackId.HasValue)
+            {
+                if (dto.RackId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid RackId."
+                    });
+                }
+
+                var rack = await _unitOfWork.Racks
+                    .GetEntityByIdAsync(dto.RackId.Value);
+
+                if (rack == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Rack not found."
+                    });
+                }
+            }
+
+            // =================================================
+            // VALIDATE LOCATION
+            // =================================================
+
+            Location? location = null;
+
+            if (dto.LocationId.HasValue)
+            {
+                if (dto.LocationId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid LocationId."
+                    });
+                }
+
+                location = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(dto.LocationId.Value);
+
+                if (location == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Location not found."
+                    });
+                }
+
+                // Location already assigned to another Shelf
+                if (location.ShelfId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to a Shelf."
+                    });
+                }
+
+                // A Shelf Location cannot already belong
+                // to a Bin.
+                if (location.BinId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to a Bin."
+                    });
+                }
+            }
+
+            // =================================================
+            // CREATE SHELF
             // =================================================
 
             var shelf = new Shelf
             {
-                Row_Id = dto.RackId,
-
-                LocationId = dto.LocationId,
+                Rack_Id = dto.RackId,
 
                 Shelf_Code = dto.Code.Trim(),
 
@@ -177,21 +208,37 @@ namespace whm.Controllers
 
             await _unitOfWork.SaveAsync();
 
+            // =================================================
+            // ASSIGN LOCATION → SHELF
+            //
+            // Location contains ShelfId
+            // =================================================
+
+            if (location != null)
+            {
+                location.ShelfId = shelf.Shelf_Id;
+
+                _unitOfWork.Locations
+                    .Update(location);
+
+                await _unitOfWork.SaveAsync();
+            }
 
             // =================================================
             // RESULT
             // =================================================
 
-            var result =
-                await _unitOfWork.Shelves
-                    .GetByIdAsync(shelf.Shelf_Id);
+            var result = await _unitOfWork.Shelves
+                .GetByIdAsync(shelf.Shelf_Id);
 
             return CreatedAtAction(
                 nameof(GetShelf),
-                new { id = shelf.Shelf_Id },
+                new
+                {
+                    id = shelf.Shelf_Id
+                },
                 result);
         }
-
 
         // =====================================================
         // PUT /api/shelves/{id}
@@ -205,14 +252,20 @@ namespace whm.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid ShelfId."
+                });
+            }
 
             // =================================================
             // GET SHELF
             // =================================================
 
-            var shelf =
-                await _unitOfWork.Shelves
-                    .GetEntityByIdAsync(id);
+            var shelf = await _unitOfWork.Shelves
+                .GetEntityByIdAsync(id);
 
             if (shelf == null)
             {
@@ -222,17 +275,22 @@ namespace whm.Controllers
                 });
             }
 
-
             // =================================================
-            // VALIDATE RACK
+            // UPDATE RACK
             // =================================================
 
             if (dto.RackId.HasValue)
             {
-                var rack =
-                    await _unitOfWork.Racks
-                        .GetEntityByIdAsync(
-                            dto.RackId.Value);
+                if (dto.RackId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid RackId."
+                    });
+                }
+
+                var rack = await _unitOfWork.Racks
+                    .GetEntityByIdAsync(dto.RackId.Value);
 
                 if (rack == null)
                 {
@@ -242,26 +300,27 @@ namespace whm.Controllers
                     });
                 }
 
-                shelf.Row_Id = dto.RackId.Value;
+                shelf.Rack_Id = dto.RackId.Value;
             }
-            else
-            {
-                shelf.Row_Id = null;
-            }
-
 
             // =================================================
-            // VALIDATE LOCATION
+            // UPDATE LOCATION
             // =================================================
 
             if (dto.LocationId.HasValue)
             {
-                var location =
-                    await _unitOfWork.Locations
-                        .GetEntityByIdAsync(
-                            dto.LocationId.Value);
+                if (dto.LocationId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid LocationId."
+                    });
+                }
 
-                if (location == null)
+                var newLocation = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(dto.LocationId.Value);
+
+                if (newLocation == null)
                 {
                     return BadRequest(new
                     {
@@ -269,16 +328,48 @@ namespace whm.Controllers
                     });
                 }
 
-                shelf.LocationId = dto.LocationId.Value;
-            }
-            else
-            {
-                shelf.LocationId = null;
-            }
+                // Location belongs to another Shelf
+                if (newLocation.ShelfId.HasValue &&
+                    newLocation.ShelfId.Value != shelf.Shelf_Id)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to another Shelf."
+                    });
+                }
 
+                // Location belongs to a Bin
+                if (newLocation.BinId.HasValue)
+                {
+                    return BadRequest(new
+                    {
+                        message = "This Location is already assigned to a Bin."
+                    });
+                }
+
+                // Find current Location assigned to this Shelf
+                var currentLocation = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(shelf.Shelf_Id);
+
+                // Remove old relationship
+                if (currentLocation != null &&
+                    currentLocation.LocationId != newLocation.LocationId)
+                {
+                    currentLocation.ShelfId = null;
+
+                    _unitOfWork.Locations
+                        .Update(currentLocation);
+                }
+
+                // Assign new Location → Shelf
+                newLocation.ShelfId = shelf.Shelf_Id;
+
+                _unitOfWork.Locations
+                    .Update(newLocation);
+            }
 
             // =================================================
-            // CODE
+            // UPDATE CODE
             // =================================================
 
             if (dto.Code != null)
@@ -291,13 +382,11 @@ namespace whm.Controllers
                     });
                 }
 
-                shelf.Shelf_Code =
-                    dto.Code.Trim();
+                shelf.Shelf_Code = dto.Code.Trim();
             }
 
-
             // =================================================
-            // NAME
+            // UPDATE NAME
             // =================================================
 
             if (dto.Name != null)
@@ -310,24 +399,20 @@ namespace whm.Controllers
                     });
                 }
 
-                shelf.Shelf_Name =
-                    dto.Name.Trim();
+                shelf.Shelf_Name = dto.Name.Trim();
             }
 
-
             // =================================================
-            // STATUS
+            // UPDATE STATUS
             // =================================================
 
             if (dto.IsActive.HasValue)
             {
-                shelf.IsActive =
-                    dto.IsActive.Value;
+                shelf.IsActive = dto.IsActive.Value;
             }
 
-
             // =================================================
-            // UPDATE
+            // SAVE
             // =================================================
 
             _unitOfWork.Shelves
@@ -335,14 +420,15 @@ namespace whm.Controllers
 
             await _unitOfWork.SaveAsync();
 
+            // =================================================
+            // RESULT
+            // =================================================
 
-            var result =
-                await _unitOfWork.Shelves
-                    .GetByIdAsync(id);
+            var result = await _unitOfWork.Shelves
+                .GetByIdAsync(id);
 
             return Ok(result);
         }
-
 
         // =====================================================
         // DELETE /api/shelves/{id}
@@ -351,9 +437,16 @@ namespace whm.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteShelf(int id)
         {
-            var shelf =
-                await _unitOfWork.Shelves
-                    .GetEntityByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid ShelfId."
+                });
+            }
+
+            var shelf = await _unitOfWork.Shelves
+                .GetEntityByIdAsync(id);
 
             if (shelf == null)
             {
@@ -363,6 +456,39 @@ namespace whm.Controllers
                 });
             }
 
+            // =================================================
+            // PREVENT DELETE IF SHELF HAS BINS
+            // =================================================
+
+            var bins = await _unitOfWork.Bins
+                .GetByShelfIdAsync(id);
+
+            if (bins.Any())
+            {
+                return BadRequest(new
+                {
+                    message = "Cannot delete shelf because it contains bins."
+                });
+            }
+
+            // =================================================
+            // REMOVE LOCATION → SHELF RELATION
+            // =================================================
+
+            var location = await _unitOfWork.Locations
+                .GetEntityByIdAsync(id);
+
+            if (location != null)
+            {
+                location.ShelfId = null;
+
+                _unitOfWork.Locations
+                    .Update(location);
+            }
+
+            // =================================================
+            // DELETE SHELF
+            // =================================================
 
             _unitOfWork.Shelves
                 .Delete(shelf);
@@ -375,18 +501,23 @@ namespace whm.Controllers
             });
         }
 
-
         // =====================================================
         // GET /api/shelves/rack/{rackId}
         // =====================================================
 
         [HttpGet("rack/{rackId:int}")]
-        public async Task<IActionResult> GetByRack(
-            int rackId)
+        public async Task<IActionResult> GetByRack(int rackId)
         {
-            var rack =
-                await _unitOfWork.Racks
-                    .GetEntityByIdAsync(rackId);
+            if (rackId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid RackId."
+                });
+            }
+
+            var rack = await _unitOfWork.Racks
+                .GetEntityByIdAsync(rackId);
 
             if (rack == null)
             {
@@ -396,25 +527,29 @@ namespace whm.Controllers
                 });
             }
 
-            var shelves =
-                await _unitOfWork.Shelves
-                    .GetByRackIdAsync(rackId);
+            var shelves = await _unitOfWork.Shelves
+                .GetByRackIdAsync(rackId);
 
             return Ok(shelves);
         }
-
 
         // =====================================================
         // GET /api/shelves/location/{locationId}
         // =====================================================
 
         [HttpGet("location/{locationId:int}")]
-        public async Task<IActionResult> GetByLocation(
-            int locationId)
+        public async Task<IActionResult> GetByLocation(int locationId)
         {
-            var location =
-                await _unitOfWork.Locations
-                    .GetEntityByIdAsync(locationId);
+            if (locationId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid LocationId."
+                });
+            }
+
+            var location = await _unitOfWork.Locations
+                .GetEntityByIdAsync(locationId);
 
             if (location == null)
             {
@@ -424,9 +559,8 @@ namespace whm.Controllers
                 });
             }
 
-            var shelves =
-                await _unitOfWork.Shelves
-                    .GetByLocationIdAsync(locationId);
+            var shelves = await _unitOfWork.Shelves
+                .GetByLocationIdAsync(locationId);
 
             return Ok(shelves);
         }
