@@ -50,6 +50,7 @@ namespace whm.Models
         public DateTimeOffset? ApprovedAt { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
 
 
         // =========================
