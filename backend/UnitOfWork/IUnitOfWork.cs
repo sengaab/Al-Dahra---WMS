@@ -30,6 +30,8 @@ namespace whm.UnitOfWork
         IShelfRepository Shelves { get; }
         IBinRepository Bins { get; }
         ISiteRepository Sites { get; }
+        IPurchaseOrderRepository PurchaseOrders { get; }
+        IReceiptRepository ReceiptRepository { get; }
 
 
         Task<int> SaveAsync();

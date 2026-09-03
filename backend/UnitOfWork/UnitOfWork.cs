@@ -39,6 +39,8 @@ namespace whm.UnitOfWork
         public IShelfRepository Shelves { get; }
         public IBinRepository Bins { get; }
         public ISiteRepository Sites { get; }
+        public IPurchaseOrderRepository PurchaseOrders { get; }
+        public IReceiptRepository ReceiptRepository { get; }
 
 
         public UnitOfWork(
@@ -65,7 +67,10 @@ namespace whm.UnitOfWork
             IRackRepository rackRepository,
             IShelfRepository shelfRepository,
             IBinRepository binRepository,
-            ISiteRepository siteRepository
+            ISiteRepository siteRepository,
+            IPurchaseOrderRepository purchaseOrderRepository,
+            IReceiptRepository receiptRepository
+     
             
 
             )
@@ -101,6 +106,8 @@ namespace whm.UnitOfWork
             Shelves = shelfRepository;
             Bins = binRepository;
             Sites = siteRepository;
+            PurchaseOrders = purchaseOrderRepository;   
+            ReceiptRepository = receiptRepository;
 
 
         }
