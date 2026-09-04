@@ -1,4 +1,6 @@
-﻿namespace whm.DTOs.Warehouse
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace whm.DTOs.Warehouse
 {
     // =====================================================
     // WAREHOUSE DTO
@@ -8,7 +10,6 @@
     {
         public int WarehouseId { get; set; }
 
-        // Warehouse MUST belong to a Site
         public int SiteId { get; set; }
 
         public string SiteName { get; set; } = string.Empty;
@@ -25,7 +26,14 @@
 
         public DateTimeOffset UpdatedAt { get; set; }
 
-        public int LocationCount { get; set; }
+        // Number of partitions inside this warehouse
+        public int PartitionsCount { get; set; }
+
+        // Number of bins inside this warehouse
+        public int BinsCount { get; set; }
+
+        // Number of locations inside this warehouse
+        public int LocationsCount { get; set; }
     }
 
 
@@ -36,13 +44,18 @@
 
     public class CreateWarehouseDto
     {
-        // REQUIRED
+        [Required]
         public int SiteId { get; set; }
 
+        [Required]
+        [MaxLength(50)]
         public string Code { get; set; } = string.Empty;
 
+        [Required]
+        [MaxLength(150)]
         public string Name { get; set; } = string.Empty;
 
+        [MaxLength(500)]
         public string? Description { get; set; }
     }
 
@@ -56,37 +69,16 @@
     {
         public int? SiteId { get; set; }
 
+        [MaxLength(50)]
         public string? Code { get; set; }
 
+        [MaxLength(150)]
         public string? Name { get; set; }
 
+        [MaxLength(500)]
         public string? Description { get; set; }
 
         public bool? IsActive { get; set; }
-    }
-
-
-    // =====================================================
-    // LOCATION DTO
-    // =====================================================
-
-    public class WarehouseLocationDto
-    {
-        public int LocationId { get; set; }
-
-        // OPTIONAL
-        public int? WarehouseId { get; set; }
-
-        // OPTIONAL
-        public int? ParentLocationId { get; set; }
-
-        public string Code { get; set; } = string.Empty;
-
-        public string Name { get; set; } = string.Empty;
-
-        public string Type { get; set; } = string.Empty;
-
-        public bool IsActive { get; set; }
     }
 
 
@@ -100,11 +92,23 @@
 
         public string WarehouseName { get; set; } = string.Empty;
 
+        // =================================================
+        // STRUCTURE
+        // =================================================
+
+        public int TotalPartitions { get; set; }
+
+        public int TotalBins { get; set; }
+
         public int TotalLocations { get; set; }
 
         public int ActiveLocations { get; set; }
 
         public int InactiveLocations { get; set; }
+
+        // =================================================
+        // STOCK
+        // =================================================
 
         public int TotalStockItems { get; set; }
 

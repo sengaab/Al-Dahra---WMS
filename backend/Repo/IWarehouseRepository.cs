@@ -7,7 +7,7 @@ namespace whm.Repositories.Interfaces
     public interface IWarehouseRepository
     {
         // =====================================================
-        // GET
+        // GET ALL
         // =====================================================
 
         Task<List<WarehouseDto>> GetAllAsync(
@@ -17,21 +17,23 @@ namespace whm.Repositories.Interfaces
             int page = 1,
             int pageSize = 20);
 
+
+        // =====================================================
+        // GET BY ID
+        // =====================================================
+
         Task<WarehouseDto?> GetByIdAsync(int id);
+
+
+        // =====================================================
+        // GET ENTITY
+        // =====================================================
 
         Task<Warehouse?> GetEntityByIdAsync(int id);
 
 
         // =====================================================
-        // LOCATIONS
-        // =====================================================
-
-        Task<List<WarehouseLocationDto>> GetLocationsAsync(
-            int warehouseId);
-
-
-        // =====================================================
-        // INVENTORY
+        // GET INVENTORY
         // =====================================================
 
         Task<List<StockDto>> GetInventoryAsync(

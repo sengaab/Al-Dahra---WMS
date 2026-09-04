@@ -63,9 +63,7 @@ namespace whm
             builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
             builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
             builder.Services.AddScoped<ILocationRepository, LocationRepository>();
-            builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-            builder.Services.AddScoped<IRackRepository, RackRepository>();
-            builder.Services.AddScoped<IShelfRepository, ShelfRepository>();
+            builder.Services.AddScoped<IPartitionRepository, PartitionRepository>();
             builder.Services.AddScoped<IBinRepository, BinRepository>();
             builder.Services.AddScoped<ISiteRepository, SiteRepository>();
             builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
