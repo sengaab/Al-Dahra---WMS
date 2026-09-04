@@ -25,13 +25,12 @@ namespace whm.UnitOfWork
         ISupplierRepository Suppliers { get; }
          IWarehouseRepository Warehouses { get; }
         ILocationRepository Locations { get; }
-        IRoomRepository Rooms { get; }
-        IRackRepository Racks { get; }
-        IShelfRepository Shelves { get; }
+     
         IBinRepository Bins { get; }
         ISiteRepository Sites { get; }
         IPurchaseOrderRepository PurchaseOrders { get; }
         IReceiptRepository ReceiptRepository { get; }
+        IPartitionRepository Partitions { get; }
 
 
         Task<int> SaveAsync();

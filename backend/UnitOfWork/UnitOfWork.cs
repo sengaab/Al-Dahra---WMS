@@ -34,13 +34,12 @@ namespace whm.UnitOfWork
         public ISupplierRepository Suppliers { get; }
         public IWarehouseRepository Warehouses { get; }
         public ILocationRepository Locations { get; }
-        public IRoomRepository Rooms { get; }
-        public IRackRepository Racks { get; }
-        public IShelfRepository Shelves { get; }
+     
         public IBinRepository Bins { get; }
         public ISiteRepository Sites { get; }
         public IPurchaseOrderRepository PurchaseOrders { get; }
         public IReceiptRepository ReceiptRepository { get; }
+        public IPartitionRepository Partitions { get; }
 
 
         public UnitOfWork(
@@ -64,14 +63,14 @@ namespace whm.UnitOfWork
             ISupplierRepository supplierRepository,
             IWarehouseRepository warehouseRepository,
             ILocationRepository locationRepository,
-            IRackRepository rackRepository,
-            IShelfRepository shelfRepository,
+         
             IBinRepository binRepository,
             ISiteRepository siteRepository,
             IPurchaseOrderRepository purchaseOrderRepository,
-            IReceiptRepository receiptRepository
-     
-            
+            IReceiptRepository receiptRepository,
+            IPartitionRepository partitionRepository
+
+
 
             )
         {
@@ -102,12 +101,12 @@ namespace whm.UnitOfWork
             Suppliers= supplierRepository;
             Warehouses= warehouseRepository;
             Locations = locationRepository;
-            Racks = rackRepository;
-            Shelves = shelfRepository;
+           
             Bins = binRepository;
             Sites = siteRepository;
             PurchaseOrders = purchaseOrderRepository;   
             ReceiptRepository = receiptRepository;
+            Partitions = partitionRepository;
 
 
         }

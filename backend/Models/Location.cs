@@ -7,61 +7,15 @@ namespace whm.Models
         [Key]
         public int LocationId { get; set; }
 
-        // ==========================================
-        // Warehouse - OPTIONAL
-        // ==========================================
-
-        public int? WarehouseId { get; set; }
-
-        public Warehouse? Warehouse { get; set; }
-
 
         // ==========================================
-        // Parent Location - OPTIONAL
+        // Bin
         // ==========================================
 
-        public int? ParentLocationId { get; set; }
+        [Required]
+        public int BinId { get; set; }
 
-        public Location? ParentLocation { get; set; }
-
-        public ICollection<Location> ChildLocations { get; set; }
-            = new List<Location>();
-
-
-        // ==========================================
-        // Room - OPTIONAL
-        // ==========================================
-
-        public int? RoomId { get; set; }
-
-        public Room? Room { get; set; }
-
-
-        // ==========================================
-        // Rack - OPTIONAL
-        // ==========================================
-
-        public int? RackId { get; set; }
-
-        public Rack? Rack { get; set; }
-
-
-        // ==========================================
-        // Shelf - OPTIONAL
-        // ==========================================
-
-        public int? ShelfId { get; set; }
-
-        public Shelf? Shelf { get; set; }
-
-
-        // ==========================================
-        // Bin - OPTIONAL
-        // ==========================================
-
-        public int? BinId { get; set; }
-
-        public Bin? Bin { get; set; }
+        public Bin Bin { get; set; } = null!;
 
 
         // ==========================================
@@ -82,8 +36,21 @@ namespace whm.Models
 
         public bool IsActive { get; set; } = true;
 
+
+        // ==========================================
+        // Audit
+        // ==========================================
+
         public DateTimeOffset CreatedAt { get; set; }
 
         public DateTimeOffset UpdatedAt { get; set; }
+
+
+        // ==========================================
+        // Stock
+        // ==========================================
+
+        public ICollection<Stock> Stocks { get; set; }
+            = new List<Stock>();
     }
 }

@@ -34,45 +34,14 @@
 
 
         // =========================
-        // Location
+        // Partition
         // =========================
 
-        public int? LocationId { get; set; }
+        public int? PartitionId { get; set; }
 
-        public string? LocationName { get; set; }
+        public string? PartitionName { get; set; }
 
-
-        // =========================
-        // Room
-        // =========================
-
-        public int? RoomId { get; set; }
-
-        public string? RoomName { get; set; }
-
-        public string? RoomCode { get; set; }
-
-
-        // =========================
-        // Rack
-        // =========================
-
-        public int? RackId { get; set; }
-
-        public string? RackName { get; set; }
-
-        public string? RackCode { get; set; }
-
-
-        // =========================
-        // Shelf
-        // =========================
-
-        public int? ShelfId { get; set; }
-
-        public string? ShelfName { get; set; }
-
-        public string? ShelfCode { get; set; }
+        public string? PartitionCode { get; set; }
 
 
         // =========================
@@ -84,6 +53,17 @@
         public string? BinName { get; set; }
 
         public string? BinCode { get; set; }
+
+
+        // =========================
+        // Location
+        // =========================
+
+        public int? LocationId { get; set; }
+
+        public string? LocationName { get; set; }
+
+        public string? LocationCode { get; set; }
 
 
         // =========================

@@ -7,6 +7,31 @@ namespace whm.Models
         [Key]
         public int Bin_Id { get; set; }
 
+
+        // ==========================================
+        // Warehouse
+        // ==========================================
+
+        [Required]
+        public int WarehouseId { get; set; }
+
+        public Warehouse Warehouse { get; set; } = null!;
+
+
+        // ==========================================
+        // Partition
+        // ==========================================
+
+        [Required]
+        public int PartitionId { get; set; }
+
+        public Partition Partition { get; set; } = null!;
+
+
+        // ==========================================
+        // Bin Details
+        // ==========================================
+
         [Required]
         [MaxLength(50)]
         public string Bin_Name { get; set; } = string.Empty;
@@ -21,27 +46,18 @@ namespace whm.Models
 
 
         // ==========================================
-        // Shelf - OPTIONAL
+        // Locations
         // ==========================================
 
-        public int? Shelf_Id { get; set; }
-
-        public Shelf? Shelf { get; set; }
-
-
-        // ==========================================
-        // Location - OPTIONAL
-        // Location contains the FK: BinId
-        // ==========================================
-
-        public Location? Location { get; set; }
+        public ICollection<Location> Locations { get; set; }
+            = new List<Location>();
 
 
         // ==========================================
         // Stocks
         // ==========================================
 
-        public List<Stock> Stocks { get; set; }
+        public ICollection<Stock> Stocks { get; set; }
             = new List<Stock>();
     }
 }
