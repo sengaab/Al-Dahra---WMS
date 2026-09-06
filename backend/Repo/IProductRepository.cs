@@ -74,7 +74,7 @@ namespace whm.Repositories.Interfaces
         Task<List<object>> GetStockByWarehouseAsync(int productId);
 
         Task<List<object>> GetStockByLocationAsync(int productId);
-
+        Task<ProductDto?> GetByQrValueAsync(string qrValue);
 
         // =====================================================
         // CRUD
