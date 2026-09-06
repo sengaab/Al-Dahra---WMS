@@ -81,7 +81,18 @@ namespace whm.Repositories
             return await BuildQuery()
                 .FirstOrDefaultAsync(x => x.Barcode == barcode);
         }
+        // =====================================================
+        // GET BY QR VALUE
+        // =====================================================
+        // Used to check whether a QRValue already exists
 
+        public async Task<ProductDto?> GetByQrValueAsync(string qrValue)
+        {
+            qrValue = qrValue.Trim();
+
+            return await BuildQuery()
+                .FirstOrDefaultAsync(x => x.QRValue == qrValue);
+        }
 
         // =====================================================
         // GET BY SKU
