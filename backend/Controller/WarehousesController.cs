@@ -20,14 +20,14 @@ namespace whm.Controllers
 
 
         // =====================================================
-        // GET /api/warehouses
+        // GET: api/warehouses
         // =====================================================
 
         [HttpGet]
         public async Task<IActionResult> GetWarehouses(
-            [FromQuery] int? siteId,
-            [FromQuery] string? search,
-            [FromQuery] string? status,
+            [FromQuery] int? siteId = null,
+            [FromQuery] string? search = null,
+            [FromQuery] string? status = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
@@ -53,14 +53,23 @@ namespace whm.Controllers
 
 
         // =====================================================
-        // GET /api/warehouses/{id}
+        // GET: api/warehouses/{id}
         // =====================================================
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetWarehouse(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
             var warehouse =
-                await _unitOfWork.Warehouses.GetByIdAsync(id);
+                await _unitOfWork.Warehouses
+                    .GetByIdAsync(id);
 
             if (warehouse == null)
             {
@@ -75,7 +84,7 @@ namespace whm.Controllers
 
 
         // =====================================================
-        // POST /api/warehouses
+        // POST: api/warehouses
         // =====================================================
 
         [HttpPost]
@@ -85,13 +94,35 @@ namespace whm.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
+
+            // =================================================
+            // Validate Site
+            // =================================================
+
             if (dto.SiteId <= 0)
             {
                 return BadRequest(new
                 {
-                    message = "SiteId is required."
+                    message = "Invalid SiteId."
                 });
             }
+
+            var site =
+                await _unitOfWork.Sites
+                    .GetEntityByIdAsync(dto.SiteId);
+
+            if (site == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Site not found."
+                });
+            }
+
+
+            // =================================================
+            // Validate Code
+            // =================================================
 
             if (string.IsNullOrWhiteSpace(dto.Code))
             {
@@ -101,6 +132,11 @@ namespace whm.Controllers
                 });
             }
 
+
+            // =================================================
+            // Validate Name
+            // =================================================
+
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
                 return BadRequest(new
@@ -109,34 +145,62 @@ namespace whm.Controllers
                 });
             }
 
+
+            // =================================================
+            // Create Warehouse
+            // =================================================
+
+            var now = DateTimeOffset.UtcNow;
+
             var warehouse = new Warehouse
             {
                 SiteId = dto.SiteId,
+
                 Code = dto.Code.Trim(),
+
                 Name = dto.Name.Trim(),
-                Description = dto.Description?.Trim(),
+
+                Description =
+                    string.IsNullOrWhiteSpace(dto.Description)
+                        ? null
+                        : dto.Description.Trim(),
+
                 IsActive = true,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
+
+                CreatedAt = now,
+
+                UpdatedAt = now
             };
 
-            await _unitOfWork.Warehouses.AddAsync(warehouse);
+
+            await _unitOfWork.Warehouses
+                .AddAsync(warehouse);
 
             await _unitOfWork.SaveAsync();
 
+
+            // =================================================
+            // Get Created Warehouse
+            // =================================================
+
             var result =
                 await _unitOfWork.Warehouses
-                    .GetByIdAsync(warehouse.WarehouseId);
+                    .GetByIdAsync(
+                        warehouse.WarehouseId);
+
 
             return CreatedAtAction(
                 nameof(GetWarehouse),
-                new { id = warehouse.WarehouseId },
+                new
+                {
+                    id = warehouse.WarehouseId
+                },
                 result);
         }
 
 
         // =====================================================
-        // PUT /api/warehouses/{id}
+        // PUT: api/warehouses/{id}
         // =====================================================
 
         [HttpPut("{id:int}")]
@@ -146,6 +210,20 @@ namespace whm.Controllers
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
+
+
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+
+            // =================================================
+            // Get Warehouse
+            // =================================================
 
             var warehouse =
                 await _unitOfWork.Warehouses
@@ -158,6 +236,11 @@ namespace whm.Controllers
                     message = "Warehouse not found."
                 });
             }
+
+
+            // =================================================
+            // Update Site
+            // =================================================
 
             if (dto.SiteId.HasValue)
             {
@@ -169,8 +252,29 @@ namespace whm.Controllers
                     });
                 }
 
-                warehouse.SiteId = dto.SiteId.Value;
+
+                var site =
+                    await _unitOfWork.Sites
+                        .GetEntityByIdAsync(
+                            dto.SiteId.Value);
+
+                if (site == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Site not found."
+                    });
+                }
+
+
+                warehouse.SiteId =
+                    dto.SiteId.Value;
             }
+
+
+            // =================================================
+            // Update Code
+            // =================================================
 
             if (dto.Code != null)
             {
@@ -178,12 +282,19 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message = "Warehouse code cannot be empty."
+                        message =
+                            "Warehouse code cannot be empty."
                     });
                 }
 
-                warehouse.Code = dto.Code.Trim();
+                warehouse.Code =
+                    dto.Code.Trim();
             }
+
+
+            // =================================================
+            // Update Name
+            // =================================================
 
             if (dto.Name != null)
             {
@@ -191,29 +302,62 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message = "Warehouse name cannot be empty."
+                        message =
+                            "Warehouse name cannot be empty."
                     });
                 }
 
-                warehouse.Name = dto.Name.Trim();
+                warehouse.Name =
+                    dto.Name.Trim();
             }
+
+
+            // =================================================
+            // Update Description
+            // =================================================
 
             if (dto.Description != null)
             {
                 warehouse.Description =
-                    dto.Description.Trim();
+                    string.IsNullOrWhiteSpace(
+                        dto.Description)
+                        ? null
+                        : dto.Description.Trim();
             }
+
+
+            // =================================================
+            // Update Status
+            // =================================================
 
             if (dto.IsActive.HasValue)
             {
-                warehouse.IsActive = dto.IsActive.Value;
+                warehouse.IsActive =
+                    dto.IsActive.Value;
             }
 
-            warehouse.UpdatedAt = DateTimeOffset.UtcNow;
 
-            _unitOfWork.Warehouses.Update(warehouse);
+            // =================================================
+            // Updated At
+            // =================================================
+
+            warehouse.UpdatedAt =
+                DateTimeOffset.UtcNow;
+
+
+            // =================================================
+            // Save
+            // =================================================
+
+            _unitOfWork.Warehouses
+                .Update(warehouse);
 
             await _unitOfWork.SaveAsync();
+
+
+            // =================================================
+            // Return Updated Warehouse
+            // =================================================
 
             var result =
                 await _unitOfWork.Warehouses
@@ -224,12 +368,26 @@ namespace whm.Controllers
 
 
         // =====================================================
-        // DELETE /api/warehouses/{id}
+        // DELETE: api/warehouses/{id}
         // =====================================================
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeleteWarehouse(int id)
+        public async Task<IActionResult> DeleteWarehouse(
+            int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+
+            // =================================================
+            // Get Warehouse
+            // =================================================
+
             var warehouse =
                 await _unitOfWork.Warehouses
                     .GetEntityByIdAsync(id);
@@ -242,51 +400,105 @@ namespace whm.Controllers
                 });
             }
 
-            _unitOfWork.Warehouses.Delete(warehouse);
+
+            // =================================================
+            // Get Warehouse Details
+            // =================================================
+
+            var warehouseDetails =
+                await _unitOfWork.Warehouses
+                    .GetByIdAsync(id);
+
+            if (warehouseDetails == null)
+            {
+                return NotFound(new
+                {
+                    message = "Warehouse not found."
+                });
+            }
+
+
+            // =================================================
+            // Prevent Delete if Warehouse has Stock
+            // =================================================
+
+            var inventory =
+                await _unitOfWork.Warehouses
+                    .GetInventoryAsync(id);
+
+            if (inventory.Count > 0)
+            {
+                return Conflict(new
+                {
+                    message =
+                        "Cannot delete this warehouse because it contains stock."
+                });
+            }
+
+
+            // =================================================
+            // Prevent Delete if Warehouse has Bins
+            // =================================================
+
+            if (warehouseDetails.BinsCount > 0)
+            {
+                return Conflict(new
+                {
+                    message =
+                        "Cannot delete this warehouse because it contains bins."
+                });
+            }
+
+
+            // =================================================
+            // Prevent Delete if Warehouse has Partitions
+            // =================================================
+
+            if (warehouseDetails.PartitionsCount > 0)
+            {
+                return Conflict(new
+                {
+                    message =
+                        "Cannot delete this warehouse because it contains partitions."
+                });
+            }
+
+
+            // =================================================
+            // Delete Warehouse
+            // =================================================
+
+            _unitOfWork.Warehouses
+                .Delete(warehouse);
 
             await _unitOfWork.SaveAsync();
 
+
             return Ok(new
             {
-                message = "Warehouse deleted successfully."
+                message =
+                    "Warehouse deleted successfully."
             });
         }
 
 
         // =====================================================
-        // GET /api/warehouses/{id}/locations
-        // =====================================================
-
-        [HttpGet("{id:int}/locations")]
-        public async Task<IActionResult> GetLocations(int id)
-        {
-            var warehouse =
-                await _unitOfWork.Warehouses
-                    .GetByIdAsync(id);
-
-            if (warehouse == null)
-            {
-                return NotFound(new
-                {
-                    message = "Warehouse not found."
-                });
-            }
-
-            var locations =
-                await _unitOfWork.Warehouses
-                    .GetLocationsAsync(id);
-
-            return Ok(locations);
-        }
-
-
-        // =====================================================
-        // GET /api/warehouses/{id}/inventory
+        // GET: api/warehouses/{id}/inventory
         // =====================================================
 
         [HttpGet("{id:int}/inventory")]
-        public async Task<IActionResult> GetInventory(int id)
+        public async Task<IActionResult> GetInventory(
+            int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+
             var warehouse =
                 await _unitOfWork.Warehouses
                     .GetByIdAsync(id);
@@ -298,6 +510,7 @@ namespace whm.Controllers
                     message = "Warehouse not found."
                 });
             }
+
 
             var inventory =
                 await _unitOfWork.Warehouses
@@ -308,12 +521,22 @@ namespace whm.Controllers
 
 
         // =====================================================
-        // GET /api/warehouses/{id}/stats
+        // GET: api/warehouses/{id}/stats
         // =====================================================
 
         [HttpGet("{id:int}/stats")]
-        public async Task<IActionResult> GetStats(int id)
+        public async Task<IActionResult> GetStats(
+            int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+
             var stats =
                 await _unitOfWork.Warehouses
                     .GetStatsAsync(id);
@@ -326,17 +549,28 @@ namespace whm.Controllers
                 });
             }
 
+
             return Ok(stats);
         }
 
 
         // =====================================================
-        // GET /api/warehouses/{id}/occupancy
+        // GET: api/warehouses/{id}/occupancy
         // =====================================================
 
         [HttpGet("{id:int}/occupancy")]
-        public async Task<IActionResult> GetOccupancy(int id)
+        public async Task<IActionResult> GetOccupancy(
+            int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+
             var occupancy =
                 await _unitOfWork.Warehouses
                     .GetOccupancyAsync(id);
@@ -348,6 +582,7 @@ namespace whm.Controllers
                     message = "Warehouse not found."
                 });
             }
+
 
             return Ok(occupancy);
         }

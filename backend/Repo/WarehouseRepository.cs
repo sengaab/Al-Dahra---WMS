@@ -29,9 +29,28 @@ namespace whm.Repositories
             int page = 1,
             int pageSize = 20)
         {
+            // =================================================
+            // PAGINATION VALIDATION
+            // =================================================
+
+            if (page < 1)
+                page = 1;
+
+            if (pageSize < 1)
+                pageSize = 20;
+
+            if (pageSize > 100)
+                pageSize = 100;
+
+
+            // =================================================
+            // BASE QUERY
+            // =================================================
+
             var query = _context.Warehouses
                 .AsNoTracking()
                 .AsQueryable();
+
 
             // =================================================
             // FILTER BY SITE
@@ -70,13 +89,15 @@ namespace whm.Repositories
                     "active",
                     StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(x => x.IsActive);
+                    query = query.Where(x =>
+                        x.IsActive);
                 }
                 else if (status.Equals(
                     "inactive",
                     StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(x => !x.IsActive);
+                    query = query.Where(x =>
+                        !x.IsActive);
                 }
             }
 
@@ -84,15 +105,6 @@ namespace whm.Repositories
             // =================================================
             // PAGINATION
             // =================================================
-
-            if (page < 1)
-                page = 1;
-
-            if (pageSize < 1)
-                pageSize = 20;
-
-            if (pageSize > 100)
-                pageSize = 100;
 
             query = query
                 .OrderBy(x => x.WarehouseId)
@@ -125,7 +137,20 @@ namespace whm.Repositories
 
                     UpdatedAt = x.UpdatedAt,
 
-                    LocationCount = x.Locations.Count()
+                    // =========================================
+                    // NEW STRUCTURE
+                    // =========================================
+
+                    PartitionsCount =
+                        x.Partitions.Count(),
+
+                    BinsCount =
+                        x.Bins.Count(),
+
+                    LocationsCount =
+                        x.Bins
+                            .SelectMany(b => b.Locations)
+                            .Count()
                 })
                 .ToListAsync();
         }
@@ -136,11 +161,13 @@ namespace whm.Repositories
         // GET /api/warehouses/{id}
         // =====================================================
 
-        public async Task<WarehouseDto?> GetByIdAsync(int id)
+        public async Task<WarehouseDto?> GetByIdAsync(
+            int id)
         {
             return await _context.Warehouses
                 .AsNoTracking()
-                .Where(x => x.WarehouseId == id)
+                .Where(x =>
+                    x.WarehouseId == id)
                 .Select(x => new WarehouseDto
                 {
                     WarehouseId = x.WarehouseId,
@@ -161,7 +188,16 @@ namespace whm.Repositories
 
                     UpdatedAt = x.UpdatedAt,
 
-                    LocationCount = x.Locations.Count()
+                    PartitionsCount =
+                        x.Partitions.Count(),
+
+                    BinsCount =
+                        x.Bins.Count(),
+
+                    LocationsCount =
+                        x.Bins
+                            .SelectMany(b => b.Locations)
+                            .Count()
                 })
                 .FirstOrDefaultAsync();
         }
@@ -171,44 +207,12 @@ namespace whm.Repositories
         // GET ENTITY
         // =====================================================
 
-        public async Task<Warehouse?> GetEntityByIdAsync(int id)
+        public async Task<Warehouse?> GetEntityByIdAsync(
+            int id)
         {
             return await _context.Warehouses
                 .FirstOrDefaultAsync(x =>
                     x.WarehouseId == id);
-        }
-
-
-        // =====================================================
-        // GET LOCATIONS
-        // GET /api/warehouses/{id}/locations
-        // =====================================================
-
-        public async Task<List<WarehouseLocationDto>> GetLocationsAsync(
-            int warehouseId)
-        {
-            return await _context.Locations
-                .AsNoTracking()
-                .Where(x =>
-                    x.WarehouseId == warehouseId)
-                .OrderBy(x => x.LocationId)
-                .Select(x => new WarehouseLocationDto
-                {
-                    LocationId = x.LocationId,
-
-                    WarehouseId = x.WarehouseId,
-
-                    ParentLocationId = x.ParentLocationId,
-
-                    Code = x.Code,
-
-                    Name = x.Name,
-
-                    Type = x.Type,
-
-                    IsActive = x.IsActive
-                })
-                .ToListAsync();
         }
 
 
@@ -226,55 +230,144 @@ namespace whm.Repositories
                     x.WarehouseId == warehouseId)
                 .Select(x => new StockDto
                 {
+                    // =========================================
+                    // STOCK
+                    // =========================================
+
                     StockId = x.StockId,
-
-                    ProductId = x.ProductId,
-
-                    ProductName = x.Product.Name,
-
-                    CategoryName = _context.Categories
-                        .Where(c =>
-                            c.CategoryId ==
-                            x.Product.CategoryId)
-                        .Select(c => c.Name)
-                        .FirstOrDefault()
-                        ?? string.Empty,
-
-                    SKU = x.Product.SKU,
-
-                    WarehouseId = x.WarehouseId,
-
-                    WarehouseName = x.Warehouse.Name,
-
-                    LocationId = x.LocationId,
-
-                    LocationName = x.Location != null
-                        ? x.Location.Name
-                        : null,
 
                     StockCode = x.StockCode,
 
                     BatchNumber = x.BatchNumber,
 
-                    Barcode = x.Product.Barcode,
-
                     ExpiryDate = x.ExpiryDate,
 
                     Quantity = x.Quantity,
 
-                    ReservedQuantity = x.ReservedQuantity,
+                    ReservedQuantity =
+                        x.ReservedQuantity,
 
-                    AvailableQuantity = x.AvailableQuantity,
+                    AvailableQuantity =
+                        x.AvailableQuantity,
 
                     UnitPrice = x.UnitPrice,
 
-                    MinimumStock = x.Product.MinimumStock,
+                    MinimumStock =
+                        x.MinimumStock,
 
-                    StockStatus = x.stockStatus.ToString(),
+                    StockStatus =
+                        x.stockStatus.ToString(),
 
                     CreatedAt = x.CreatedAt,
 
-                    UpdatedAt = x.UpdatedAt
+                    UpdatedAt = x.UpdatedAt,
+
+
+                    // =========================================
+                    // PRODUCT
+                    // =========================================
+
+                    ProductId = x.ProductId,
+
+                    ProductName =
+                        x.Product.Name,
+
+                    SKU =
+                        x.Product.SKU,
+
+                    Barcode =
+                        x.Product.Barcode,
+
+                    CategoryName =
+                        _context.Categories
+                            .Where(c =>
+                                c.CategoryId ==
+                                x.Product.CategoryId)
+                            .Select(c => c.Name)
+                            .FirstOrDefault()
+                        ?? string.Empty,
+
+
+                    // =========================================
+                    // WAREHOUSE
+                    // =========================================
+
+                    WarehouseId =
+                        x.WarehouseId,
+
+                    WarehouseName =
+                        x.Warehouse.Name,
+
+
+                    // =========================================
+                    // PARTITION
+                    // =========================================
+
+                    PartitionId =
+                        x.Location != null
+                            ? x.Location.Bin.PartitionId
+                            : null,
+
+                    PartitionName =
+                        x.Location != null
+                            ? x.Location.Bin.Partition.Name
+                            : null,
+
+                    PartitionCode =
+                        x.Location != null
+                            ? x.Location.Bin.Partition.Code
+                            : null,
+
+
+                    // =========================================
+                    // BIN
+                    // =========================================
+
+                    BinId =
+                        x.Location != null
+                            ? x.Location.BinId
+                            : null,
+
+                    BinName =
+                        x.Location != null
+                            ? x.Location.Bin.Bin_Name
+                            : null,
+
+                    BinCode =
+                        x.Location != null
+                            ? x.Location.Bin.Bin_Code
+                            : null,
+
+
+                    // =========================================
+                    // LOCATION
+                    // =========================================
+
+                    LocationId =
+                        x.LocationId,
+
+                    LocationName =
+                        x.Location != null
+                            ? x.Location.Name
+                            : null,
+
+                    LocationCode =
+                        x.Location != null
+                            ? x.Location.Code
+                            : null,
+
+
+                    // =========================================
+                    // SUPPLIER
+                    // =========================================
+
+                    SupplierId =
+                        x.SupplierId,
+
+                    SupplierName =
+                        x.Supplier != null
+                            ? x.Supplier.Name
+                            : null
                 })
                 .ToListAsync();
         }
@@ -288,6 +381,10 @@ namespace whm.Repositories
         public async Task<WarehouseStatsDto?> GetStatsAsync(
             int warehouseId)
         {
+            // =================================================
+            // CHECK WAREHOUSE
+            // =================================================
+
             var warehouse = await _context.Warehouses
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
@@ -297,11 +394,39 @@ namespace whm.Repositories
                 return null;
 
 
-            var locations = _context.Locations
+            // =================================================
+            // PARTITIONS
+            // =================================================
+
+            var partitions = _context.Partitions
                 .AsNoTracking()
                 .Where(x =>
                     x.WarehouseId == warehouseId);
 
+
+            // =================================================
+            // BINS
+            // =================================================
+
+            var bins = _context.Bins
+                .AsNoTracking()
+                .Where(x =>
+                    x.WarehouseId == warehouseId);
+
+
+            // =================================================
+            // LOCATIONS
+            // =================================================
+
+            var locations = _context.Locations
+                .AsNoTracking()
+                .Where(x =>
+                    x.Bin.WarehouseId == warehouseId);
+
+
+            // =================================================
+            // STOCK
+            // =================================================
 
             var stocks = _context.Stocks
                 .AsNoTracking()
@@ -309,11 +434,28 @@ namespace whm.Repositories
                     x.WarehouseId == warehouseId);
 
 
+            // =================================================
+            // RETURN STATS
+            // =================================================
+
             return new WarehouseStatsDto
             {
-                WarehouseId = warehouse.WarehouseId,
+                WarehouseId =
+                    warehouse.WarehouseId,
 
-                WarehouseName = warehouse.Name,
+                WarehouseName =
+                    warehouse.Name,
+
+
+                // =============================================
+                // STRUCTURE
+                // =============================================
+
+                TotalPartitions =
+                    await partitions.CountAsync(),
+
+                TotalBins =
+                    await bins.CountAsync(),
 
                 TotalLocations =
                     await locations.CountAsync(),
@@ -326,29 +468,36 @@ namespace whm.Repositories
                     await locations.CountAsync(x =>
                         !x.IsActive),
 
+
+                // =============================================
+                // STOCK
+                // =============================================
+
                 TotalStockItems =
                     await stocks.CountAsync(),
 
                 TotalQuantity =
-                    await stocks
-                        .SumAsync(x =>
-                            (decimal?)x.Quantity) ?? 0,
+                    await stocks.SumAsync(
+                        x => (decimal?)x.Quantity)
+                    ?? 0,
 
                 TotalReservedQuantity =
-                    await stocks
-                        .SumAsync(x =>
-                            (decimal?)x.ReservedQuantity) ?? 0,
+                    await stocks.SumAsync(
+                        x => (decimal?)x.ReservedQuantity)
+                    ?? 0,
 
                 TotalAvailableQuantity =
-                    await stocks
-                        .SumAsync(x =>
-                            (decimal?)x.AvailableQuantity) ?? 0,
+                    await stocks.SumAsync(
+                        x => (decimal?)x.AvailableQuantity)
+                    ?? 0,
 
                 TotalValue =
-                    await stocks
-                        .SumAsync(x =>
-                            (decimal?)(x.Quantity *
-                                       x.UnitPrice)) ?? 0
+                    await stocks.SumAsync(
+                        x =>
+                            (decimal?)
+                            (x.Quantity *
+                             x.UnitPrice))
+                    ?? 0
             };
         }
 
@@ -361,6 +510,10 @@ namespace whm.Repositories
         public async Task<WarehouseOccupancyDto?> GetOccupancyAsync(
             int warehouseId)
         {
+            // =================================================
+            // CHECK WAREHOUSE
+            // =================================================
+
             var warehouse = await _context.Warehouses
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x =>
@@ -370,34 +523,56 @@ namespace whm.Repositories
                 return null;
 
 
+            // =================================================
+            // TOTAL ACTIVE LOCATIONS
+            // =================================================
+
             var totalLocations =
                 await _context.Locations
                     .AsNoTracking()
                     .CountAsync(x =>
-                        x.WarehouseId == warehouseId &&
+                        x.Bin.WarehouseId ==
+                        warehouseId &&
                         x.IsActive);
 
 
-            // Location is considered occupied
-            // when there is stock assigned to it.
+            // =================================================
+            // OCCUPIED LOCATIONS
+            // =================================================
+
+            // A Location is considered occupied
+            // when it has available stock.
 
             var occupiedLocations =
                 await _context.Stocks
                     .AsNoTracking()
                     .Where(x =>
-                        x.WarehouseId == warehouseId &&
+                        x.WarehouseId ==
+                        warehouseId &&
+
                         x.LocationId.HasValue &&
+
                         x.AvailableQuantity > 0)
-                    .Select(x => x.LocationId)
+                    .Select(x =>
+                        x.LocationId)
                     .Distinct()
                     .CountAsync();
 
 
+            // =================================================
+            // EMPTY LOCATIONS
+            // =================================================
+
             var emptyLocations =
                 Math.Max(
-                    totalLocations - occupiedLocations,
+                    totalLocations -
+                    occupiedLocations,
                     0);
 
+
+            // =================================================
+            // OCCUPANCY %
+            // =================================================
 
             decimal occupancyPercentage = 0;
 
@@ -411,6 +586,10 @@ namespace whm.Repositories
                         2);
             }
 
+
+            // =================================================
+            // RESULT
+            // =================================================
 
             return new WarehouseOccupancyDto
             {
@@ -439,7 +618,8 @@ namespace whm.Repositories
         // ADD
         // =====================================================
 
-        public async Task AddAsync(Warehouse warehouse)
+        public async Task AddAsync(
+            Warehouse warehouse)
         {
             await _context.Warehouses
                 .AddAsync(warehouse);
@@ -450,7 +630,8 @@ namespace whm.Repositories
         // UPDATE
         // =====================================================
 
-        public void Update(Warehouse warehouse)
+        public void Update(
+            Warehouse warehouse)
         {
             _context.Warehouses
                 .Update(warehouse);
@@ -461,7 +642,8 @@ namespace whm.Repositories
         // DELETE
         // =====================================================
 
-        public void Delete(Warehouse warehouse)
+        public void Delete(
+            Warehouse warehouse)
         {
             _context.Warehouses
                 .Remove(warehouse);

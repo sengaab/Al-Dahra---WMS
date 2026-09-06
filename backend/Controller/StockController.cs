@@ -246,6 +246,32 @@ namespace whm.Controllers
                     });
                 }
             }
+            // =========================
+            // Validate Location
+            // =========================
+
+            if (dto.LocationId.HasValue)
+            {
+                var location = await _unitOfWork.Locations
+                    .GetEntityByIdAsync(dto.LocationId.Value);
+
+                if (location == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Location not found."
+                    });
+                }
+
+                // Location -> Bin -> Warehouse
+                if (location.Bin.WarehouseId != dto.WarehouseId)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Location does not belong to the selected warehouse."
+                    });
+                }
+            }
 
 
             // =========================

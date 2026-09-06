@@ -2,12 +2,25 @@
 
 namespace whm.Models
 {
-    public class Warehouse
+    public class Partition
     {
         [Key]
+        public int PartitionId { get; set; }
+
+
+        // ==========================================
+        // Warehouse
+        // ==========================================
+
+        [Required]
         public int WarehouseId { get; set; }
 
-        public int SiteId { get; set; }
+        public Warehouse Warehouse { get; set; } = null!;
+
+
+        // ==========================================
+        // Partition Details
+        // ==========================================
 
         [Required]
         [MaxLength(50)]
@@ -22,24 +35,14 @@ namespace whm.Models
 
         public bool IsActive { get; set; } = true;
 
+
+        // ==========================================
+        // Audit
+        // ==========================================
+
         public DateTimeOffset CreatedAt { get; set; }
 
         public DateTimeOffset UpdatedAt { get; set; }
-
-
-        // ==========================================
-        // Navigation
-        // ==========================================
-
-        public Site Site { get; set; } = null!;
-
-
-        // ==========================================
-        // Partitions
-        // ==========================================
-
-        public ICollection<Partition> Partitions { get; set; }
-            = new List<Partition>();
 
 
         // ==========================================

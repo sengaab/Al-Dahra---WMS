@@ -6,8 +6,8 @@ namespace whm.Repositories
     public interface IBinRepository
     {
         Task<IEnumerable<BinDto>> GetAllAsync(
-            int? shelfId = null,
-            int? locationId = null,
+            int? warehouseId = null,
+            int? partitionId = null,
             string? search = null,
             string? status = null,
             int page = 1,
@@ -17,9 +17,17 @@ namespace whm.Repositories
 
         Task<Bin?> GetEntityByIdAsync(int id);
 
-        Task<IEnumerable<BinDto>> GetByShelfIdAsync(int shelfId);
+        Task<IEnumerable<BinDto>> GetByWarehouseIdAsync(
+            int warehouseId);
 
-        Task<IEnumerable<BinDto>> GetByLocationIdAsync(int locationId);
+        Task<IEnumerable<BinDto>> GetByPartitionIdAsync(
+            int partitionId);
+
+        Task<IEnumerable<BinDto>> GetByLocationIdAsync(
+            int locationId);
+
+        Task<bool> ExistsByPartitionIdAsync(
+            int partitionId);
 
         Task AddAsync(Bin bin);
 

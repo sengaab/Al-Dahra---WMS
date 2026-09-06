@@ -14,35 +14,55 @@ namespace whm.Repositories
             _context = context;
         }
 
+        // =====================================================
+        // GET ALL
+        // =====================================================
+
         public async Task<IEnumerable<BinDto>> GetAllAsync(
-            int? shelfId = null,
-            int? locationId = null,
+            int? warehouseId = null,
+            int? partitionId = null,
             string? search = null,
             string? status = null,
             int page = 1,
             int pageSize = 20)
         {
+            if (page < 1)
+                page = 1;
+
+            if (pageSize < 1)
+                pageSize = 20;
+
+            if (pageSize > 100)
+                pageSize = 100;
+
             var query = _context.Bins
                 .AsNoTracking()
                 .AsQueryable();
 
-            // Filter by Shelf
-            if (shelfId.HasValue)
+            // =================================================
+            // Filter by Warehouse
+            // =================================================
+
+            if (warehouseId.HasValue)
             {
                 query = query.Where(x =>
-                    x.Shelf_Id == shelfId.Value);
+                    x.WarehouseId == warehouseId.Value);
             }
 
-            // Filter by Location
-            if (locationId.HasValue)
+            // =================================================
+            // Filter by Partition
+            // =================================================
+
+            if (partitionId.HasValue)
             {
                 query = query.Where(x =>
-                    _context.Locations.Any(l =>
-                        l.LocationId == locationId.Value &&
-                        l.BinId == x.Bin_Id));
+                    x.PartitionId == partitionId.Value);
             }
 
+            // =================================================
             // Search
+            // =================================================
+
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
@@ -54,7 +74,10 @@ namespace whm.Repositories
                     x.Bin_Name.Contains(search));
             }
 
+            // =================================================
             // Status
+            // =================================================
+
             if (!string.IsNullOrWhiteSpace(status))
             {
                 if (status.Equals(
@@ -71,15 +94,9 @@ namespace whm.Repositories
                 }
             }
 
+            // =================================================
             // Pagination
-            if (page < 1)
-                page = 1;
-
-            if (pageSize < 1)
-                pageSize = 20;
-
-            if (pageSize > 100)
-                pageSize = 100;
+            // =================================================
 
             return await query
                 .OrderBy(x => x.Bin_Name)
@@ -89,32 +106,34 @@ namespace whm.Repositories
                 {
                     BinId = x.Bin_Id,
 
-                    ShelfId = x.Shelf_Id,
+                    WarehouseId = x.WarehouseId,
 
-                    ShelfName = x.Shelf != null
-                        ? x.Shelf.Shelf_Name
-                        : null,
+                    WarehouseName = x.Warehouse.Name,
 
-                    LocationId = _context.Locations
-                        .Where(l => l.BinId == x.Bin_Id)
-                        .Select(l => (int?)l.LocationId)
-                        .FirstOrDefault(),
+                    PartitionId = x.PartitionId,
 
-                    LocationName = _context.Locations
-                        .Where(l => l.BinId == x.Bin_Id)
-                        .Select(l => l.Name)
-                        .FirstOrDefault(),
+                    PartitionName = x.Partition.Name,
+
+                    PartitionCode = x.Partition.Code,
 
                     Code = x.Bin_Code ?? string.Empty,
 
                     Name = x.Bin_Name,
 
+                    Description = x.Bin_Description,
+
                     IsActive = x.IsActive,
+
+                    LocationsCount = x.Locations.Count,
 
                     StockCount = x.Stocks.Count
                 })
                 .ToListAsync();
         }
+
+        // =====================================================
+        // GET BY ID
+        // =====================================================
 
         public async Task<BinDto?> GetByIdAsync(int id)
         {
@@ -125,78 +144,129 @@ namespace whm.Repositories
                 {
                     BinId = x.Bin_Id,
 
-                    ShelfId = x.Shelf_Id,
+                    WarehouseId = x.WarehouseId,
 
-                    ShelfName = x.Shelf != null
-                        ? x.Shelf.Shelf_Name
-                        : null,
+                    WarehouseName = x.Warehouse.Name,
 
-                    LocationId = _context.Locations
-                        .Where(l => l.BinId == x.Bin_Id)
-                        .Select(l => (int?)l.LocationId)
-                        .FirstOrDefault(),
+                    PartitionId = x.PartitionId,
 
-                    LocationName = _context.Locations
-                        .Where(l => l.BinId == x.Bin_Id)
-                        .Select(l => l.Name)
-                        .FirstOrDefault(),
+                    PartitionName = x.Partition.Name,
+
+                    PartitionCode = x.Partition.Code,
 
                     Code = x.Bin_Code ?? string.Empty,
 
                     Name = x.Bin_Name,
 
+                    Description = x.Bin_Description,
+
                     IsActive = x.IsActive,
+
+                    LocationsCount = x.Locations.Count,
 
                     StockCount = x.Stocks.Count
                 })
                 .FirstOrDefaultAsync();
         }
 
+        // =====================================================
+        // GET ENTITY
+        // =====================================================
+
         public async Task<Bin?> GetEntityByIdAsync(int id)
         {
             return await _context.Bins
+                .Include(x => x.Warehouse)
+                .Include(x => x.Partition)
                 .FirstOrDefaultAsync(x =>
                     x.Bin_Id == id);
         }
 
-        public async Task<IEnumerable<BinDto>> GetByShelfIdAsync(
-            int shelfId)
+        // =====================================================
+        // GET BY WAREHOUSE
+        // =====================================================
+
+        public async Task<IEnumerable<BinDto>> GetByWarehouseIdAsync(
+            int warehouseId)
         {
             return await _context.Bins
                 .AsNoTracking()
                 .Where(x =>
-                    x.Shelf_Id == shelfId)
+                    x.WarehouseId == warehouseId)
                 .OrderBy(x => x.Bin_Name)
                 .Select(x => new BinDto
                 {
                     BinId = x.Bin_Id,
 
-                    ShelfId = x.Shelf_Id,
+                    WarehouseId = x.WarehouseId,
 
-                    ShelfName = x.Shelf != null
-                        ? x.Shelf.Shelf_Name
-                        : null,
+                    WarehouseName = x.Warehouse.Name,
 
-                    LocationId = _context.Locations
-                        .Where(l => l.BinId == x.Bin_Id)
-                        .Select(l => (int?)l.LocationId)
-                        .FirstOrDefault(),
+                    PartitionId = x.PartitionId,
 
-                    LocationName = _context.Locations
-                        .Where(l => l.BinId == x.Bin_Id)
-                        .Select(l => l.Name)
-                        .FirstOrDefault(),
+                    PartitionName = x.Partition.Name,
+
+                    PartitionCode = x.Partition.Code,
 
                     Code = x.Bin_Code ?? string.Empty,
 
                     Name = x.Bin_Name,
 
+                    Description = x.Bin_Description,
+
                     IsActive = x.IsActive,
+
+                    LocationsCount = x.Locations.Count,
 
                     StockCount = x.Stocks.Count
                 })
                 .ToListAsync();
         }
+
+        // =====================================================
+        // GET BY PARTITION
+        // =====================================================
+
+        public async Task<IEnumerable<BinDto>> GetByPartitionIdAsync(
+            int partitionId)
+        {
+            return await _context.Bins
+                .AsNoTracking()
+                .Where(x =>
+                    x.PartitionId == partitionId)
+                .OrderBy(x => x.Bin_Name)
+                .Select(x => new BinDto
+                {
+                    BinId = x.Bin_Id,
+
+                    WarehouseId = x.WarehouseId,
+
+                    WarehouseName = x.Warehouse.Name,
+
+                    PartitionId = x.PartitionId,
+
+                    PartitionName = x.Partition.Name,
+
+                    PartitionCode = x.Partition.Code,
+
+                    Code = x.Bin_Code ?? string.Empty,
+
+                    Name = x.Bin_Name,
+
+                    Description = x.Bin_Description,
+
+                    IsActive = x.IsActive,
+
+                    LocationsCount = x.Locations.Count,
+
+                    StockCount = x.Stocks.Count
+                })
+                .ToListAsync();
+        }
+
+        // =====================================================
+        // GET BY LOCATION
+        // =====================================================
 
         public async Task<IEnumerable<BinDto>> GetByLocationIdAsync(
             int locationId)
@@ -204,54 +274,72 @@ namespace whm.Repositories
             return await _context.Bins
                 .AsNoTracking()
                 .Where(x =>
-                    _context.Locations.Any(l =>
-                        l.LocationId == locationId &&
-                        l.BinId == x.Bin_Id))
+                    x.Locations.Any(l =>
+                        l.LocationId == locationId))
                 .OrderBy(x => x.Bin_Name)
                 .Select(x => new BinDto
                 {
                     BinId = x.Bin_Id,
 
-                    ShelfId = x.Shelf_Id,
+                    WarehouseId = x.WarehouseId,
 
-                    ShelfName = x.Shelf != null
-                        ? x.Shelf.Shelf_Name
-                        : null,
+                    WarehouseName = x.Warehouse.Name,
 
-                    LocationId = _context.Locations
-                        .Where(l =>
-                            l.LocationId == locationId &&
-                            l.BinId == x.Bin_Id)
-                        .Select(l => (int?)l.LocationId)
-                        .FirstOrDefault(),
+                    PartitionId = x.PartitionId,
 
-                    LocationName = _context.Locations
-                        .Where(l =>
-                            l.LocationId == locationId &&
-                            l.BinId == x.Bin_Id)
-                        .Select(l => l.Name)
-                        .FirstOrDefault(),
+                    PartitionName = x.Partition.Name,
+
+                    PartitionCode = x.Partition.Code,
 
                     Code = x.Bin_Code ?? string.Empty,
 
                     Name = x.Bin_Name,
 
+                    Description = x.Bin_Description,
+
                     IsActive = x.IsActive,
+
+                    LocationsCount = x.Locations.Count,
 
                     StockCount = x.Stocks.Count
                 })
                 .ToListAsync();
         }
 
+        // =====================================================
+        // EXISTS BY PARTITION
+        // =====================================================
+
+        public async Task<bool> ExistsByPartitionIdAsync(
+            int partitionId)
+        {
+            return await _context.Bins
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.PartitionId == partitionId);
+        }
+
+        // =====================================================
+        // ADD
+        // =====================================================
+
         public async Task AddAsync(Bin bin)
         {
             await _context.Bins.AddAsync(bin);
         }
 
+        // =====================================================
+        // UPDATE
+        // =====================================================
+
         public void Update(Bin bin)
         {
             _context.Bins.Update(bin);
         }
+
+        // =====================================================
+        // DELETE
+        // =====================================================
 
         public void Delete(Bin bin)
         {
