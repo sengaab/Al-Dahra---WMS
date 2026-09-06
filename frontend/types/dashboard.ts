@@ -1,10 +1,12 @@
 export interface DashboardDto {
     stats: DashboardStatsDto;
+
     warehouseOverview: WarehouseOverviewDto[];
     stockStatus: StockStatusDto[];
     lowStock: LowStockDto[];
     valueByCategory: ValueByCategoryDto[];
     recentTransactions: RecentTransactionDto[];
+
     pendingReceipts: PendingItemDto[];
     pendingRequests: PendingItemDto[];
     pendingPickLists: PendingItemDto[];
@@ -39,9 +41,11 @@ export interface LowStockDto {
     stockId: number;
     productId: number;
     productName: string;
-    sku: string;
+    SKU: string;
+
     warehouseId: number;
     warehouseName: string;
+
     quantity: number;
     availableQuantity: number;
     minimumStock: number;
@@ -59,7 +63,9 @@ export interface RecentTransactionDto {
     productName: string;
     transactionType: string;
     quantity: number;
+
     referenceType: string | null;
+
     createdAt: string;
 }
 
