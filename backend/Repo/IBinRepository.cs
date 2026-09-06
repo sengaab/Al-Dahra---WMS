@@ -17,17 +17,13 @@ namespace whm.Repositories
 
         Task<Bin?> GetEntityByIdAsync(int id);
 
-        Task<IEnumerable<BinDto>> GetByWarehouseIdAsync(
-            int warehouseId);
+        Task<IEnumerable<BinDto>> GetByWarehouseIdAsync(int warehouseId);
 
-        Task<IEnumerable<BinDto>> GetByPartitionIdAsync(
-            int partitionId);
+        Task<IEnumerable<BinDto>> GetByPartitionIdAsync(int partitionId);
 
-        Task<IEnumerable<BinDto>> GetByLocationIdAsync(
-            int locationId);
+        Task<IEnumerable<BinDto>> GetByLocationIdAsync(int locationId);
 
-        Task<bool> ExistsByPartitionIdAsync(
-            int partitionId);
+        Task<bool> ExistsByPartitionIdAsync(int partitionId);
 
         Task AddAsync(Bin bin);
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using whm.DTOs;
 using whm.Models;
@@ -35,11 +36,17 @@ namespace whm.Controllers
                 .Select(d => new DepartmentResponseDTO
                 {
                     DepartmentId = d.DepartmentId,
+
+                    Code = d.Code,
+
                     Name = d.Name,
-                   
+
                     IsActive = d.IsActive,
+
                     CreatedAt = d.CreatedAt,
+
                     UpdatedAt = d.UpdatedAt,
+
                     UsersCount = d.Users?.Count ?? 0
                 })
                 .ToList();
@@ -70,12 +77,19 @@ namespace whm.Controllers
             var response = new DepartmentResponseDTO
             {
                 DepartmentId = department.DepartmentId,
+
+                Code = department.Code,
+
                 Name = department.Name,
-               
+
                 IsActive = department.IsActive,
+
                 CreatedAt = department.CreatedAt,
+
                 UpdatedAt = department.UpdatedAt,
-                UsersCount = department.Users?.Count ?? 0
+
+                UsersCount =
+                    department.Users?.Count ?? 0
             };
 
             return Ok(response);
@@ -92,12 +106,43 @@ namespace whm.Controllers
                 [FromBody] CreateDepartmentDTO dto)
         {
             // -------------------------------------------------
+            // Validate Name
+            // -------------------------------------------------
+
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return BadRequest(new
+                {
+                    message = "Department name is required."
+                });
+            }
+
+
+            // -------------------------------------------------
+            // Validate Code
+            // -------------------------------------------------
+
+            if (string.IsNullOrWhiteSpace(dto.Code))
+            {
+                return BadRequest(new
+                {
+                    message = "Department code is required."
+                });
+            }
+
+
+            var name = dto.Name.Trim();
+
+            var code = dto.Code.Trim();
+
+
+            // -------------------------------------------------
             // Check Name
             // -------------------------------------------------
 
             var nameExists =
                 await _unitOfWork.Department
-                    .NameExistsAsync(dto.Name);
+                    .NameExistsAsync(name);
 
             if (nameExists)
             {
@@ -113,20 +158,17 @@ namespace whm.Controllers
             // Check Code
             // -------------------------------------------------
 
-            if (!string.IsNullOrWhiteSpace(dto.Code))
-            {
-                var codeExists =
-                    await _unitOfWork.Department
-                        .CodeExistsAsync(dto.Code);
+            var codeExists =
+                await _unitOfWork.Department
+                    .CodeExistsAsync(code);
 
-                if (codeExists)
+            if (codeExists)
+            {
+                return Conflict(new
                 {
-                    return Conflict(new
-                    {
-                        message =
-                            "A department with this code already exists."
-                    });
-                }
+                    message =
+                        "A department with this code already exists."
+                });
             }
 
 
@@ -136,14 +178,17 @@ namespace whm.Controllers
 
             var department = new Department
             {
-                Name = dto.Name.Trim(),
-               
+                Code = code,
+
+                Name = name,
 
                 IsActive = dto.IsActive,
 
-                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedAt =
+                    DateTimeOffset.UtcNow,
 
-                UpdatedAt = DateTimeOffset.UtcNow
+                UpdatedAt =
+                    DateTimeOffset.UtcNow
             };
 
 
@@ -164,13 +209,26 @@ namespace whm.Controllers
 
             var response = new DepartmentResponseDTO
             {
-                DepartmentId = department.DepartmentId,
-                Name = department.Name,
-               
-                IsActive = department.IsActive,
-                CreatedAt = department.CreatedAt,
-                UpdatedAt = department.UpdatedAt,
+                DepartmentId =
+                    department.DepartmentId,
+
+                Code =
+                    department.Code,
+
+                Name =
+                    department.Name,
+
+                IsActive =
+                    department.IsActive,
+
+                CreatedAt =
+                    department.CreatedAt,
+
+                UpdatedAt =
+                    department.UpdatedAt,
+
                 UsersCount = 0,
+
                 RequestsCount = 0
             };
 
@@ -197,7 +255,8 @@ namespace whm.Controllers
             // -------------------------------------------------
 
             var department =
-                await _unitOfWork.Department.GetByIdAsync(id);
+                await _unitOfWork.Department
+                    .GetByIdAsync(id);
 
             if (department == null)
             {
@@ -209,13 +268,44 @@ namespace whm.Controllers
 
 
             // -------------------------------------------------
+            // Validate Name
+            // -------------------------------------------------
+
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return BadRequest(new
+                {
+                    message = "Department name is required."
+                });
+            }
+
+
+            // -------------------------------------------------
+            // Validate Code
+            // -------------------------------------------------
+
+            if (string.IsNullOrWhiteSpace(dto.Code))
+            {
+                return BadRequest(new
+                {
+                    message = "Department code is required."
+                });
+            }
+
+
+            var name = dto.Name.Trim();
+
+            var code = dto.Code.Trim();
+
+
+            // -------------------------------------------------
             // Check Name
             // -------------------------------------------------
 
             var nameExists =
                 await _unitOfWork.Department
                     .NameExistsAsync(
-                        dto.Name,
+                        name,
                         id);
 
             if (nameExists)
@@ -232,22 +322,19 @@ namespace whm.Controllers
             // Check Code
             // -------------------------------------------------
 
-            if (!string.IsNullOrWhiteSpace(dto.Code))
-            {
-                var codeExists =
-                    await _unitOfWork.Department
-                        .CodeExistsAsync(
-                            dto.Code,
-                            id);
+            var codeExists =
+                await _unitOfWork.Department
+                    .CodeExistsAsync(
+                        code,
+                        id);
 
-                if (codeExists)
+            if (codeExists)
+            {
+                return Conflict(new
                 {
-                    return Conflict(new
-                    {
-                        message =
-                            "A department with this code already exists."
-                    });
-                }
+                    message =
+                        "A department with this code already exists."
+                });
             }
 
 
@@ -255,8 +342,9 @@ namespace whm.Controllers
             // Update
             // -------------------------------------------------
 
-            department.Name = dto.Name.Trim();
-    
+            department.Code = code;
+
+            department.Name = name;
 
             department.IsActive = dto.IsActive;
 
@@ -293,14 +381,20 @@ namespace whm.Controllers
             }
 
 
+            // -------------------------------------------------
+            // Response
+            // -------------------------------------------------
+
             var response = new DepartmentResponseDTO
             {
                 DepartmentId =
                     updatedDepartment.DepartmentId,
 
+                Code =
+                    updatedDepartment.Code,
+
                 Name =
                     updatedDepartment.Name,
-
 
                 IsActive =
                     updatedDepartment.IsActive,
@@ -333,7 +427,8 @@ namespace whm.Controllers
             // -------------------------------------------------
 
             var department =
-                await _unitOfWork.Department.GetByIdAsync(id);
+                await _unitOfWork.Department
+                    .GetByIdAsync(id);
 
             if (department == null)
             {
@@ -404,10 +499,15 @@ namespace whm.Controllers
                     .GetUsersAsync(id);
 
 
+            // -------------------------------------------------
+            // Response
+            // -------------------------------------------------
+
             var response = users
                 .Select(u => new DepartmentUserDTO
                 {
-                    UserId = u.UserId,
+                    UserId =
+                        u.UserId,
 
                     EmployeeCode =
                         u.EmployeeCode,
@@ -469,10 +569,15 @@ namespace whm.Controllers
                     .GetRequestsAsync(id);
 
 
+            // -------------------------------------------------
+            // Response
+            // -------------------------------------------------
+
             var response = requests
                 .Select(r => new DepartmentRequestDTO
                 {
-                    RequestId = r.RequestId,
+                    RequestId =
+                        r.RequestId,
 
                     RequestNumber =
                         r.RequestNumber,
@@ -487,8 +592,7 @@ namespace whm.Controllers
                         r.DepartmentId,
 
                     Status =
-                        r.StockRequestStatus.ToString(),
-
+                        r.StockRequestStatus.ToString()
                 })
                 .ToList();
 

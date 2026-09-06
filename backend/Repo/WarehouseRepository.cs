@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using DocumentFormat.OpenXml.InkML;
+using Microsoft.EntityFrameworkCore;
 using whm.Data;
 using whm.DTOs.Stock;
 using whm.DTOs.Warehouse;
@@ -137,20 +139,26 @@ namespace whm.Repositories
 
                     UpdatedAt = x.UpdatedAt,
 
+
                     // =========================================
-                    // NEW STRUCTURE
+                    // STRUCTURE
                     // =========================================
 
                     PartitionsCount =
                         x.Partitions.Count(),
 
+
                     BinsCount =
-                        x.Bins.Count(),
+                        x.Partitions
+                            .SelectMany(p => p.Bins)
+                            .Count(),
+
 
                     LocationsCount =
-                        x.Bins
-                            .SelectMany(b => b.Locations)
-                            .Count()
+                        _context.Locations
+                            .Count(l =>
+                                l.WarehouseId ==
+                                x.WarehouseId)
                 })
                 .ToListAsync();
         }
@@ -188,16 +196,26 @@ namespace whm.Repositories
 
                     UpdatedAt = x.UpdatedAt,
 
+
+                    // =========================================
+                    // STRUCTURE
+                    // =========================================
+
                     PartitionsCount =
                         x.Partitions.Count(),
 
+
                     BinsCount =
-                        x.Bins.Count(),
+                        x.Partitions
+                            .SelectMany(p => p.Bins)
+                            .Count(),
+
 
                     LocationsCount =
-                        x.Bins
-                            .SelectMany(b => b.Locations)
-                            .Count()
+                        _context.Locations
+                            .Count(l =>
+                                l.WarehouseId ==
+                                x.WarehouseId)
                 })
                 .FirstOrDefaultAsync();
         }
@@ -279,13 +297,9 @@ namespace whm.Repositories
                         x.Product.Barcode,
 
                     CategoryName =
-                        _context.Categories
-                            .Where(c =>
-                                c.CategoryId ==
-                                x.Product.CategoryId)
-                            .Select(c => c.Name)
-                            .FirstOrDefault()
-                        ?? string.Empty,
+                        x.Product.Category != null
+                            ? x.Product.Category.Name
+                            : string.Empty,
 
 
                     // =========================================
@@ -411,7 +425,8 @@ namespace whm.Repositories
             var bins = _context.Bins
                 .AsNoTracking()
                 .Where(x =>
-                    x.WarehouseId == warehouseId);
+                    x.Partition.WarehouseId ==
+                    warehouseId);
 
 
             // =================================================
@@ -421,7 +436,8 @@ namespace whm.Repositories
             var locations = _context.Locations
                 .AsNoTracking()
                 .Where(x =>
-                    x.Bin.WarehouseId == warehouseId);
+                    x.WarehouseId ==
+                    warehouseId);
 
 
             // =================================================
@@ -431,7 +447,8 @@ namespace whm.Repositories
             var stocks = _context.Stocks
                 .AsNoTracking()
                 .Where(x =>
-                    x.WarehouseId == warehouseId);
+                    x.WarehouseId ==
+                    warehouseId);
 
 
             // =================================================
@@ -531,7 +548,7 @@ namespace whm.Repositories
                 await _context.Locations
                     .AsNoTracking()
                     .CountAsync(x =>
-                        x.Bin.WarehouseId ==
+                        x.WarehouseId ==
                         warehouseId &&
                         x.IsActive);
 

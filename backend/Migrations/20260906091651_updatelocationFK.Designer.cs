@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using whm.Data;
@@ -11,9 +12,11 @@ using whm.Data;
 namespace WMS.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260906091651_updatelocationFK")]
+    partial class updatelocationFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -192,10 +195,6 @@ namespace WMS.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DepartmentId"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1009,6 +1008,9 @@ namespace WMS.Migrations
                     b.Property<int?>("LocationId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("LocationId1")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("MinimumStock")
                         .HasColumnType("decimal(18,4)");
 
@@ -1048,6 +1050,8 @@ namespace WMS.Migrations
                     b.HasIndex("Bin_Id");
 
                     b.HasIndex("LocationId");
+
+                    b.HasIndex("LocationId1");
 
                     b.HasIndex("ProductId");
 
@@ -2277,9 +2281,13 @@ namespace WMS.Migrations
                         .HasForeignKey("Bin_Id");
 
                     b.HasOne("whm.Models.Location", "Location")
-                        .WithMany("Stocks")
+                        .WithMany()
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("whm.Models.Location", null)
+                        .WithMany("Stocks")
+                        .HasForeignKey("LocationId1");
 
                     b.HasOne("whm.Models.Product", "Product")
                         .WithMany()

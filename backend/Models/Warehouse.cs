@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace whm.Models
 {
@@ -7,6 +8,7 @@ namespace whm.Models
         [Key]
         public int WarehouseId { get; set; }
 
+        [Required]
         public int SiteId { get; set; }
 
         [Required]
@@ -36,6 +38,8 @@ namespace whm.Models
 
         // ==========================================
         // Partitions
+        // Warehouse -> Partitions
+        // One to Many
         // ==========================================
 
         public ICollection<Partition> Partitions { get; set; }
@@ -43,10 +47,13 @@ namespace whm.Models
 
 
         // ==========================================
-        // Bins
+        // Locations
+        // Warehouse -> Locations
+        // One to Many
         // ==========================================
 
-        public ICollection<Bin> Bins { get; set; }
-            = new List<Bin>();
+        public ICollection<Location> Locations { get; set; }
+            = new List<Location>();
     }
 }
+

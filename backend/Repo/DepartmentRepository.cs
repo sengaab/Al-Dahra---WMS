@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 using whm.Data;
 using whm.Models;
 using whm.Repositories.Interfaces;
@@ -48,6 +50,8 @@ namespace whm.Repositories
         public async Task<Department?> GetByNameAsync(
             string name)
         {
+            name = name.Trim();
+
             return await _context.Departments
                 .FirstOrDefaultAsync(d =>
                     d.Name.ToLower() == name.ToLower());
@@ -62,12 +66,13 @@ namespace whm.Repositories
             string name,
             int? excludeDepartmentId = null)
         {
+            name = name.Trim();
+
             return await _context.Departments
                 .AnyAsync(d =>
                     d.Name.ToLower() == name.ToLower() &&
                     (!excludeDepartmentId.HasValue ||
-                     d.DepartmentId !=
-                     excludeDepartmentId.Value));
+                     d.DepartmentId != excludeDepartmentId.Value));
         }
 
 
@@ -79,12 +84,13 @@ namespace whm.Repositories
             string code,
             int? excludeDepartmentId = null)
         {
+            code = code.Trim();
+
             return await _context.Departments
                 .AnyAsync(d =>
-                    
+                    d.Code.ToLower() == code.ToLower() &&
                     (!excludeDepartmentId.HasValue ||
-                     d.DepartmentId !=
-                     excludeDepartmentId.Value));
+                     d.DepartmentId != excludeDepartmentId.Value));
         }
 
 
@@ -146,8 +152,8 @@ namespace whm.Repositories
                 .Where(r => r.DepartmentId == departmentId)
                 .Include(r => r.Requester)
                 .AsNoTracking()
-               
                 .ToListAsync();
         }
     }
 }
+

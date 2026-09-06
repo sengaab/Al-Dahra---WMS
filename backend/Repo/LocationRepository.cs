@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using whm.Data;
 using whm.DTOs.Location;
 using whm.DTOs.Stock;
@@ -42,7 +43,7 @@ namespace whm.Repositories
             if (warehouseId.HasValue)
             {
                 query = query.Where(x =>
-                    x.Bin.WarehouseId == warehouseId.Value);
+                    x.WarehouseId == warehouseId.Value);
             }
 
 
@@ -128,6 +129,9 @@ namespace whm.Repositories
             if (pageSize < 1)
                 pageSize = 20;
 
+            if (pageSize > 100)
+                pageSize = 100;
+
 
             return await query
                 .OrderBy(x => x.Name)
@@ -142,9 +146,9 @@ namespace whm.Repositories
                     // Warehouse
                     // =========================
 
-                    WarehouseId = x.Bin.WarehouseId,
+                    WarehouseId = x.WarehouseId,
 
-                    WarehouseName = x.Bin.Warehouse.Name,
+                    WarehouseName = x.Warehouse.Name,
 
 
                     // =========================
@@ -215,9 +219,9 @@ namespace whm.Repositories
                     // Warehouse
                     // =========================
 
-                    WarehouseId = x.Bin.WarehouseId,
+                    WarehouseId = x.WarehouseId,
 
-                    WarehouseName = x.Bin.Warehouse.Name,
+                    WarehouseName = x.Warehouse.Name,
 
 
                     // =========================
@@ -272,7 +276,10 @@ namespace whm.Repositories
         public async Task<Location?> GetEntityByIdAsync(int id)
         {
             return await _context.Locations
+                .Include(x => x.Warehouse)
                 .Include(x => x.Bin)
+                    .ThenInclude(x => x.Partition)
+                        .ThenInclude(x => x.Warehouse)
                 .FirstOrDefaultAsync(x =>
                     x.LocationId == id);
         }
@@ -299,9 +306,9 @@ namespace whm.Repositories
                     // Warehouse
                     // =========================
 
-                    WarehouseId = x.Bin.WarehouseId,
+                    WarehouseId = x.WarehouseId,
 
-                    WarehouseName = x.Bin.Warehouse.Name,
+                    WarehouseName = x.Warehouse.Name,
 
 
                     // =========================
@@ -384,9 +391,9 @@ namespace whm.Repositories
                     // Warehouse
                     // =========================
 
-                    WarehouseId = x.Bin.WarehouseId,
+                    WarehouseId = x.WarehouseId,
 
-                    WarehouseName = x.Bin.Warehouse.Name,
+                    WarehouseName = x.Warehouse.Name,
 
 
                     // =========================
@@ -642,3 +649,4 @@ namespace whm.Repositories
         }
     }
 }
+

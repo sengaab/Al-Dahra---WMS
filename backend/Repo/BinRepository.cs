@@ -46,7 +46,7 @@ namespace whm.Repositories
             if (warehouseId.HasValue)
             {
                 query = query.Where(x =>
-                    x.WarehouseId == warehouseId.Value);
+                    x.Partition.WarehouseId == warehouseId.Value);
             }
 
             // =================================================
@@ -106,9 +106,9 @@ namespace whm.Repositories
                 {
                     BinId = x.Bin_Id,
 
-                    WarehouseId = x.WarehouseId,
+                    WarehouseId = x.Partition.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName = x.Partition.Warehouse.Name,
 
                     PartitionId = x.PartitionId,
 
@@ -124,12 +124,14 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    LocationsCount = x.Locations.Count,
+                    // One-to-One
+                    LocationsCount = x.Location != null ? 1 : 0,
 
                     StockCount = x.Stocks.Count
                 })
                 .ToListAsync();
         }
+
 
         // =====================================================
         // GET BY ID
@@ -144,9 +146,9 @@ namespace whm.Repositories
                 {
                     BinId = x.Bin_Id,
 
-                    WarehouseId = x.WarehouseId,
+                    WarehouseId = x.Partition.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName = x.Partition.Warehouse.Name,
 
                     PartitionId = x.PartitionId,
 
@@ -162,12 +164,14 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    LocationsCount = x.Locations.Count,
+                    // One-to-One
+                    LocationsCount = x.Location != null ? 1 : 0,
 
                     StockCount = x.Stocks.Count
                 })
                 .FirstOrDefaultAsync();
         }
+
 
         // =====================================================
         // GET ENTITY
@@ -176,11 +180,13 @@ namespace whm.Repositories
         public async Task<Bin?> GetEntityByIdAsync(int id)
         {
             return await _context.Bins
-                .Include(x => x.Warehouse)
                 .Include(x => x.Partition)
+                    .ThenInclude(x => x.Warehouse)
+                .Include(x => x.Location)
                 .FirstOrDefaultAsync(x =>
                     x.Bin_Id == id);
         }
+
 
         // =====================================================
         // GET BY WAREHOUSE
@@ -192,15 +198,15 @@ namespace whm.Repositories
             return await _context.Bins
                 .AsNoTracking()
                 .Where(x =>
-                    x.WarehouseId == warehouseId)
+                    x.Partition.WarehouseId == warehouseId)
                 .OrderBy(x => x.Bin_Name)
                 .Select(x => new BinDto
                 {
                     BinId = x.Bin_Id,
 
-                    WarehouseId = x.WarehouseId,
+                    WarehouseId = x.Partition.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName = x.Partition.Warehouse.Name,
 
                     PartitionId = x.PartitionId,
 
@@ -216,12 +222,14 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    LocationsCount = x.Locations.Count,
+                    // One-to-One
+                    LocationsCount = x.Location != null ? 1 : 0,
 
                     StockCount = x.Stocks.Count
                 })
                 .ToListAsync();
         }
+
 
         // =====================================================
         // GET BY PARTITION
@@ -239,9 +247,9 @@ namespace whm.Repositories
                 {
                     BinId = x.Bin_Id,
 
-                    WarehouseId = x.WarehouseId,
+                    WarehouseId = x.Partition.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName = x.Partition.Warehouse.Name,
 
                     PartitionId = x.PartitionId,
 
@@ -257,12 +265,14 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    LocationsCount = x.Locations.Count,
+                    // One-to-One
+                    LocationsCount = x.Location != null ? 1 : 0,
 
                     StockCount = x.Stocks.Count
                 })
                 .ToListAsync();
         }
+
 
         // =====================================================
         // GET BY LOCATION
@@ -274,16 +284,16 @@ namespace whm.Repositories
             return await _context.Bins
                 .AsNoTracking()
                 .Where(x =>
-                    x.Locations.Any(l =>
-                        l.LocationId == locationId))
+                    x.Location != null &&
+                    x.Location.LocationId == locationId)
                 .OrderBy(x => x.Bin_Name)
                 .Select(x => new BinDto
                 {
                     BinId = x.Bin_Id,
 
-                    WarehouseId = x.WarehouseId,
+                    WarehouseId = x.Partition.WarehouseId,
 
-                    WarehouseName = x.Warehouse.Name,
+                    WarehouseName = x.Partition.Warehouse.Name,
 
                     PartitionId = x.PartitionId,
 
@@ -299,12 +309,14 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    LocationsCount = x.Locations.Count,
+                    // One-to-One
+                    LocationsCount = x.Location != null ? 1 : 0,
 
                     StockCount = x.Stocks.Count
                 })
                 .ToListAsync();
         }
+
 
         // =====================================================
         // EXISTS BY PARTITION
@@ -319,6 +331,7 @@ namespace whm.Repositories
                     x.PartitionId == partitionId);
         }
 
+
         // =====================================================
         // ADD
         // =====================================================
@@ -328,6 +341,7 @@ namespace whm.Repositories
             await _context.Bins.AddAsync(bin);
         }
 
+
         // =====================================================
         // UPDATE
         // =====================================================
@@ -336,6 +350,7 @@ namespace whm.Repositories
         {
             _context.Bins.Update(bin);
         }
+
 
         // =====================================================
         // DELETE
