@@ -9,8 +9,6 @@ import type {
     UpdateStockDto,
 } from "@/types/stock";
 
-
-
 export async function getStock(): Promise<StockDto[]> {
     return apiFetch<StockDto[]>(
         "/api/Stock"
@@ -126,4 +124,3 @@ export async function deleteStock(
         }
     );
 }
-

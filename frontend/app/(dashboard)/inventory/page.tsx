@@ -155,7 +155,7 @@ export default function Inventory() {
                         (total, item) =>
                             total +
                             item.quantity *
-                                item.unitPrice,
+                            item.unitPrice,
                         0
                     );
 
@@ -220,7 +220,7 @@ export default function Inventory() {
                 return (
                     selectedStatus === "All" ||
                     item.stockStatus ===
-                        selectedStatus
+                    selectedStatus
                 );
             });
     }, [
@@ -358,11 +358,6 @@ export default function Inventory() {
                                 </Button>
                             </div>
                         }
-                        style={{
-                            height: "100%",
-                            minHeight: 0,
-                            boxSizing: "border-box",
-                        }}
                     >
                         {/* Loading */}
                         {loading && (
@@ -666,25 +661,25 @@ export default function Inventory() {
 
                                         {inventoryData.length ===
                                             0 && (
-                                            <tr>
-                                                <td
-                                                    colSpan={
-                                                        11
-                                                    }
-                                                    style={{
-                                                        padding:
-                                                            "var(--space-6)",
-                                                        textAlign:
-                                                            "center",
-                                                    }}
-                                                >
-                                                    No
-                                                    inventory
-                                                    records
-                                                    found.
-                                                </td>
-                                            </tr>
-                                        )}
+                                                <tr>
+                                                    <td
+                                                        colSpan={
+                                                            11
+                                                        }
+                                                        style={{
+                                                            padding:
+                                                                "var(--space-6)",
+                                                            textAlign:
+                                                                "center",
+                                                        }}
+                                                    >
+                                                        No
+                                                        inventory
+                                                        records
+                                                        found.
+                                                    </td>
+                                                </tr>
+                                            )}
                                     </tbody>
                                 </table>
                             </div>

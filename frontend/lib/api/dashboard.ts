@@ -1,30 +1,53 @@
 import { apiFetch } from "@/lib/api";
-import type { DashboardDto } from "@/types";
+import type { DashboardDto } from "@/types/dashboard";
 
-export interface DashboardFilters {
+export interface GetDashboardParams {
     siteId?: number;
     departmentId?: number;
+    warehouseId?: number;
+    fromDate?: string;
+    toDate?: string;
 }
 
+/**
+ * GET /api/Dashboard
+ *
+ * Get dashboard data with optional filters.
+ */
 export async function getDashboard(
-    filters?: DashboardFilters
+    params?: GetDashboardParams
 ): Promise<DashboardDto> {
-    const params = new URLSearchParams();
+    const query = new URLSearchParams();
 
-    if (filters?.siteId !== undefined) {
-        params.append("siteId", filters.siteId.toString());
+    if (params?.siteId !== undefined) {
+        query.set("siteId", params.siteId.toString());
     }
 
-    if (filters?.departmentId !== undefined) {
-        params.append(
+    if (params?.departmentId !== undefined) {
+        query.set(
             "departmentId",
-            filters.departmentId.toString()
+            params.departmentId.toString()
         );
     }
 
-    const query = params.toString();
+    if (params?.warehouseId !== undefined) {
+        query.set(
+            "warehouseId",
+            params.warehouseId.toString()
+        );
+    }
+
+    if (params?.fromDate) {
+        query.set("fromDate", params.fromDate);
+    }
+
+    if (params?.toDate) {
+        query.set("toDate", params.toDate);
+    }
+
+    const queryString = query.toString();
 
     return apiFetch<DashboardDto>(
-        `/api/dashboard${query ? `?${query}` : ""}`
+        `/api/Dashboard${queryString ? `?${queryString}` : ""}`
     );
 }
