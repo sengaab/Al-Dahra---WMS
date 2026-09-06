@@ -18,6 +18,7 @@ namespace whm.Controllers
             _unitOfWork = unitOfWork;
         }
 
+
         // =========================================================
         // GET: api/bins
         // =========================================================
@@ -31,6 +32,10 @@ namespace whm.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
+            // -----------------------------------------------------
+            // Validate pagination
+            // -----------------------------------------------------
+
             if (page < 1)
                 page = 1;
 
@@ -40,6 +45,37 @@ namespace whm.Controllers
             if (pageSize > 100)
                 pageSize = 100;
 
+
+            // -----------------------------------------------------
+            // Validate WarehouseId if provided
+            // -----------------------------------------------------
+
+            if (warehouseId.HasValue && warehouseId.Value <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+
+            // -----------------------------------------------------
+            // Validate PartitionId if provided
+            // -----------------------------------------------------
+
+            if (partitionId.HasValue && partitionId.Value <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid PartitionId."
+                });
+            }
+
+
+            // -----------------------------------------------------
+            // Get Bins
+            // -----------------------------------------------------
+
             var bins = await _unitOfWork.Bins.GetAllAsync(
                 warehouseId,
                 partitionId,
@@ -48,8 +84,10 @@ namespace whm.Controllers
                 page,
                 pageSize);
 
+
             return Ok(bins);
         }
+
 
         // =========================================================
         // GET: api/bins/{id}
@@ -58,6 +96,10 @@ namespace whm.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetBin(int id)
         {
+            // -----------------------------------------------------
+            // Validate Id
+            // -----------------------------------------------------
+
             if (id <= 0)
             {
                 return BadRequest(new
@@ -66,7 +108,13 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Get Bin
+            // -----------------------------------------------------
+
             var bin = await _unitOfWork.Bins.GetByIdAsync(id);
+
 
             if (bin == null)
             {
@@ -76,8 +124,10 @@ namespace whm.Controllers
                 });
             }
 
+
             return Ok(bin);
         }
+
 
         // =========================================================
         // GET: api/bins/warehouse/{warehouseId}
@@ -87,6 +137,10 @@ namespace whm.Controllers
         public async Task<IActionResult> GetBinsByWarehouse(
             int warehouseId)
         {
+            // -----------------------------------------------------
+            // Validate WarehouseId
+            // -----------------------------------------------------
+
             if (warehouseId <= 0)
             {
                 return BadRequest(new
@@ -95,8 +149,14 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Check Warehouse exists
+            // -----------------------------------------------------
+
             var warehouse = await _unitOfWork.Warehouses
                 .GetEntityByIdAsync(warehouseId);
+
 
             if (warehouse == null)
             {
@@ -106,11 +166,18 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Get Bins
+            // -----------------------------------------------------
+
             var bins = await _unitOfWork.Bins
                 .GetByWarehouseIdAsync(warehouseId);
 
+
             return Ok(bins);
         }
+
 
         // =========================================================
         // GET: api/bins/partition/{partitionId}
@@ -120,6 +187,10 @@ namespace whm.Controllers
         public async Task<IActionResult> GetBinsByPartition(
             int partitionId)
         {
+            // -----------------------------------------------------
+            // Validate PartitionId
+            // -----------------------------------------------------
+
             if (partitionId <= 0)
             {
                 return BadRequest(new
@@ -128,8 +199,14 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Check Partition exists
+            // -----------------------------------------------------
+
             var partition = await _unitOfWork.Partitions
                 .GetEntityByIdAsync(partitionId);
+
 
             if (partition == null)
             {
@@ -139,11 +216,18 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Get Bins
+            // -----------------------------------------------------
+
             var bins = await _unitOfWork.Bins
                 .GetByPartitionIdAsync(partitionId);
 
+
             return Ok(bins);
         }
+
 
         // =========================================================
         // GET: api/bins/location/{locationId}
@@ -153,6 +237,10 @@ namespace whm.Controllers
         public async Task<IActionResult> GetBinsByLocation(
             int locationId)
         {
+            // -----------------------------------------------------
+            // Validate LocationId
+            // -----------------------------------------------------
+
             if (locationId <= 0)
             {
                 return BadRequest(new
@@ -161,8 +249,14 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Check Location exists
+            // -----------------------------------------------------
+
             var location = await _unitOfWork.Locations
                 .GetEntityByIdAsync(locationId);
+
 
             if (location == null)
             {
@@ -172,11 +266,18 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Get Bin
+            // -----------------------------------------------------
+
             var bins = await _unitOfWork.Bins
                 .GetByLocationIdAsync(locationId);
 
+
             return Ok(bins);
         }
+
 
         // =========================================================
         // POST: api/bins
@@ -186,12 +287,17 @@ namespace whm.Controllers
         public async Task<IActionResult> CreateBin(
             [FromBody] CreateBinDto dto)
         {
+            // -----------------------------------------------------
+            // Validate ModelState
+            // -----------------------------------------------------
+
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Validate WarehouseId
-            // =====================================================
+            // -----------------------------------------------------
 
             if (dto.WarehouseId <= 0)
             {
@@ -201,8 +307,14 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Check Warehouse exists
+            // -----------------------------------------------------
+
             var warehouse = await _unitOfWork.Warehouses
                 .GetEntityByIdAsync(dto.WarehouseId);
+
 
             if (warehouse == null)
             {
@@ -212,9 +324,10 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Validate PartitionId
-            // =====================================================
+            // -----------------------------------------------------
 
             if (dto.PartitionId <= 0)
             {
@@ -224,8 +337,14 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Check Partition exists
+            // -----------------------------------------------------
+
             var partition = await _unitOfWork.Partitions
                 .GetEntityByIdAsync(dto.PartitionId);
+
 
             if (partition == null)
             {
@@ -235,9 +354,10 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Make sure Partition belongs to Warehouse
-            // =====================================================
+            // -----------------------------------------------------
 
             if (partition.WarehouseId != dto.WarehouseId)
             {
@@ -248,9 +368,10 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Validate Name
-            // =====================================================
+            // -----------------------------------------------------
 
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
@@ -260,9 +381,10 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Validate Code
-            // =====================================================
+            // -----------------------------------------------------
 
             if (string.IsNullOrWhiteSpace(dto.Code))
             {
@@ -272,14 +394,13 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Create Bin
-            // =====================================================
+            // -----------------------------------------------------
 
             var bin = new Bin
             {
-                WarehouseId = dto.WarehouseId,
-
                 PartitionId = dto.PartitionId,
 
                 Bin_Code = dto.Code.Trim(),
@@ -294,17 +415,28 @@ namespace whm.Controllers
                 IsActive = true
             };
 
-            await _unitOfWork.Bins
-                .AddAsync(bin);
+
+            // -----------------------------------------------------
+            // Add Bin
+            // -----------------------------------------------------
+
+            await _unitOfWork.Bins.AddAsync(bin);
+
+
+            // -----------------------------------------------------
+            // Save
+            // -----------------------------------------------------
 
             await _unitOfWork.SaveAsync();
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Get created Bin
-            // =====================================================
+            // -----------------------------------------------------
 
             var result = await _unitOfWork.Bins
                 .GetByIdAsync(bin.Bin_Id);
+
 
             return CreatedAtAction(
                 nameof(GetBin),
@@ -315,6 +447,7 @@ namespace whm.Controllers
                 result);
         }
 
+
         // =========================================================
         // PUT: api/bins/{id}
         // =========================================================
@@ -324,8 +457,17 @@ namespace whm.Controllers
             int id,
             [FromBody] UpdateBinDto dto)
         {
+            // -----------------------------------------------------
+            // Validate ModelState
+            // -----------------------------------------------------
+
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
+
+
+            // -----------------------------------------------------
+            // Validate Id
+            // -----------------------------------------------------
 
             if (id <= 0)
             {
@@ -335,12 +477,14 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Get Bin
-            // =====================================================
+            // -----------------------------------------------------
 
             var bin = await _unitOfWork.Bins
                 .GetEntityByIdAsync(id);
+
 
             if (bin == null)
             {
@@ -350,48 +494,19 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
-            // Determine new WarehouseId
-            // =====================================================
-
-            var warehouseId =
-                dto.WarehouseId ??
-                bin.WarehouseId;
 
             // =====================================================
-            // Validate Warehouse
-            // =====================================================
-
-            if (warehouseId <= 0)
-            {
-                return BadRequest(new
-                {
-                    message = "Invalid WarehouseId."
-                });
-            }
-
-            var warehouse = await _unitOfWork.Warehouses
-                .GetEntityByIdAsync(warehouseId);
-
-            if (warehouse == null)
-            {
-                return BadRequest(new
-                {
-                    message = "Warehouse not found."
-                });
-            }
-
-            // =====================================================
-            // Determine new PartitionId
+            // Determine Partition
             // =====================================================
 
             var partitionId =
                 dto.PartitionId ??
                 bin.PartitionId;
 
-            // =====================================================
-            // Validate Partition
-            // =====================================================
+
+            // -----------------------------------------------------
+            // Validate PartitionId
+            // -----------------------------------------------------
 
             if (partitionId <= 0)
             {
@@ -401,8 +516,14 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -----------------------------------------------------
+            // Get Partition
+            // -----------------------------------------------------
+
             var partition = await _unitOfWork.Partitions
                 .GetEntityByIdAsync(partitionId);
+
 
             if (partition == null)
             {
@@ -412,9 +533,49 @@ namespace whm.Controllers
                 });
             }
 
+
             // =====================================================
+            // Determine Warehouse
+            // =====================================================
+
+            var warehouseId =
+                dto.WarehouseId ??
+                partition.WarehouseId;
+
+
+            // -----------------------------------------------------
+            // Validate WarehouseId
+            // -----------------------------------------------------
+
+            if (warehouseId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+
+            // -----------------------------------------------------
+            // Check Warehouse exists
+            // -----------------------------------------------------
+
+            var warehouse = await _unitOfWork.Warehouses
+                .GetEntityByIdAsync(warehouseId);
+
+
+            if (warehouse == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Warehouse not found."
+                });
+            }
+
+
+            // -----------------------------------------------------
             // Make sure Partition belongs to Warehouse
-            // =====================================================
+            // -----------------------------------------------------
 
             if (partition.WarehouseId != warehouseId)
             {
@@ -424,6 +585,7 @@ namespace whm.Controllers
                         "The selected partition does not belong to the selected warehouse."
                 });
             }
+
 
             // =====================================================
             // Update Code
@@ -435,13 +597,13 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message =
-                            "Bin code cannot be empty."
+                        message = "Bin code cannot be empty."
                     });
                 }
 
                 bin.Bin_Code = dto.Code.Trim();
             }
+
 
             // =====================================================
             // Update Name
@@ -453,13 +615,13 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message =
-                            "Bin name cannot be empty."
+                        message = "Bin name cannot be empty."
                     });
                 }
 
                 bin.Bin_Name = dto.Name.Trim();
             }
+
 
             // =====================================================
             // Update Description
@@ -473,17 +635,13 @@ namespace whm.Controllers
                         : dto.Description.Trim();
             }
 
-            // =====================================================
-            // Update Warehouse
-            // =====================================================
-
-            bin.WarehouseId = warehouseId;
 
             // =====================================================
             // Update Partition
             // =====================================================
 
             bin.PartitionId = partitionId;
+
 
             // =====================================================
             // Update Active Status
@@ -494,14 +652,24 @@ namespace whm.Controllers
                 bin.IsActive = dto.IsActive.Value;
             }
 
+
+            // -----------------------------------------------------
+            // IMPORTANT:
+            // Bin does NOT have WarehouseId.
+            //
+            // Warehouse is determined through:
+            // Bin -> Partition -> Warehouse
+            // -----------------------------------------------------
+
+
             // =====================================================
             // Save
             // =====================================================
 
-            _unitOfWork.Bins
-                .Update(bin);
+            _unitOfWork.Bins.Update(bin);
 
             await _unitOfWork.SaveAsync();
+
 
             // =====================================================
             // Return updated Bin
@@ -510,8 +678,10 @@ namespace whm.Controllers
             var result = await _unitOfWork.Bins
                 .GetByIdAsync(id);
 
+
             return Ok(result);
         }
+
 
         // =========================================================
         // DELETE: api/bins/{id}
@@ -520,6 +690,10 @@ namespace whm.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteBin(int id)
         {
+            // -----------------------------------------------------
+            // Validate Id
+            // -----------------------------------------------------
+
             if (id <= 0)
             {
                 return BadRequest(new
@@ -528,12 +702,14 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
+
+            // -----------------------------------------------------
             // Get Bin
-            // =====================================================
+            // -----------------------------------------------------
 
             var bin = await _unitOfWork.Bins
                 .GetEntityByIdAsync(id);
+
 
             if (bin == null)
             {
@@ -543,26 +719,12 @@ namespace whm.Controllers
                 });
             }
 
-            // =====================================================
-            // Get Bin details
-            // =====================================================
-
-            var binDetails = await _unitOfWork.Bins
-                .GetByIdAsync(id);
-
-            if (binDetails == null)
-            {
-                return NotFound(new
-                {
-                    message = "Bin not found."
-                });
-            }
 
             // =====================================================
             // Prevent delete if Bin contains Stock
             // =====================================================
 
-            if (binDetails.StockCount > 0)
+            if (bin.Stocks != null && bin.Stocks.Any())
             {
                 return Conflict(new
                 {
@@ -571,32 +733,42 @@ namespace whm.Controllers
                 });
             }
 
+
             // =====================================================
-            // Prevent delete if Bin contains Locations
+            // Prevent delete if Bin contains Location
             // =====================================================
 
-            if (binDetails.LocationsCount > 0)
+            if (bin.Location != null)
             {
                 return Conflict(new
                 {
                     message =
-                        "Cannot delete this bin because it contains locations."
+                        "Cannot delete this bin because it contains a location."
                 });
             }
+
 
             // =====================================================
             // Delete Bin
             // =====================================================
 
-            _unitOfWork.Bins
-                .Delete(bin);
+            _unitOfWork.Bins.Delete(bin);
+
+
+            // -----------------------------------------------------
+            // Save
+            // -----------------------------------------------------
 
             await _unitOfWork.SaveAsync();
 
+
+            // =====================================================
+            // Response
+            // =====================================================
+
             return Ok(new
             {
-                message =
-                    "Bin deleted successfully."
+                message = "Bin deleted successfully."
             });
         }
     }

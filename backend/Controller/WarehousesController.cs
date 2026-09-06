@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using whm.DTOs.Warehouse;
 using whm.Models;
 using whm.UnitOfWork;
@@ -68,8 +70,7 @@ namespace whm.Controllers
             }
 
             var warehouse =
-                await _unitOfWork.Warehouses
-                    .GetByIdAsync(id);
+                await _unitOfWork.Warehouses.GetByIdAsync(id);
 
             if (warehouse == null)
             {
@@ -185,8 +186,7 @@ namespace whm.Controllers
 
             var result =
                 await _unitOfWork.Warehouses
-                    .GetByIdAsync(
-                        warehouse.WarehouseId);
+                    .GetByIdAsync(warehouse.WarehouseId);
 
 
             return CreatedAtAction(
@@ -239,40 +239,6 @@ namespace whm.Controllers
 
 
             // =================================================
-            // Update Site
-            // =================================================
-
-            if (dto.SiteId.HasValue)
-            {
-                if (dto.SiteId.Value <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Invalid SiteId."
-                    });
-                }
-
-
-                var site =
-                    await _unitOfWork.Sites
-                        .GetEntityByIdAsync(
-                            dto.SiteId.Value);
-
-                if (site == null)
-                {
-                    return BadRequest(new
-                    {
-                        message = "Site not found."
-                    });
-                }
-
-
-                warehouse.SiteId =
-                    dto.SiteId.Value;
-            }
-
-
-            // =================================================
             // Update Code
             // =================================================
 
@@ -319,8 +285,7 @@ namespace whm.Controllers
             if (dto.Description != null)
             {
                 warehouse.Description =
-                    string.IsNullOrWhiteSpace(
-                        dto.Description)
+                    string.IsNullOrWhiteSpace(dto.Description)
                         ? null
                         : dto.Description.Trim();
             }
@@ -372,8 +337,7 @@ namespace whm.Controllers
         // =====================================================
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeleteWarehouse(
-            int id)
+        public async Task<IActionResult> DeleteWarehouse(int id)
         {
             if (id <= 0)
             {
@@ -437,6 +401,20 @@ namespace whm.Controllers
 
 
             // =================================================
+            // Prevent Delete if Warehouse has Locations
+            // =================================================
+
+            if (warehouseDetails.LocationsCount > 0)
+            {
+                return Conflict(new
+                {
+                    message =
+                        "Cannot delete this warehouse because it contains locations."
+                });
+            }
+
+
+            // =================================================
             // Prevent Delete if Warehouse has Bins
             // =================================================
 
@@ -487,8 +465,7 @@ namespace whm.Controllers
         // =====================================================
 
         [HttpGet("{id:int}/inventory")]
-        public async Task<IActionResult> GetInventory(
-            int id)
+        public async Task<IActionResult> GetInventory(int id)
         {
             if (id <= 0)
             {
@@ -498,6 +475,10 @@ namespace whm.Controllers
                 });
             }
 
+
+            // =================================================
+            // Check Warehouse
+            // =================================================
 
             var warehouse =
                 await _unitOfWork.Warehouses
@@ -512,6 +493,10 @@ namespace whm.Controllers
             }
 
 
+            // =================================================
+            // Get Inventory
+            // =================================================
+
             var inventory =
                 await _unitOfWork.Warehouses
                     .GetInventoryAsync(id);
@@ -525,8 +510,7 @@ namespace whm.Controllers
         // =====================================================
 
         [HttpGet("{id:int}/stats")]
-        public async Task<IActionResult> GetStats(
-            int id)
+        public async Task<IActionResult> GetStats(int id)
         {
             if (id <= 0)
             {
@@ -559,8 +543,7 @@ namespace whm.Controllers
         // =====================================================
 
         [HttpGet("{id:int}/occupancy")]
-        public async Task<IActionResult> GetOccupancy(
-            int id)
+        public async Task<IActionResult> GetOccupancy(int id)
         {
             if (id <= 0)
             {

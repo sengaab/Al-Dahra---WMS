@@ -1,7 +1,10 @@
-﻿namespace whm.DTOs.Location
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace whm.DTOs.Location
 {
     // =====================================================
     // LOCATION DTO
+    // Used for returning Location data
     // =====================================================
 
     public class LocationDto
@@ -13,20 +16,20 @@
         // Warehouse
         // =========================
 
-        public int? WarehouseId { get; set; }
+        public int WarehouseId { get; set; }
 
-        public string? WarehouseName { get; set; }
+        public string WarehouseName { get; set; } = string.Empty;
 
 
         // =========================
         // Partition
         // =========================
 
-        public int? PartitionId { get; set; }
+        public int PartitionId { get; set; }
 
-        public string? PartitionName { get; set; }
+        public string PartitionName { get; set; } = string.Empty;
 
-        public string? PartitionCode { get; set; }
+        public string PartitionCode { get; set; } = string.Empty;
 
 
         // =========================
@@ -71,6 +74,7 @@
         // Bin
         // =========================
 
+        [Required]
         public int BinId { get; set; }
 
 
@@ -78,10 +82,16 @@
         // Location Details
         // =========================
 
+        [Required]
+        [MaxLength(50)]
         public string Code { get; set; } = string.Empty;
 
+        [Required]
+        [MaxLength(150)]
         public string Name { get; set; } = string.Empty;
 
+        [Required]
+        [MaxLength(50)]
         public string Type { get; set; } = string.Empty;
     }
 
@@ -104,10 +114,13 @@
         // Location Details
         // =========================
 
+        [MaxLength(50)]
         public string? Code { get; set; }
 
+        [MaxLength(150)]
         public string? Name { get; set; }
 
+        [MaxLength(50)]
         public string? Type { get; set; }
 
         public bool? IsActive { get; set; }
@@ -202,7 +215,7 @@
 
         public int WarehouseId { get; set; }
 
-        public string? WarehouseName { get; set; }
+        public string WarehouseName { get; set; } = string.Empty;
 
 
         // =========================
@@ -211,9 +224,9 @@
 
         public int PartitionId { get; set; }
 
-        public string? PartitionName { get; set; }
+        public string PartitionName { get; set; } = string.Empty;
 
-        public string? PartitionCode { get; set; }
+        public string PartitionCode { get; set; } = string.Empty;
 
 
         // =========================
@@ -222,7 +235,7 @@
 
         public int BinId { get; set; }
 
-        public string? BinName { get; set; }
+        public string BinName { get; set; } = string.Empty;
 
         public string? BinCode { get; set; }
 

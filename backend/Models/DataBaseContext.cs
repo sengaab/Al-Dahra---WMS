@@ -291,7 +291,9 @@ namespace whm.Data
             modelBuilder.Entity<User>()
                 .HasIndex(x => x.EmployeeCode)
                 .IsUnique();
-
+            modelBuilder.Entity<Location>()
+            .HasIndex(x => x.BinId)
+            .IsUnique();
 
             // =====================================================
             // ROLE -> USERS
@@ -338,15 +340,14 @@ namespace whm.Data
 
 
             // =====================================================
-            // WAREHOUSE -> BINS
+            // WAREHOUSE -> LOCATIONS
             // =====================================================
 
-            modelBuilder.Entity<Bin>()
+            modelBuilder.Entity<Location>()
                 .HasOne(x => x.Warehouse)
-                .WithMany(x => x.Bins)
+                .WithMany(x => x.Locations)
                 .HasForeignKey(x => x.WarehouseId)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             // =====================================================
             // PARTITION -> BINS
@@ -364,10 +365,10 @@ namespace whm.Data
             // =====================================================
 
             modelBuilder.Entity<Location>()
-                .HasOne(x => x.Bin)
-                .WithMany(x => x.Locations)
-                .HasForeignKey(x => x.BinId)
-                .OnDelete(DeleteBehavior.Cascade);
+             .HasOne(x => x.Bin)
+             .WithOne(x => x.Location)
+             .HasForeignKey<Location>(x => x.BinId)
+             .OnDelete(DeleteBehavior.Cascade);
 
 
             // =====================================================
@@ -595,12 +596,11 @@ namespace whm.Data
                 .WithMany()
                 .HasForeignKey(x => x.WarehouseId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<Stock>()
                 .HasOne(x => x.Location)
-                .WithMany()
+                .WithMany(x => x.Stocks)
                 .HasForeignKey(x => x.LocationId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
 
 
             // =====================================================

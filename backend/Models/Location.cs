@@ -52,5 +52,14 @@ namespace whm.Models
 
         public ICollection<Stock> Stocks { get; set; }
             = new List<Stock>();
+
+        // ==========================================
+        // Warehouse
+        // ==========================================
+
+        [Required]
+        public int WarehouseId { get; set; }
+
+        public Warehouse Warehouse { get; set; } = null!;
     }
 }

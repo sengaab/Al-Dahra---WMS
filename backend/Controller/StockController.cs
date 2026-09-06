@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.Stock;
 using whm.Models;
@@ -26,7 +27,8 @@ namespace whm.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStock()
         {
-            var stocks = await _unitOfWork.Stocks.GetAllAsync();
+            var stocks =
+                await _unitOfWork.Stocks.GetAllAsync();
 
             return Ok(stocks);
         }
@@ -39,7 +41,16 @@ namespace whm.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetStockById(int id)
         {
-            var stock = await _unitOfWork.Stocks.GetByIdAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid StockId."
+                });
+            }
+
+            var stock =
+                await _unitOfWork.Stocks.GetByIdAsync(id);
 
             if (stock == null)
             {
@@ -60,8 +71,17 @@ namespace whm.Controllers
         [HttpGet("product/{productId:int}")]
         public async Task<IActionResult> GetStockByProduct(int productId)
         {
+            if (productId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid ProductId."
+                });
+            }
+
             var stocks =
-                await _unitOfWork.Stocks.GetByProductAsync(productId);
+                await _unitOfWork.Stocks
+                    .GetByProductAsync(productId);
 
             return Ok(stocks);
         }
@@ -74,8 +94,17 @@ namespace whm.Controllers
         [HttpGet("location/{locationId:int}")]
         public async Task<IActionResult> GetStockByLocation(int locationId)
         {
+            if (locationId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid LocationId."
+                });
+            }
+
             var stocks =
-                await _unitOfWork.Stocks.GetByLocationAsync(locationId);
+                await _unitOfWork.Stocks
+                    .GetByLocationAsync(locationId);
 
             return Ok(stocks);
         }
@@ -88,8 +117,17 @@ namespace whm.Controllers
         [HttpGet("warehouse/{warehouseId:int}")]
         public async Task<IActionResult> GetStockByWarehouse(int warehouseId)
         {
+            if (warehouseId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
             var stocks =
-                await _unitOfWork.Stocks.GetByWarehouseAsync(warehouseId);
+                await _unitOfWork.Stocks
+                    .GetByWarehouseAsync(warehouseId);
 
             return Ok(stocks);
         }
@@ -103,7 +141,8 @@ namespace whm.Controllers
         public async Task<IActionResult> GetAvailableStock()
         {
             var stocks =
-                await _unitOfWork.Stocks.GetAvailableAsync();
+                await _unitOfWork.Stocks
+                    .GetAvailableAsync();
 
             return Ok(stocks);
         }
@@ -117,7 +156,8 @@ namespace whm.Controllers
         public async Task<IActionResult> GetLowStock()
         {
             var stocks =
-                await _unitOfWork.Stocks.GetLowStockAsync();
+                await _unitOfWork.Stocks
+                    .GetLowStockAsync();
 
             return Ok(stocks);
         }
@@ -131,7 +171,8 @@ namespace whm.Controllers
         public async Task<IActionResult> GetOutOfStock()
         {
             var stocks =
-                await _unitOfWork.Stocks.GetOutOfStockAsync();
+                await _unitOfWork.Stocks
+                    .GetOutOfStockAsync();
 
             return Ok(stocks);
         }
@@ -145,7 +186,8 @@ namespace whm.Controllers
         public async Task<IActionResult> GetSummary()
         {
             var summary =
-                await _unitOfWork.Stocks.GetSummaryAsync();
+                await _unitOfWork.Stocks
+                    .GetSummaryAsync();
 
             return Ok(summary);
         }
@@ -159,7 +201,8 @@ namespace whm.Controllers
         public async Task<IActionResult> GetTotalQuantity()
         {
             var total =
-                await _unitOfWork.Stocks.GetTotalQuantityAsync();
+                await _unitOfWork.Stocks
+                    .GetTotalQuantityAsync();
 
             return Ok(new
             {
@@ -176,7 +219,8 @@ namespace whm.Controllers
         public async Task<IActionResult> GetTotalValue()
         {
             var total =
-                await _unitOfWork.Stocks.GetTotalValueAsync();
+                await _unitOfWork.Stocks
+                    .GetTotalValueAsync();
 
             return Ok(new
             {
@@ -193,9 +237,63 @@ namespace whm.Controllers
         public async Task<IActionResult> CreateStock(
             [FromBody] CreateStockDto dto)
         {
-            // =========================
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+
+            // =================================================
+            // Validate Warehouse
+            // =================================================
+
+            if (dto.WarehouseId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid WarehouseId."
+                });
+            }
+
+            var warehouse =
+                await _unitOfWork.Warehouses
+                    .GetEntityByIdAsync(dto.WarehouseId);
+
+            if (warehouse == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Warehouse not found."
+                });
+            }
+
+
+            // =================================================
+            // Validate Product
+            // =================================================
+
+            if (dto.ProductId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid ProductId."
+                });
+            }
+
+            var product =
+                await _unitOfWork.Products
+                    .GetEntityByIdAsync(dto.ProductId);
+
+            if (product == null)
+            {
+                return BadRequest(new
+                {
+                    message = "Product not found."
+                });
+            }
+
+
+            // =================================================
             // Validate Quantity
-            // =========================
+            // =================================================
 
             if (dto.Quantity < 0)
             {
@@ -206,9 +304,9 @@ namespace whm.Controllers
             }
 
 
-            // =========================
+            // =================================================
             // Validate Reserved Quantity
-            // =========================
+            // =================================================
 
             if (dto.ReservedQuantity < 0)
             {
@@ -217,7 +315,6 @@ namespace whm.Controllers
                     message = "Reserved quantity cannot be negative."
                 });
             }
-
 
             if (dto.ReservedQuantity > dto.Quantity)
             {
@@ -229,14 +326,23 @@ namespace whm.Controllers
             }
 
 
-            // =========================
+            // =================================================
             // Validate Supplier
-            // =========================
+            // =================================================
 
             if (dto.SupplierId.HasValue)
             {
-                var supplier = await _unitOfWork.Suppliers
-                    .GetEntityByIdAsync(dto.SupplierId.Value);
+                if (dto.SupplierId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid SupplierId."
+                    });
+                }
+
+                var supplier =
+                    await _unitOfWork.Suppliers
+                        .GetEntityByIdAsync(dto.SupplierId.Value);
 
                 if (supplier == null)
                 {
@@ -246,14 +352,25 @@ namespace whm.Controllers
                     });
                 }
             }
-            // =========================
+
+
+            // =================================================
             // Validate Location
-            // =========================
+            // =================================================
 
             if (dto.LocationId.HasValue)
             {
-                var location = await _unitOfWork.Locations
-                    .GetEntityByIdAsync(dto.LocationId.Value);
+                if (dto.LocationId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid LocationId."
+                    });
+                }
+
+                var location =
+                    await _unitOfWork.Locations
+                        .GetEntityByIdAsync(dto.LocationId.Value);
 
                 if (location == null)
                 {
@@ -263,20 +380,56 @@ namespace whm.Controllers
                     });
                 }
 
-                // Location -> Bin -> Warehouse
-                if (location.Bin.WarehouseId != dto.WarehouseId)
+
+                // ---------------------------------------------
+                // Location -> Warehouse
+                // ---------------------------------------------
+
+                if (location.WarehouseId != dto.WarehouseId)
                 {
                     return BadRequest(new
                     {
-                        message = "Location does not belong to the selected warehouse."
+                        message =
+                            "Location does not belong to the selected warehouse."
+                    });
+                }
+
+
+                // ---------------------------------------------
+                // Location -> Bin -> Partition -> Warehouse
+                // ---------------------------------------------
+
+                if (location.Bin.Partition.WarehouseId !=
+                    dto.WarehouseId)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Location hierarchy does not match the selected warehouse."
+                    });
+                }
+
+
+                // ---------------------------------------------
+                // Location Status
+                // ---------------------------------------------
+
+                if (!location.IsActive)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Cannot add stock to an inactive location."
                     });
                 }
             }
 
 
-            // =========================
+            // =================================================
             // Create Stock
-            // =========================
+            // =================================================
+
+            var now = DateTimeOffset.UtcNow;
 
             var stock = new Stock
             {
@@ -305,29 +458,34 @@ namespace whm.Controllers
 
                 stockStatus = StockStatus.Available,
 
-                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedAt = now,
 
-                UpdatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = now,
 
                 StockCode = await GenerateStockCode()
             };
 
 
-            await _unitOfWork.Stocks.AddAsync(stock);
+            await _unitOfWork.Stocks
+                .AddAsync(stock);
 
             await _unitOfWork.SaveAsync();
 
 
-            // =========================
+            // =================================================
             // Return Created Stock
-            // =========================
+            // =================================================
 
             var result =
-                await _unitOfWork.Stocks.GetByIdAsync(stock.StockId);
+                await _unitOfWork.Stocks
+                    .GetByIdAsync(stock.StockId);
 
             return CreatedAtAction(
                 nameof(GetStockById),
-                new { id = stock.StockId },
+                new
+                {
+                    id = stock.StockId
+                },
                 result);
         }
 
@@ -341,12 +499,26 @@ namespace whm.Controllers
             int id,
             [FromBody] UpdateStockDto dto)
         {
-            // =========================
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid StockId."
+                });
+            }
+
+
+            // =================================================
             // Get Stock
-            // =========================
+            // =================================================
 
             var stock =
-                await _unitOfWork.Stocks.GetEntityByIdAsync(id);
+                await _unitOfWork.Stocks
+                    .GetEntityByIdAsync(id);
 
             if (stock == null)
             {
@@ -357,9 +529,9 @@ namespace whm.Controllers
             }
 
 
-            // =========================
+            // =================================================
             // Validate Quantity
-            // =========================
+            // =================================================
 
             if (dto.Quantity < 0)
             {
@@ -370,9 +542,9 @@ namespace whm.Controllers
             }
 
 
-            // =========================
+            // =================================================
             // Validate Reserved Quantity
-            // =========================
+            // =================================================
 
             if (dto.ReservedQuantity < 0)
             {
@@ -381,7 +553,6 @@ namespace whm.Controllers
                     message = "Reserved quantity cannot be negative."
                 });
             }
-
 
             if (dto.ReservedQuantity > dto.Quantity)
             {
@@ -393,14 +564,23 @@ namespace whm.Controllers
             }
 
 
-            // =========================
+            // =================================================
             // Validate Supplier
-            // =========================
+            // =================================================
 
             if (dto.SupplierId.HasValue)
             {
-                var supplier = await _unitOfWork.Suppliers
-                    .GetEntityByIdAsync(dto.SupplierId.Value);
+                if (dto.SupplierId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid SupplierId."
+                    });
+                }
+
+                var supplier =
+                    await _unitOfWork.Suppliers
+                        .GetEntityByIdAsync(dto.SupplierId.Value);
 
                 if (supplier == null)
                 {
@@ -412,19 +592,95 @@ namespace whm.Controllers
             }
 
 
-            // =========================
+            // =================================================
+            // Validate Location
+            // =================================================
+
+            if (dto.LocationId.HasValue)
+            {
+                if (dto.LocationId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid LocationId."
+                    });
+                }
+
+                var location =
+                    await _unitOfWork.Locations
+                        .GetEntityByIdAsync(dto.LocationId.Value);
+
+                if (location == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Location not found."
+                    });
+                }
+
+
+                // ---------------------------------------------
+                // Location -> Warehouse
+                // ---------------------------------------------
+
+                if (location.WarehouseId != stock.WarehouseId)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Location does not belong to the stock warehouse."
+                    });
+                }
+
+
+                // ---------------------------------------------
+                // Location -> Bin -> Partition -> Warehouse
+                // ---------------------------------------------
+
+                if (location.Bin.Partition.WarehouseId !=
+                    stock.WarehouseId)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Location hierarchy does not match the stock warehouse."
+                    });
+                }
+
+
+                // ---------------------------------------------
+                // Location Status
+                // ---------------------------------------------
+
+                if (!location.IsActive)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Cannot move stock to an inactive location."
+                    });
+                }
+            }
+
+
+            // =================================================
             // Update Stock
-            // =========================
+            // =================================================
 
-            stock.LocationId = dto.LocationId;
+            stock.LocationId =
+                dto.LocationId;
 
-            stock.SupplierId = dto.SupplierId;
+            stock.SupplierId =
+                dto.SupplierId;
 
-            stock.BatchNumber = dto.BatchNumber;
+            stock.BatchNumber =
+                dto.BatchNumber;
 
-            stock.ExpiryDate = dto.ExpiryDate;
+            stock.ExpiryDate =
+                dto.ExpiryDate;
 
-            stock.Quantity = dto.Quantity;
+            stock.Quantity =
+                dto.Quantity;
 
             stock.ReservedQuantity =
                 dto.ReservedQuantity;
@@ -432,41 +688,60 @@ namespace whm.Controllers
             stock.AvailableQuantity =
                 dto.Quantity - dto.ReservedQuantity;
 
-            stock.UnitPrice = dto.UnitPrice;
+            stock.UnitPrice =
+                dto.UnitPrice;
 
             stock.MinimumStock =
                 dto.MinimumStock;
 
 
-            // =========================
+            // =================================================
             // Update Status
-            // =========================
+            // =================================================
 
-            if (!string.IsNullOrWhiteSpace(dto.StockStatus) &&
-                Enum.TryParse<StockStatus>(
+            if (!string.IsNullOrWhiteSpace(dto.StockStatus))
+            {
+                if (!Enum.TryParse<StockStatus>(
                     dto.StockStatus,
                     true,
                     out var status))
-            {
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Invalid stock status."
+                    });
+                }
+
                 stock.stockStatus = status;
             }
 
+
+            // =================================================
+            // Updated At
+            // =================================================
 
             stock.UpdatedAt =
                 DateTimeOffset.UtcNow;
 
 
-            _unitOfWork.Stocks.Update(stock);
+            // =================================================
+            // Save
+            // =================================================
+
+            _unitOfWork.Stocks
+                .Update(stock);
 
             await _unitOfWork.SaveAsync();
 
 
-            // =========================
+            // =================================================
             // Return Updated Stock
-            // =========================
+            // =================================================
 
             var result =
-                await _unitOfWork.Stocks.GetByIdAsync(id);
+                await _unitOfWork.Stocks
+                    .GetByIdAsync(id);
 
             return Ok(result);
         }
@@ -479,8 +754,22 @@ namespace whm.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteStock(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid StockId."
+                });
+            }
+
+
+            // =================================================
+            // Get Stock
+            // =================================================
+
             var stock =
-                await _unitOfWork.Stocks.GetEntityByIdAsync(id);
+                await _unitOfWork.Stocks
+                    .GetEntityByIdAsync(id);
 
             if (stock == null)
             {
@@ -491,14 +780,20 @@ namespace whm.Controllers
             }
 
 
-            _unitOfWork.Stocks.Delete(stock);
+            // =================================================
+            // Delete
+            // =================================================
+
+            _unitOfWork.Stocks
+                .Delete(stock);
 
             await _unitOfWork.SaveAsync();
 
 
             return Ok(new
             {
-                message = "Stock deleted successfully."
+                message =
+                    "Stock deleted successfully."
             });
         }
 
@@ -509,7 +804,7 @@ namespace whm.Controllers
 
         private async Task<string> GenerateStockCode()
         {
-            var prefix = "STK";
+            const string prefix = "STK";
 
             var lastStock =
                 (await _unitOfWork.Stocks.GetAllAsync())

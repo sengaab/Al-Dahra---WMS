@@ -12,10 +12,10 @@ namespace whm.Models
         // Warehouse
         // ==========================================
 
-        [Required]
-        public int WarehouseId { get; set; }
+        //[Required]
+        //public int WarehouseId { get; set; }
 
-        public Warehouse Warehouse { get; set; } = null!;
+        //public Warehouse Warehouse { get; set; } = null!;
 
 
         // ==========================================
@@ -49,8 +49,7 @@ namespace whm.Models
         // Locations
         // ==========================================
 
-        public ICollection<Location> Locations { get; set; }
-            = new List<Location>();
+        public Location? Location { get; set; }
 
 
         // ==========================================
