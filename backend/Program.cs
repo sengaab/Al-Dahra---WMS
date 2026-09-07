@@ -68,14 +68,8 @@ namespace whm
             builder.Services.AddScoped<ISiteRepository, SiteRepository>();
             builder.Services.AddScoped<IPurchaseOrderRepository, PurchaseOrderRepository>();
             builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
-
-
-
-
-
-
-
-
+            builder.Services.AddScoped<IInspectionRepository, InspectionRepository>();
+            builder.Services.AddScoped<IPutawayRepository, PutawayRepository>();
 
 
 
