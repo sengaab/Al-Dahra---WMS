@@ -1132,6 +1132,15 @@ namespace whm.Data
                 .WithMany(x => x.Stocks)
                 .HasForeignKey(x => x.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // =====================================================
+            // UNIT -> STOCKS
+            // =====================================================
+
+            modelBuilder.Entity<Stock>()
+            .HasOne(x => x.Unit)
+            .WithMany(x => x.Stocks)
+            .HasForeignKey(x => x.UnitId)
+            .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

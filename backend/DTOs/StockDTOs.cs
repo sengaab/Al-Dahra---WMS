@@ -76,6 +76,17 @@
 
 
         // =========================
+        // Unit
+        // =========================
+
+        public int? UnitId { get; set; }
+
+        public string? UnitName { get; set; }
+
+        public string? UnitAbbreviation { get; set; }
+
+
+        // =========================
         // Stock Details
         // =========================
 
@@ -118,6 +129,8 @@
 
         public int? SupplierId { get; set; }
 
+        public int? UnitId { get; set; }
+
         public string? BatchNumber { get; set; }
 
         public DateOnly? ExpiryDate { get; set; }
@@ -142,6 +155,8 @@
         public int? LocationId { get; set; }
 
         public int? SupplierId { get; set; }
+
+        public int? UnitId { get; set; }
 
         public string? BatchNumber { get; set; }
 

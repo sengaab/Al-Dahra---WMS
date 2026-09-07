@@ -290,6 +290,21 @@ namespace whm.Repositories
 
 
                     //=================================================
+                    // UNIT
+                    //=================================================
+
+                    UnitId = x.UnitId,
+
+                    UnitName = x.Unit != null
+                        ? x.Unit.Name
+                        : null,
+
+                    UnitAbbreviation = x.Unit != null
+                        ? x.Unit.Abbreviation
+                        : null,
+
+
+                    //=================================================
                     // PRODUCT
                     //=================================================
 

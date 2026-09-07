@@ -22,5 +22,6 @@ namespace whm.Models
         // Navigation
         public ICollection<Product> Products { get; set; }
             = new List<Product>();
+        public ICollection<Stock> Stocks  { get;set; }= new List<Stock>();
     }
 }

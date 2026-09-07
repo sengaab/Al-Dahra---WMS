@@ -352,6 +352,31 @@ namespace whm.Controllers
                     });
                 }
             }
+            // =================================================
+            // Validate Unit
+            // =================================================
+
+            if (dto.UnitId.HasValue)
+            {
+                if (dto.UnitId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid UnitId."
+                    });
+                }
+
+                var unit = await _unitOfWork.Units
+                    .GetEntityByIdAsync(dto.UnitId.Value);
+
+                if (unit == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Unit not found."
+                    });
+                }
+            }
 
 
             // =================================================
@@ -441,6 +466,8 @@ namespace whm.Controllers
 
                 SupplierId = dto.SupplierId,
 
+                UnitId = dto.UnitId,
+
                 BatchNumber = dto.BatchNumber,
 
                 ExpiryDate = dto.ExpiryDate,
@@ -450,7 +477,7 @@ namespace whm.Controllers
                 ReservedQuantity = dto.ReservedQuantity,
 
                 AvailableQuantity =
-                    dto.Quantity - dto.ReservedQuantity,
+           dto.Quantity - dto.ReservedQuantity,
 
                 UnitPrice = dto.UnitPrice,
 
@@ -590,6 +617,31 @@ namespace whm.Controllers
                     });
                 }
             }
+            // =================================================
+            // Validate Unit
+            // =================================================
+
+            if (dto.UnitId.HasValue)
+            {
+                if (dto.UnitId.Value <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid UnitId."
+                    });
+                }
+
+                var unit = await _unitOfWork.Units
+                    .GetEntityByIdAsync(dto.UnitId.Value);
+
+                if (unit == null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Unit not found."
+                    });
+                }
+            }
 
 
             // =================================================
@@ -672,6 +724,8 @@ namespace whm.Controllers
 
             stock.SupplierId =
                 dto.SupplierId;
+            stock.UnitId =
+            dto.UnitId;
 
             stock.BatchNumber =
                 dto.BatchNumber;
