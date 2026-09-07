@@ -597,10 +597,11 @@ namespace whm.Data
                 .HasForeignKey(x => x.WarehouseId)
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Stock>()
-                .HasOne(x => x.Location)
-                .WithMany(x => x.Stocks)
-                .HasForeignKey(x => x.LocationId)
-                .OnDelete(DeleteBehavior.SetNull);
+             .HasOne(x => x.Location)
+             .WithOne(x => x.Stock)
+             .HasForeignKey<Stock>(x => x.LocationId)
+             .IsRequired(false)
+             .OnDelete(DeleteBehavior.SetNull);
 
 
             // =====================================================

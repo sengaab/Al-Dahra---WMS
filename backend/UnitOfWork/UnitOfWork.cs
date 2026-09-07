@@ -40,6 +40,8 @@ namespace whm.UnitOfWork
         public IPurchaseOrderRepository PurchaseOrders { get; }
         public IReceiptRepository ReceiptRepository { get; }
         public IPartitionRepository Partitions { get; }
+        public IInspectionRepository Inspections { get; }
+        public IPutawayRepository Putaways { get; }
 
 
         public UnitOfWork(
@@ -68,7 +70,9 @@ namespace whm.UnitOfWork
             ISiteRepository siteRepository,
             IPurchaseOrderRepository purchaseOrderRepository,
             IReceiptRepository receiptRepository,
-            IPartitionRepository partitionRepository
+            IPartitionRepository partitionRepository,
+            IInspectionRepository inspectionRepository,
+            IPutawayRepository putawayRepository
 
 
 
@@ -107,6 +111,8 @@ namespace whm.UnitOfWork
             PurchaseOrders = purchaseOrderRepository;   
             ReceiptRepository = receiptRepository;
             Partitions = partitionRepository;
+            Inspections= inspectionRepository;
+            Putaways= putawayRepository;
 
 
         }
