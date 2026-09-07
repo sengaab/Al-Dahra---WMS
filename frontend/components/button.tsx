@@ -8,12 +8,14 @@ interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   children: React.ReactNode;
+  size?: "default" | "sm";
 }
 
 export default function Button({
   variant = "primary",
   children,
   style,
+  size = "default",
   ...props
 }: ButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -49,12 +51,12 @@ export default function Button({
     outline: {
       normal: {
         backgroundColor: "transparent",
-        color: "var(--dark-green)",
-        border: "2px solid var(--dark-green)",
+        color: "var(--dark-grey)",
+        border: "2px solid var(--light-grey)",
       },
       hover: {
-        backgroundColor: "var(--dark-green)",
-        color: "white",
+        backgroundColor: "var(--beige)",
+        color: "var(--dark-grey)",
       },
     },
 
@@ -92,14 +94,15 @@ export default function Button({
         cursor: "pointer",
         transition: "all 0.2s ease",
         textWrap: "nowrap",
-        height: "var(--input-height)",
+        height: size == "sm" ? "fit-content" : "var(--input-height)",
         paddingInline: "var(--input-padding-x)",
+        paddingBlock: "var(--space-1)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         gap: "var(--space-2)",
         border: variant === "outline"
-          ? "2px solid var(--dark-green)"
+          ? "2px solid var(--light-grey)"
           : "none",
 
         outline: "none",

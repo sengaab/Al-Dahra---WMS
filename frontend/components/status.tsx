@@ -1,6 +1,6 @@
 "use-client";
 interface StatusProps {
-    variant?: "green" | "orange" | "red" | "blue" | "grey" | "purple";
+    variant?: "green" | "orange" | "red" | "blue" | "grey" | "yellow";
     text?: string;
 }
 export default function Status({
