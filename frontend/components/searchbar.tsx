@@ -8,6 +8,7 @@ interface SearchBarProps {
     onChange?: (value: string) => void;
     onSearch?: (value: string) => void;
     style?: React.CSSProperties;
+    maxWidth?: string;
 }
 
 export default function SearchBar({
@@ -16,6 +17,7 @@ export default function SearchBar({
     onChange,
     onSearch,
     style,
+    maxWidth="600px",
 }: SearchBarProps) {
     const [internalValue, setInternalValue] = useState("");
 
@@ -42,7 +44,7 @@ export default function SearchBar({
                 display: "flex",
                 alignItems: "center",
                 width: "100%",
-                maxWidth: "600px",
+                maxWidth: maxWidth,
                 border: "var(--border-default)",
                 borderRadius: "var(--input-radius)",
                 backgroundColor: "var(--white)",
@@ -51,6 +53,7 @@ export default function SearchBar({
                 padding: "var(--space-1)",
                 gap: "var(--space-3)",
                 height: "var(--input-height)",
+                minWidth:"250px",
                 ...style,
             }}
         >
@@ -64,7 +67,7 @@ export default function SearchBar({
                     color: "var(--grey)",
                     flexShrink: 0,
                 }}
-            >
+                >
                 <svg
                     height="var(--icon-md)"
                     viewBox="0 0 24 24"
@@ -88,10 +91,10 @@ export default function SearchBar({
                 placeholder={placeholder}
                 style={{
                     flex: 1,
-                    minWidth: 0,
                     height: "100%",
                     border: "none",
                     outline: "none",
+                    minWidth:"250px",
                     color: "black",
                     backgroundColor: "transparent",
                     padding: "0 var(--space-3) 0 0",

@@ -1,8 +1,8 @@
 export interface ProductDto {
     productId: number;
-    SKU: string;
+    sku: string;
     barcode: string | null;
-    QRValue: string | null;
+    qrValue: string | null;
     name: string;
     categoryId: number | null;
     categoryName: string | null;
@@ -24,9 +24,9 @@ export interface ProductSupplierDto {
 }
 
 export interface CreateProductDto {
-    SKU?: string | null;
-    barcode?: string | null;
-    QRValue?: string | null;
+    sku?: string | null;
+    barcode: string | null;
+    qrValue: string | null;
     name: string;
     categoryId?: number | null;
     unitId?: number | null;

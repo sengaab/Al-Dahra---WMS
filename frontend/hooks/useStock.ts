@@ -4,13 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import {
     getStock,
     getStockSummary,
-    getStockByProduct,
+    getStockByProductId,
 } from "@/lib/api/stock";
 
 import type {
     StockDto,
     StockSummaryDto,
-    StockByProductDto,
 } from "@/types";
 
 export function useStock() {
@@ -59,13 +58,16 @@ export function useStock() {
 }
 
 export function useStockByProductId(productId: number | null) {
-    const [stock, setStock] = useState<StockByProductDto | null>(null);
+    // A product can have multiple stock records
+    // across different warehouses/locations.
+    const [stock, setStock] = useState<StockDto[]>([]);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fetchStock = useCallback(async () => {
         if (productId === null) {
-            setStock(null);
+            setStock([]);
             return;
         }
 
@@ -73,16 +75,22 @@ export function useStockByProductId(productId: number | null) {
             setLoading(true);
             setError(null);
 
-            const data = await getStockByProduct(productId);
+            const data = await getStockByProductId(productId);
+
             setStock(data);
         } catch (err) {
-            console.error("Failed to fetch stock by product:", err);
+            console.error(
+                "Failed to fetch stock by product:",
+                err
+            );
+
             setError(
                 err instanceof Error
                     ? err.message
                     : "Failed to fetch stock"
             );
-            setStock(null);
+
+            setStock([]);
         } finally {
             setLoading(false);
         }

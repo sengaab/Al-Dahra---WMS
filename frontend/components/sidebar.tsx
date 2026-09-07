@@ -16,26 +16,6 @@ const navItems = [
         icon: "/nav/inventory.svg",
     },
     {
-        name: "Stock Counts",
-        href: "/stock-counts",
-        icon: "/nav/stock-counts.svg",
-    },
-    {
-        name: "Transfers",
-        href: "/transfers",
-        icon: "/nav/transfers.svg",
-    },
-    {
-        name: "Stock Issues",
-        href: "/stock-issues",
-        icon: "/nav/stock-issues.svg",
-    },
-    {
-        name: "Returns",
-        href: "/returns",
-        icon: "/nav/returns.svg",
-    },
-    {
         name: "Procurement",
         href: "/procurement",
         icon: "/nav/procurement.svg",
@@ -46,29 +26,54 @@ const navItems = [
         icon: "/nav/purchase-orders.svg",
     },
     {
-        name: "Suppliers",
-        href: "/suppliers",
-        icon: "/nav/suppliers.svg",
-    },
-    {
         name: "Receiving",
         href: "/receiving",
         icon: "/nav/receiving.svg",
+    },
+    {
+        name: "Inspection",
+        href: "/inspection",
+        icon: "/nav/inspection.svg",
     },
     {
         name: "Putaway",
         href: "/putaway",
         icon: "/nav/putaway.svg",
     },
+    // {
+    //     name: "Requests",
+    //     href: "/requests",
+    //     icon: "/nav/requests.svg",
+    // },
+    // {
+    //     name: "Picking",
+    //     href: "/picking",
+    //     icon: "/nav/picking.svg",
+    // },
+    // {
+    //     name: "Stock Issues",
+    //     href: "/stock-issues",
+    //     icon: "/nav/stock-issues.svg",
+    // },
+    // {
+    //     name: "Stock Counts",
+    //     href: "/stock-counts",
+    //     icon: "/nav/stock-counts.svg",
+    // },
+    // {
+    //     name: "Transfers",
+    //     href: "/transfers",
+    //     icon: "/nav/transfers.svg",
+    // },
     {
-        name: "Requests",
-        href: "/requests",
-        icon: "/nav/requests.svg",
+        name: "Suppliers",
+        href: "/suppliers",
+        icon: "/nav/suppliers.svg",
     },
     {
-        name: "Picking",
-        href: "/picking",
-        icon: "/nav/picking.svg",
+        name: "Returns",
+        href: "/returns",
+        icon: "/nav/returns.svg",
     },
     {
         name: "Barcode Scanner",

@@ -11,18 +11,6 @@ export default function BarcodeScannerPage() {
 
     useEffect(() => {
         inputRef.current?.focus();
-
-        const keepFocus = () => {
-            if (document.activeElement !== inputRef.current) {
-                inputRef.current?.focus();
-            }
-        };
-
-        window.addEventListener("click", keepFocus);
-
-        return () => {
-            window.removeEventListener("click", keepFocus);
-        };
     }, []);
 
     const handleKeyDown = (
@@ -41,9 +29,8 @@ export default function BarcodeScannerPage() {
             setStatus("Barcode scanned successfully");
             setBarcode("");
 
-            setTimeout(() => {
-                inputRef.current?.focus();
-            }, 50);
+            // Remove focus
+            inputRef.current?.blur();
         }
     };
 

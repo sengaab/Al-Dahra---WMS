@@ -172,9 +172,7 @@ export default function Product() {
         (stock) => ({
             location: [
                 stock.location.warehouse,
-                stock.location.room,
-                stock.location.rack,
-                stock.location.shelf,
+                stock.location.partition,
             ]
                 .filter(Boolean)
                 .join(" / "),
@@ -282,6 +280,7 @@ export default function Product() {
                 className="row-container"
                 style={{
                     width: "100%",
+                    flexWrap:"wrap",
                 }}
             >
                 {stats.map((stat) => (
@@ -289,7 +288,7 @@ export default function Product() {
                         key={stat.title}
                         value={stat.value}
                         title={stat.title}
-                        subtitle={stat.subtitle}
+                        subtitle={stat.subtitle || ""}
                         valueColor={stat.valueColor}
                     />
                 ))}
@@ -477,9 +476,7 @@ export default function Product() {
                                     {[
                                         "Stock Id",
                                         "Warehouse",
-                                        "Room",
-                                        "Rack",
-                                        "Shelf",
+                                        "Partition",
                                         "Bin",
                                         "Batch / Lot",
                                         "Qty",
@@ -542,7 +539,7 @@ export default function Product() {
                                             }
                                         </td>
 
-                                        {/* Room */}
+                                        {/* Partition */}
                                         <td
                                             style={{
                                                 padding:
@@ -553,37 +550,7 @@ export default function Product() {
                                         >
                                             {
                                                 stock.location
-                                                    .room
-                                            }
-                                        </td>
-
-                                        {/* Rack */}
-                                        <td
-                                            style={{
-                                                padding:
-                                                    "var(--space-2)",
-                                                whiteSpace:
-                                                    "nowrap",
-                                            }}
-                                        >
-                                            {
-                                                stock.location
-                                                    .rack
-                                            }
-                                        </td>
-
-                                        {/* Shelf */}
-                                        <td
-                                            style={{
-                                                padding:
-                                                    "var(--space-2)",
-                                                whiteSpace:
-                                                    "nowrap",
-                                            }}
-                                        >
-                                            {
-                                                stock.location
-                                                    .shelf
+                                                    .partition
                                             }
                                         </td>
 

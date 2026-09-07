@@ -37,7 +37,9 @@ export default function AddProduct({
 
     const [loading, setLoading] = useState(false);
     const [loadingOptions, setLoadingOptions] = useState(true);
+
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     // Load categories, units and suppliers
     useEffect(() => {
@@ -98,21 +100,23 @@ export default function AddProduct({
     );
 
     const unitOptions = units.map((unit) => ({
-        label: `${unit.name}${unit.abbreviation
+        label: `${unit.name}${
+            unit.abbreviation
                 ? ` (${unit.abbreviation})`
                 : ""
-            }`,
+        }`,
         value: unit.unitId.toString(),
     }));
 
-
     const handleAddProduct = async () => {
         setError("");
+        setSuccess("");
 
+        // Validate required fields
         if (
-            !sku ||
-            !productName ||
-            !barcode ||
+            !sku.trim() ||
+            !productName.trim() ||
+            !barcode.trim() ||
             !category ||
             !unit ||
             !unitPrice ||
@@ -125,15 +129,15 @@ export default function AddProduct({
         }
 
         const product: CreateProductDto = {
-            sku,
-            barcode,
-            qrValue,
-            name: productName,
+            sku: sku.trim(),
+            barcode: barcode.trim(),
+            qrValue: qrValue.trim(),
+            name: productName.trim(),
             categoryId: Number(category),
             unitId: Number(unit),
             unitPrice: Number(unitPrice),
             minimumStock: Number(minimumStock),
-            description,
+            description: description.trim(),
         };
 
         try {
@@ -142,11 +146,19 @@ export default function AddProduct({
             await createProduct(product);
 
             console.log(
-                "Product created:",
+                "Product created successfully:",
                 product
             );
 
-            onClose?.();
+            // Show success message
+            setSuccess(
+                "Product added successfully!"
+            );
+
+            // Close after showing confirmation
+            setTimeout(() => {
+                onClose?.();
+            }, 1500);
         } catch (err) {
             console.error(
                 "Failed to create product:",
@@ -195,13 +207,17 @@ export default function AddProduct({
                 <button
                     type="button"
                     onClick={onClose}
+                    disabled={loading}
                     className="page-title"
                     style={{
                         border: "none",
                         background: "transparent",
-                        cursor: "pointer",
+                        cursor: loading
+                            ? "not-allowed"
+                            : "pointer",
                         color: "var(--midnight-blue)",
                         padding: 0,
+                        opacity: loading ? 0.5 : 1,
                     }}
                 >
                     X
@@ -228,6 +244,7 @@ export default function AddProduct({
                     paddingInline: "var(--space-5)",
                     gap: "var(--space-5)",
                     width: "100%",
+                    boxSizing: "border-box",
                 }}
             >
                 {/* Product Name */}
@@ -239,7 +256,7 @@ export default function AddProduct({
                     maxWidth
                 />
 
-                {/*  SKU / Barcode */}
+                {/* SKU / Barcode */}
                 <div
                     style={{
                         display: "flex",
@@ -255,16 +272,20 @@ export default function AddProduct({
                         value={sku}
                         onChange={setSku}
                     />
+
                     <Input
                         label="Barcode"
                         placeholder="Scan Product Barcode"
                         value={barcode}
-                        onChange={setBarcode}
+                        onChange={(value) => {
+                            setBarcode(value);
+                            setQrValue(value);
+                        }}
                         maxWidth
+                        selectOnFocus
+                        autoScan
                     />
-
                 </div>
-
 
                 {/* Category / Unit */}
                 <div
@@ -288,18 +309,17 @@ export default function AddProduct({
                         onChange={setCategory}
                     />
 
-                <Input
-                    label="Unit of Measure"
-                    placeholder={
-                        loadingOptions
-                            ? "Loading units..."
-                            : "Choose Unit"
-                    }
-                    options={unitOptions}
-                    value={unit}
-                    onChange={setUnit}
-                />
-                   
+                    <Input
+                        label="Unit of Measure"
+                        placeholder={
+                            loadingOptions
+                                ? "Loading units..."
+                                : "Choose Unit"
+                        }
+                        options={unitOptions}
+                        value={unit}
+                        onChange={setUnit}
+                    />
                 </div>
 
                 {/* Minimum Stock / Unit Price */}
@@ -328,9 +348,7 @@ export default function AddProduct({
                         onChange={setUnitPrice}
                         type="number"
                     />
-
                 </div>
-
 
                 {/* Description */}
                 <Input
@@ -342,17 +360,56 @@ export default function AddProduct({
                     optional
                 />
 
-                {/* Error */}
-                {error && (
-                    <p
+                {/* Success */}
+                {success && (
+                    <div
                         style={{
                             width: "100%",
-                            color: "var(--blood-red)",
-                            margin: 0,
+                            padding: "var(--space-3)",
+                            borderRadius:
+                                "var(--radius-md)",
+                            backgroundColor:
+                                "rgba(34, 197, 94, 0.1)",
+                            border:
+                                "1px solid rgba(34, 197, 94, 0.3)",
+                            boxSizing: "border-box",
                         }}
                     >
-                        {error}
-                    </p>
+                        <p
+                            style={{
+                                margin: 0,
+                                color: "var(--green)",
+                            }}
+                        >
+                            ✓ {success}
+                        </p>
+                    </div>
+                )}
+
+                {/* Error */}
+                {error && (
+                    <div
+                        style={{
+                            width: "100%",
+                            padding: "var(--space-3)",
+                            borderRadius:
+                                "var(--radius-md)",
+                            backgroundColor:
+                                "rgba(220, 38, 38, 0.1)",
+                            border:
+                                "1px solid rgba(220, 38, 38, 0.3)",
+                            boxSizing: "border-box",
+                        }}
+                    >
+                        <p
+                            style={{
+                                margin: 0,
+                                color: "var(--blood-red)",
+                            }}
+                        >
+                            {error}
+                        </p>
+                    </div>
                 )}
 
                 {/* Actions */}
@@ -368,6 +425,7 @@ export default function AddProduct({
                     <Button
                         style={{ width: "100%" }}
                         onClick={onClose}
+                        disabled={loading}
                     >
                         Cancel
                     </Button>
