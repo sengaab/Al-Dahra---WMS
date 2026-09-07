@@ -687,7 +687,7 @@ export default function Locations() {
         const productId = binStock[0].productId;
 
         router.push(
-            `/product?productId=${productId}`
+            `/inventory/product?productId=${productId}`
         );
     };
 
@@ -943,7 +943,7 @@ export default function Locations() {
                         >
                             <Status 
                             text={location.occupancy ?? "—"}
-                            variant={getStatusVariant(location.occupancy)}
+                            variant={getStatusVariant(location.occupancy || "")}
                                 
                                 />
                             

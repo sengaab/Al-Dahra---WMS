@@ -242,7 +242,7 @@ export default function Inventory() {
 
     const getStatusVariant = (
         status: string
-    ): "green" | "red" | "orange" | "purple" => {
+    ): "green" | "red" | "orange" | "yellow" => {
         switch (status) {
             case "Available":
                 return "green";
@@ -254,7 +254,7 @@ export default function Inventory() {
                 return "orange";
 
             case "Quarantined":
-                return "purple";
+                return "yellow";
 
             default:
                 return "red";
