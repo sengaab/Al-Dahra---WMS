@@ -76,7 +76,11 @@ namespace whm.Models
         public Location? Location { get; set; }
 
         public Supplier? Supplier { get; set; }
+      
+       
+        public int? UnitId { get; set; }
 
+        public Unit? Unit { get; set; } = null!;
 
         public List<PutawayItem> PutawayItems { get; set; }
             = new List<PutawayItem>();
