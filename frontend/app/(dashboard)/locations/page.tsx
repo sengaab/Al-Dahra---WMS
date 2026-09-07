@@ -687,7 +687,7 @@ export default function Locations() {
         const productId = binStock[0].productId;
 
         router.push(
-            `/product?productId=${productId}`
+            `/inventory/product?productId=${productId}`
         );
     };
 
@@ -943,7 +943,7 @@ export default function Locations() {
                         >
                             <Status 
                             text={location.occupancy ?? "—"}
-                            variant={getStatusVariant(location.occupancy)}
+                            variant={getStatusVariant(location.occupancy || "")}
                                 
                                 />
                             
@@ -1047,6 +1047,7 @@ export default function Locations() {
                         "var(--midnight-blue)"
                     }
                     value={stats.sites}
+                    minHeight
                 />
 
                 <StatsCard
@@ -1057,6 +1058,7 @@ export default function Locations() {
                     value={
                         stats.warehouses
                     }
+                    minHeight
                 />
 
                 <StatsCard
@@ -1065,6 +1067,7 @@ export default function Locations() {
                         "var(--dark-green)"
                     }
                     value={stats.bins}
+                    minHeight
                 />
 
                 <StatsCard
@@ -1073,6 +1076,7 @@ export default function Locations() {
                         "var(--orange)"
                     }
                     value={`${stats.avgOccupancy}%`}
+                    minHeight
                 />
             </div>
 

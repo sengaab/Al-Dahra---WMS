@@ -28,7 +28,7 @@ export default function ProductDetails({
 
     const getStatusVariant = (
         status: string
-    ): "green" | "red" | "orange" | "purple" => {
+    ): "green" | "red" | "orange" | "yellow" => {
         switch (status.toLowerCase()) {
             case "available":
                 return "green";
@@ -37,14 +37,14 @@ export default function ProductDetails({
             case "out of stock":
                 return "red";
             case "quarantined":
-                return "purple";
+                return "yellow";
             default:
                 return "red";
         }
     };
 
     const handleViewFullDetails = () => {
-        router.push(`/product?productId=${productId}`);
+        router.push(`/inventory/product?productId=${productId}`);
     };
 
     if (loading) {

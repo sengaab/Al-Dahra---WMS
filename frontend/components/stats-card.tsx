@@ -3,6 +3,7 @@ interface StatsCardProps {
     title: string;
     subtitle?: string;
     valueColor?: string;
+    minHeight?: boolean;
 }
 
 export default function StatsCard({
@@ -10,6 +11,7 @@ export default function StatsCard({
     title,
     subtitle,
     valueColor = "var(--midnight-blue)",
+    minHeight = false,
 }: StatsCardProps) {
     return (
         <div
@@ -23,14 +25,14 @@ export default function StatsCard({
                 borderRadius: "var(--radius-md)",
                 boxShadow: "var(--shadow-md)",
                 boxSizing: "border-box",
-                gap:"var(--space-1)",
-                minHeight: "96px",
-                minWidth:"var(--card-width-sm)",
-                flex:1,
+                gap: "var(--space-1)",
+                minHeight: minHeight ? "fit-content" : "96px",
+                minWidth: "var(--card-width-sm)",
+                flex: 1,
             }}
         >
 
-            <p className="nav-item" style={{color:valueColor}}>{value}</p>
+            <p className="nav-item" style={{ color: valueColor }}>{value}</p>
             <p className="body-title">{title}</p>
             <p className="body">{subtitle}</p>
         </div>

@@ -1,6 +1,6 @@
 export interface PurchaseOrderDto {
     purchaseOrderId: number;
-    PONumber: string;
+    poNumber: string;
 
     supplierId: number;
     supplierName: string;

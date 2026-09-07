@@ -7,6 +7,7 @@ export interface StockDto {
     categoryName: string;
     sku: string;
     barcode: string | null;
+    unitName: string | null;
 
     // Warehouse
     warehouseId: number;
