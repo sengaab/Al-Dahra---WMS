@@ -8,6 +8,7 @@ import Sidebar from "@/components/sidebar";
 const pageTitles: Record<string, string> = {
     "/dashboard": "Operations Dashboard",
     "/inventory": "Inventory",
+    "/locations": "Loactions",
     "/stock-counts": "Stock Counts",
     "/transfers": "Transfers",
     "/stock-issues": "Stock Issues",

@@ -11,6 +11,11 @@ const navItems = [
         icon: "/nav/dashboard.svg",
     },
     {
+        name: "Locations",
+        href: "/locations",
+        icon: "/nav/locations.svg",
+    },
+    {
         name: "Inventory",
         href: "/inventory",
         icon: "/nav/inventory.svg",
@@ -187,6 +192,7 @@ export default function Sidebar() {
                 flexShrink: 0,
                 overflowY:"auto",
                 scrollbarWidth:"none",
+                zIndex:999,
             }}
         >
             {/* Logo */}
