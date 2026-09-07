@@ -430,7 +430,7 @@ namespace whm.Repositories
 
                     IsActive = x.IsActive,
 
-                    StockCount = x.Stocks.Count()
+                    StockCount = x.Stock != null ? 1 : 0
                 })
                 .FirstOrDefaultAsync();
         }
