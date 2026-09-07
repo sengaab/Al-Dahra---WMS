@@ -305,6 +305,7 @@ export default function Inventory() {
                                     alignItems: "center",
                                     gap: "var(--space-3)",
                                     width: "100%",
+                                    flexWrap:"wrap",
                                 }}
                             >
                                 <SearchBar
@@ -313,7 +314,7 @@ export default function Inventory() {
                                     onChange={setSearch}
                                     style={{
                                         flex: 1,
-                                        minWidth: 0,
+                                        maxWidth:"100%",
                                     }}
                                 />
 

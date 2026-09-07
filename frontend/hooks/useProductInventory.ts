@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getProductById } from "@/lib/api/products";
-import { getStockByProduct } from "@/lib/api/stock";
+import { getStockByProductId } from "@/lib/api/stock";
 import type { StockDto } from "@/types";
 
 export interface ProductInventoryStock {
@@ -10,9 +10,7 @@ export interface ProductInventoryStock {
 
     location: {
         warehouse: string | null;
-        room: string | null;
-        rack: string | null;
-        shelf: string | null;
+        partition: string | null;
         bin: string | null;
     };
 
@@ -31,9 +29,9 @@ export interface ProductInventoryStock {
 export interface ProductInventoryDetails {
     productName: string;
     sku: string;
-    barcode: string;
-    category: string;
-    unit: string;
+    barcode: string | null;
+    category: string | null;
+    unit: string | null;
 
     totalQuantity: number;
     totalAvailable: number;
@@ -63,7 +61,7 @@ export function useProductInventory(
     const [error, setError] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
-        if (!productId) {
+        if (productId === null) {
             setData(null);
             return;
         }
@@ -72,14 +70,15 @@ export function useProductInventory(
             setLoading(true);
             setError(null);
 
-            const [product, stock] = await Promise.all([
+            const [product, stockRows] = await Promise.all([
                 getProductById(productId),
-                getStockByProduct(productId),
+                getStockByProductId(productId),
             ]);
 
-            const stockRows: StockDto[] = stock;
-
+            // -------------------------------------------------
             // Totals
+            // -------------------------------------------------
+
             const totalQuantity = stockRows.reduce(
                 (total, item) => total + item.quantity,
                 0
@@ -101,7 +100,10 @@ export function useProductInventory(
                 0
             );
 
+            // -------------------------------------------------
             // Distinct locations
+            // -------------------------------------------------
+
             const locationIds = new Set(
                 stockRows
                     .map((item) => item.locationId)
@@ -113,10 +115,16 @@ export function useProductInventory(
 
             const numberOfLocations = locationIds.size;
 
-            // Minimum stock comes from the product
+            // -------------------------------------------------
+            // Product information
+            // -------------------------------------------------
+
             const minimumStock = product.minimumStock;
 
+            // -------------------------------------------------
             // Overall status
+            // -------------------------------------------------
+
             let status = "Available";
 
             if (
@@ -143,16 +151,21 @@ export function useProductInventory(
                 status = "Low Stock";
             }
 
-            // Stock-level information
+            // -------------------------------------------------
+            // Stock by location
+            // -------------------------------------------------
+
             const stockDetails: ProductInventoryStock[] =
                 stockRows.map((item) => ({
                     stockId: item.stockCode,
 
                     location: {
                         warehouse: item.warehouseName ?? null,
-                        room: item.roomName ?? null,
-                        rack: item.rackName ?? null,
-                        shelf: item.shelfName ?? null,
+
+                        // Current backend provides partition information.
+                        // Map it to "room" for the existing UI shape.
+                        partition: item.partitionName ?? null,
+
                         bin: item.binName ?? null,
                     },
 
@@ -172,6 +185,10 @@ export function useProductInventory(
                             : item.stockStatus,
                 }));
 
+            // -------------------------------------------------
+            // Final data
+            // -------------------------------------------------
+
             setData({
                 productName: product.name,
                 sku: product.sku,
@@ -190,6 +207,11 @@ export function useProductInventory(
                 stock: stockDetails,
             });
         } catch (err) {
+            console.error(
+                "Failed to load product inventory:",
+                err
+            );
+
             setError(
                 err instanceof Error
                     ? err.message

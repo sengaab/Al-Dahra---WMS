@@ -26,6 +26,7 @@ export default function StatsCard({
                 gap:"var(--space-1)",
                 minHeight: "96px",
                 minWidth:"var(--card-width-sm)",
+                flex:1,
             }}
         >
 
