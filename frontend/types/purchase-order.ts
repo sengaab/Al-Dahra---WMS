@@ -33,7 +33,7 @@ export interface PurchaseOrderDto {
 }
 
 export interface CreatePurchaseOrderDto {
-    PONumber: string;
+    poNumber: string;
     supplierId: number;
     siteId: number;
     orderDate?: string | null;
@@ -41,7 +41,7 @@ export interface CreatePurchaseOrderDto {
 }
 
 export interface UpdatePurchaseOrderDto {
-    PONumber?: string | null;
+    poNumber?: string | null;
     supplierId?: number | null;
     siteId?: number | null;
     orderDate?: string | null;
@@ -66,7 +66,7 @@ export interface PurchaseOrderItemDto {
 
     productId: number;
     productName: string;
-    SKU: string;
+    sku: string;
 
     orderedQuantity: number;
     receivedQuantity: number;

@@ -294,3 +294,17 @@ export async function getPurchaseOrderHistory(
         `/api/purchase-orders/${purchaseOrderId}/history`
     );
 }
+
+export async function orderPurchaseOrder(
+    purchaseOrderId: number
+) {
+    return apiFetch<{
+        message: string;
+        status: string;
+    }>(
+        `/api/purchase-orders/${purchaseOrderId}/order`,
+        {
+            method: "POST",
+        }
+    );
+}

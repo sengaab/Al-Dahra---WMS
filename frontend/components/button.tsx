@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "beige";
 
 interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -52,10 +52,20 @@ export default function Button({
       normal: {
         backgroundColor: "transparent",
         color: "var(--dark-grey)",
-        border: "2px solid var(--light-grey)",
       },
       hover: {
         backgroundColor: "var(--beige)",
+        color: "var(--dark-grey)",
+      },
+    },
+
+    beige: {
+      normal: {
+        backgroundColor: "var(--beige)",
+        color: "var(--dark-grey)",
+      },
+      hover: {
+        backgroundColor: "transparent",
         color: "var(--dark-grey)",
       },
     },
@@ -73,6 +83,8 @@ export default function Button({
 
   const currentVariant = variants[variant];
 
+  const hasStroke = ["outline", "beige"].includes(variant);
+
   return (
     <button
       {...props}
@@ -86,29 +98,39 @@ export default function Button({
       }}
       className="body-title"
       style={{
-        ...currentVariant.normal,
-        ...(isHovered ? currentVariant.hover : {}),
+  ...currentVariant.normal,
+  ...(isHovered && !props.disabled ? currentVariant.hover : {}),
 
-        borderRadius: "8px",
-        fontWeight: 400,
-        cursor: "pointer",
-        transition: "all 0.2s ease",
-        textWrap: "nowrap",
-        height: size == "sm" ? "fit-content" : "var(--input-height)",
-        paddingInline: "var(--input-padding-x)",
-        paddingBlock: "var(--space-1)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "var(--space-2)",
-        border: variant === "outline"
-          ? "2px solid var(--light-grey)"
-          : "none",
+  boxSizing: "border-box",
 
-        outline: "none",
+  border: hasStroke
+    ? "2px solid var(--light-grey)"
+    : "2px solid transparent",
 
-        ...style,
-      }}
+  opacity: props.disabled ? 0.5 : 1,
+  cursor: props.disabled ? "not-allowed" : "pointer",
+
+  borderRadius: "8px",
+  fontWeight: 400,
+  transition: "all 0.2s ease",
+  textWrap: "nowrap",
+
+  height: size === "sm"
+    ? "fit-content"
+    : "var(--input-height)",
+
+  paddingInline: "var(--input-padding-x)",
+  paddingBlock: "var(--space-1)",
+
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "var(--space-2)",
+
+  outline: "none",
+
+  ...style,
+}}
     >
       {children}
     </button>

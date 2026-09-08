@@ -42,7 +42,7 @@ export default function Product() {
     ];
 
     const formatCurrency = (value: number) =>
-        `EGP ${value.toLocaleString("en-EG", {
+        `E£ ${value.toLocaleString("en-EG", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         })}`;
@@ -192,7 +192,7 @@ export default function Product() {
 
     const getStatusVariant = (
         status: string
-    ): "green" | "red" | "orange" | "purple" => {
+    ): "green" | "red" | "orange" | "yellow" => {
         switch (status.toLowerCase()) {
             case "available":
                 return "green";
@@ -201,7 +201,7 @@ export default function Product() {
             case "out of stock":
                 return "red";
             case "quarantined":
-                return "purple";
+                return "yellow";
             default:
                 return "red";
         }
@@ -233,9 +233,9 @@ export default function Product() {
                     </div>
 
                     <div className="row-container">
-                        <Button>Transfer</Button>
-                        <Button>Adjust</Button>
-                        <Button>Receive Stock</Button>
+                        <Button variant="beige" size="sm" >Transfer</Button>
+                        <Button variant="beige" size="sm" >Adjust</Button>
+                        <Button variant="beige" size="sm" >Receive Stock</Button>
                     </div>
                 </div>
 

@@ -234,11 +234,9 @@ export default function Inventory() {
         );
 
     const formatCurrency = (value: number) =>
-        new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-            maximumFractionDigits: 2,
-        }).format(value);
+    `E£ ${new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: 2,
+    }).format(value)}`;
 
     const getStatusVariant = (
         status: string
@@ -287,7 +285,7 @@ export default function Inventory() {
                             ? "1 1 0"
                             : "1 1 100%",
                         width: detailsOpen
-                            ? "calc(100% - var(--sidebar-width) - var(--content-gap))"
+                            ? "calc(100% - var(--sidedetails-width) - var(--content-gap))"
                             : "100%",
                         minWidth: 0,
                         minHeight: 0,
@@ -694,10 +692,10 @@ export default function Inventory() {
                 {detailsOpen && (
                     <div
                         style={{
-                            flex: `0 0 var(--sidebar-width)`,
-                            width: "var(--sidebar-width)",
+                            flex: `0 0 var(--sidedetails-width)`,
+                            width: "var(--sidedetails-width)",
                             maxWidth:
-                                "var(--sidebar-width)",
+                                "var(--sidedetails-width)",
                             minWidth: 0,
                             minHeight: 0,
                             height: "100%",
