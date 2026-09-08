@@ -559,15 +559,6 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.PendingApproval)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Only PendingApproval orders can be approved."
-                });
-            }
 
             var userClaim =
                 User.FindFirst(
@@ -611,6 +602,7 @@ namespace whm.Controllers
             });
         }
 
+
         // =========================================================
         // REJECT
         // =========================================================
@@ -630,15 +622,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.PendingApproval)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Only PendingApproval orders can be rejected."
-                });
-            }
+          
 
             order.purchaseOrderStatus =
                 PurchaseOrderStatus.Rejected;
@@ -1073,6 +1057,7 @@ namespace whm.Controllers
             });
         }
 
+
         // =========================================================
         // GET RECEIPTS
         // =========================================================
@@ -1098,6 +1083,63 @@ namespace whm.Controllers
 
             return Ok(receipts);
         }
+       
+// =========================================================
+// ORDER PURCHASE ORDER
+// =========================================================
+[HttpPost("{id:int}/order")]
+public async Task<IActionResult> Order(int id)
+        {
+            var order =
+                await _unitOfWork.PurchaseOrders
+                    .GetEntityByIdAsync(id);
+
+            if (order == null)
+            {
+                return NotFound(new
+                {
+                    message = "Purchase order not found."
+                });
+            }
+
+            // Only Approved orders can be Ordered
+            if (order.purchaseOrderStatus !=
+                PurchaseOrderStatus.Approved)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Only Approved purchase orders can be ordered."
+                });
+            }
+
+            var now = DateTimeOffset.UtcNow;
+
+            order.purchaseOrderStatus =
+                PurchaseOrderStatus.Ordered;
+
+            order.UpdatedAt =
+                now;
+
+            await _unitOfWork.SaveAsync();
+
+            return Ok(new
+            {
+                message =
+                    "Purchase order ordered successfully.",
+
+                purchaseOrderId =
+                    order.PurchaseOrderId,
+
+                status =
+                    order.purchaseOrderStatus.ToString(),
+
+                orderedAt =
+                    now
+            });
+        }
+
+
 
         // =========================================================
         // GET HISTORY
