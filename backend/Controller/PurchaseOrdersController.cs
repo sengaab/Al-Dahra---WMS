@@ -49,7 +49,8 @@ namespace whm.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var order =
-                await _unitOfWork.PurchaseOrders.GetByIdAsync(id);
+                await _unitOfWork.PurchaseOrders
+                    .GetByIdAsync(id);
 
             if (order == null)
             {
@@ -179,11 +180,6 @@ namespace whm.Controllers
             // =====================================================
             // STATUS
             // =====================================================
-            // If Status is not sent:
-            // PendingApproval will be used automatically.
-            //
-            // If Status is sent:
-            // The provided status will be used.
 
             var purchaseOrderStatus =
                 PurchaseOrderStatus.PendingApproval;
@@ -208,23 +204,41 @@ namespace whm.Controllers
             }
 
             // =====================================================
+            // DATES
+            // =====================================================
+
+            var orderDate =
+                dto.OrderDate?.ToUniversalTime()
+                ?? DateTimeOffset.UtcNow;
+
+            var expectedDate =
+                dto.ExpectedDate?.ToUniversalTime();
+
+            // =====================================================
             // CREATE ORDER
             // =====================================================
 
-            var orderDate = dto.OrderDate?.ToUniversalTime() ?? DateTimeOffset.UtcNow;
-            var expectedDate = dto.ExpectedDate?.ToUniversalTime();
+            var now = DateTimeOffset.UtcNow;
 
             var order = new PurchaseOrder
             {
                 PONumber = poNumber,
+
                 SupplierId = dto.SupplierId,
+
                 SiteId = dto.SiteId,
+
                 OrderDate = orderDate,
+
                 ExpectedDate = expectedDate,
-                purchaseOrderStatus = PurchaseOrderStatus.Draft,
+
+                purchaseOrderStatus = purchaseOrderStatus,
+
                 TotalValue = 0,
+
                 CreatedBy = createdBy,
-                CreatedAt = DateTimeOffset.UtcNow
+
+                CreatedAt = now
             };
 
             await _unitOfWork.PurchaseOrders
@@ -386,7 +400,8 @@ namespace whm.Controllers
             if (dto.OrderDate.HasValue)
             {
                 order.OrderDate =
-                    dto.OrderDate.Value;
+                    dto.OrderDate.Value
+                        .ToUniversalTime();
             }
 
             // =====================================================
@@ -396,7 +411,8 @@ namespace whm.Controllers
             if (dto.ExpectedDate.HasValue)
             {
                 order.ExpectedDate =
-                    dto.ExpectedDate.Value;
+                    dto.ExpectedDate.Value
+                        .ToUniversalTime();
             }
 
             // =====================================================
@@ -578,6 +594,8 @@ namespace whm.Controllers
                 });
             }
 
+            var now = DateTimeOffset.UtcNow;
+
             order.purchaseOrderStatus =
                 PurchaseOrderStatus.Approved;
 
@@ -585,10 +603,10 @@ namespace whm.Controllers
                 approvedBy;
 
             order.ApprovedAt =
-                DateTimeOffset.UtcNow;
+                now;
 
             order.UpdatedAt =
-                DateTimeOffset.UtcNow;
+                now;
 
             await _unitOfWork.SaveAsync();
 
