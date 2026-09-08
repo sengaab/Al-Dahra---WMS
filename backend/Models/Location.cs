@@ -50,7 +50,8 @@ namespace whm.Models
         // Stock
         // ==========================================
 
-        public Stock? Stock { get; set; }
+        public ICollection<Stock> Stocks { get; set; }
+      = new List<Stock>();
 
         // ==========================================
         // Warehouse

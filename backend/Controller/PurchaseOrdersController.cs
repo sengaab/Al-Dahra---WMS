@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.PurchaseOrder;
 using whm.Models;
-using whm.Repositories;
 using whm.UnitOfWork;
 
 namespace whm.Controllers
@@ -22,7 +21,6 @@ namespace whm.Controllers
         // =========================================================
         // GET ALL
         // =========================================================
-
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] string? search = null,
@@ -47,7 +45,6 @@ namespace whm.Controllers
         // =========================================================
         // GET BY ID
         // =========================================================
-
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -55,10 +52,12 @@ namespace whm.Controllers
                 await _unitOfWork.PurchaseOrders.GetByIdAsync(id);
 
             if (order == null)
+            {
                 return NotFound(new
                 {
                     message = "Purchase order not found."
                 });
+            }
 
             return Ok(order);
         }
@@ -66,11 +65,14 @@ namespace whm.Controllers
         // =========================================================
         // CREATE
         // =========================================================
-
         [HttpPost]
         public async Task<IActionResult> Create(
             [FromBody] CreatePurchaseOrderDto dto)
         {
+            // =====================================================
+            // VALIDATION
+            // =====================================================
+
             if (string.IsNullOrWhiteSpace(dto.PONumber))
             {
                 return BadRequest(new
@@ -97,6 +99,10 @@ namespace whm.Controllers
 
             var poNumber = dto.PONumber.Trim();
 
+            // =====================================================
+            // CHECK DUPLICATE PO NUMBER
+            // =====================================================
+
             var exists =
                 await _unitOfWork.PurchaseOrders
                     .PONumberExistsAsync(poNumber);
@@ -105,9 +111,14 @@ namespace whm.Controllers
             {
                 return Conflict(new
                 {
-                    message = "Purchase order number already exists."
+                    message =
+                        "Purchase order number already exists."
                 });
             }
+
+            // =====================================================
+            // CHECK SUPPLIER
+            // =====================================================
 
             var supplier =
                 await _unitOfWork.Suppliers
@@ -121,6 +132,10 @@ namespace whm.Controllers
                 });
             }
 
+            // =====================================================
+            // CHECK SITE
+            // =====================================================
+
             var site =
                 await _unitOfWork.Sites
                     .GetEntityByIdAsync(dto.SiteId);
@@ -133,6 +148,10 @@ namespace whm.Controllers
                 });
             }
 
+            // =====================================================
+            // GET CURRENT USER
+            // =====================================================
+
             var createdByClaim =
                 User.FindFirst(
                     System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -141,7 +160,8 @@ namespace whm.Controllers
             {
                 return Unauthorized(new
                 {
-                    message = "User identity was not found."
+                    message =
+                        "User identity was not found."
                 });
             }
 
@@ -151,33 +171,60 @@ namespace whm.Controllers
             {
                 return Unauthorized(new
                 {
-                    message = "Invalid user identity."
+                    message =
+                        "Invalid user identity."
                 });
             }
 
-            var now = DateTimeOffset.UtcNow;
+            // =====================================================
+            // STATUS
+            // =====================================================
+            // If Status is not sent:
+            // PendingApproval will be used automatically.
+            //
+            // If Status is sent:
+            // The provided status will be used.
+
+            var purchaseOrderStatus =
+                PurchaseOrderStatus.PendingApproval;
+
+            if (!string.IsNullOrWhiteSpace(dto.Status))
+            {
+                if (!Enum.TryParse<PurchaseOrderStatus>(
+                        dto.Status.Trim(),
+                        true,
+                        out var parsedStatus))
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Invalid status. Valid values are: " +
+                            "Draft, PendingApproval, Approved, " +
+                            "Rejected, Cancelled, Received, Closed."
+                    });
+                }
+
+                purchaseOrderStatus = parsedStatus;
+            }
+
+            // =====================================================
+            // CREATE ORDER
+            // =====================================================
+
+            var orderDate = dto.OrderDate?.ToUniversalTime() ?? DateTimeOffset.UtcNow;
+            var expectedDate = dto.ExpectedDate?.ToUniversalTime();
 
             var order = new PurchaseOrder
             {
                 PONumber = poNumber,
-
                 SupplierId = dto.SupplierId,
                 SiteId = dto.SiteId,
-
-                OrderDate =
-                    dto.OrderDate ?? now,
-
-                ExpectedDate =
-                    dto.ExpectedDate,
-
-                purchaseOrderStatus =
-                    PurchaseOrderStatus.Draft,
-
+                OrderDate = orderDate,
+                ExpectedDate = expectedDate,
+                purchaseOrderStatus = PurchaseOrderStatus.Draft,
                 TotalValue = 0,
-
                 CreatedBy = createdBy,
-
-                CreatedAt = now
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             await _unitOfWork.PurchaseOrders
@@ -185,17 +232,22 @@ namespace whm.Controllers
 
             await _unitOfWork.SaveAsync();
 
+            var createdOrder =
+                await _unitOfWork.PurchaseOrders
+                    .GetByIdAsync(order.PurchaseOrderId);
+
             return CreatedAtAction(
                 nameof(GetById),
-                new { id = order.PurchaseOrderId },
-                await _unitOfWork.PurchaseOrders
-                    .GetByIdAsync(order.PurchaseOrderId));
+                new
+                {
+                    id = order.PurchaseOrderId
+                },
+                createdOrder);
         }
 
         // =========================================================
-        // UPDATE
+        // UPDATE PURCHASE ORDER
         // =========================================================
-
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(
             int id,
@@ -209,29 +261,37 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Purchase order not found."
+                    message =
+                        "Purchase order not found."
                 });
             }
 
+            // Only PendingApproval can be updated
             if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
+                PurchaseOrderStatus.PendingApproval)
             {
                 return BadRequest(new
                 {
                     message =
-                        "Only draft purchase orders can be updated."
+                        "Only PendingApproval purchase orders can be updated."
                 });
             }
 
+            // =====================================================
+            // PO NUMBER
+            // =====================================================
+
             if (dto.PONumber != null)
             {
-                var poNumber = dto.PONumber.Trim();
+                var poNumber =
+                    dto.PONumber.Trim();
 
                 if (string.IsNullOrWhiteSpace(poNumber))
                 {
                     return BadRequest(new
                     {
-                        message = "PONumber cannot be empty."
+                        message =
+                            "PONumber cannot be empty."
                     });
                 }
 
@@ -253,13 +313,18 @@ namespace whm.Controllers
                 order.PONumber = poNumber;
             }
 
+            // =====================================================
+            // SUPPLIER
+            // =====================================================
+
             if (dto.SupplierId.HasValue)
             {
                 if (dto.SupplierId.Value <= 0)
                 {
                     return BadRequest(new
                     {
-                        message = "Invalid SupplierId."
+                        message =
+                            "Invalid SupplierId."
                     });
                 }
 
@@ -272,7 +337,8 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message = "Supplier not found."
+                        message =
+                            "Supplier not found."
                     });
                 }
 
@@ -280,13 +346,18 @@ namespace whm.Controllers
                     dto.SupplierId.Value;
             }
 
+            // =====================================================
+            // SITE
+            // =====================================================
+
             if (dto.SiteId.HasValue)
             {
                 if (dto.SiteId.Value <= 0)
                 {
                     return BadRequest(new
                     {
-                        message = "Invalid SiteId."
+                        message =
+                            "Invalid SiteId."
                     });
                 }
 
@@ -299,7 +370,8 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message = "Site not found."
+                        message =
+                            "Site not found."
                     });
                 }
 
@@ -307,19 +379,37 @@ namespace whm.Controllers
                     dto.SiteId.Value;
             }
 
+            // =====================================================
+            // ORDER DATE
+            // =====================================================
+
             if (dto.OrderDate.HasValue)
+            {
                 order.OrderDate =
                     dto.OrderDate.Value;
+            }
+
+            // =====================================================
+            // EXPECTED DATE
+            // =====================================================
 
             if (dto.ExpectedDate.HasValue)
+            {
                 order.ExpectedDate =
                     dto.ExpectedDate.Value;
+            }
+
+            // =====================================================
+            // RECALCULATE TOTAL
+            // =====================================================
 
             await RecalculateTotalAsync(order);
 
-            order.UpdatedAt = DateTimeOffset.UtcNow;
+            order.UpdatedAt =
+                DateTimeOffset.UtcNow;
 
-            _unitOfWork.PurchaseOrders.Update(order);
+            _unitOfWork.PurchaseOrders
+                .Update(order);
 
             await _unitOfWork.SaveAsync();
 
@@ -329,9 +419,8 @@ namespace whm.Controllers
         }
 
         // =========================================================
-        // DELETE
+        // DELETE PURCHASE ORDER
         // =========================================================
-
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -343,17 +432,19 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Purchase order not found."
+                    message =
+                        "Purchase order not found."
                 });
             }
 
+            // Only PendingApproval can be deleted
             if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
+                PurchaseOrderStatus.PendingApproval)
             {
                 return BadRequest(new
                 {
                     message =
-                        "Only draft purchase orders can be deleted."
+                        "Only PendingApproval purchase orders can be deleted."
                 });
             }
 
@@ -370,20 +461,21 @@ namespace whm.Controllers
                 });
             }
 
-            _unitOfWork.PurchaseOrders.Delete(order);
+            _unitOfWork.PurchaseOrders
+                .Delete(order);
 
             await _unitOfWork.SaveAsync();
 
             return Ok(new
             {
-                message = "Purchase order deleted successfully."
+                message =
+                    "Purchase order deleted successfully."
             });
         }
 
         // =========================================================
         // SUBMIT
         // =========================================================
-
         [HttpPost("{id:int}/submit")]
         public async Task<IActionResult> Submit(int id)
         {
@@ -392,7 +484,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             if (order.purchaseOrderStatus !=
                 PurchaseOrderStatus.Draft)
@@ -400,7 +498,7 @@ namespace whm.Controllers
                 return BadRequest(new
                 {
                     message =
-                        "Only draft purchase orders can be submitted."
+                        "Only Draft purchase orders can be submitted."
                 });
             }
 
@@ -429,6 +527,7 @@ namespace whm.Controllers
             {
                 message =
                     "Purchase order submitted successfully.",
+
                 status =
                     order.purchaseOrderStatus.ToString()
             });
@@ -437,7 +536,6 @@ namespace whm.Controllers
         // =========================================================
         // APPROVE
         // =========================================================
-
         [HttpPost("{id:int}/approve")]
         public async Task<IActionResult> Approve(int id)
         {
@@ -446,7 +544,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             if (order.purchaseOrderStatus !=
                 PurchaseOrderStatus.PendingApproval)
@@ -454,7 +558,7 @@ namespace whm.Controllers
                 return BadRequest(new
                 {
                     message =
-                        "Only pending approval orders can be approved."
+                        "Only PendingApproval orders can be approved."
                 });
             }
 
@@ -469,7 +573,8 @@ namespace whm.Controllers
             {
                 return Unauthorized(new
                 {
-                    message = "Invalid user identity."
+                    message =
+                        "Invalid user identity."
                 });
             }
 
@@ -491,6 +596,7 @@ namespace whm.Controllers
             {
                 message =
                     "Purchase order approved successfully.",
+
                 status =
                     order.purchaseOrderStatus.ToString()
             });
@@ -499,7 +605,6 @@ namespace whm.Controllers
         // =========================================================
         // REJECT
         // =========================================================
-
         [HttpPost("{id:int}/reject")]
         public async Task<IActionResult> Reject(int id)
         {
@@ -508,7 +613,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             if (order.purchaseOrderStatus !=
                 PurchaseOrderStatus.PendingApproval)
@@ -516,7 +627,7 @@ namespace whm.Controllers
                 return BadRequest(new
                 {
                     message =
-                        "Only pending approval orders can be rejected."
+                        "Only PendingApproval orders can be rejected."
                 });
             }
 
@@ -532,6 +643,7 @@ namespace whm.Controllers
             {
                 message =
                     "Purchase order rejected successfully.",
+
                 status =
                     order.purchaseOrderStatus.ToString()
             });
@@ -540,7 +652,6 @@ namespace whm.Controllers
         // =========================================================
         // CANCEL
         // =========================================================
-
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {
@@ -549,7 +660,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             if (order.purchaseOrderStatus ==
                     PurchaseOrderStatus.Received ||
@@ -577,6 +694,7 @@ namespace whm.Controllers
             {
                 message =
                     "Purchase order cancelled successfully.",
+
                 status =
                     order.purchaseOrderStatus.ToString()
             });
@@ -585,7 +703,6 @@ namespace whm.Controllers
         // =========================================================
         // GET ITEMS
         // =========================================================
-
         [HttpGet("{id:int}/items")]
         public async Task<IActionResult> GetItems(int id)
         {
@@ -594,7 +711,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             var items =
                 await _unitOfWork.PurchaseOrders
@@ -606,7 +729,6 @@ namespace whm.Controllers
         // =========================================================
         // ADD ITEM
         // =========================================================
-
         [HttpPost("{id:int}/items")]
         public async Task<IActionResult> AddItem(
             int id,
@@ -617,7 +739,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             if (order.purchaseOrderStatus !=
                 PurchaseOrderStatus.Draft)
@@ -625,7 +753,7 @@ namespace whm.Controllers
                 return BadRequest(new
                 {
                     message =
-                        "Items can only be added to draft orders."
+                        "Items can only be added to Draft orders."
                 });
             }
 
@@ -633,7 +761,8 @@ namespace whm.Controllers
             {
                 return BadRequest(new
                 {
-                    message = "Valid ProductId is required."
+                    message =
+                        "Valid ProductId is required."
                 });
             }
 
@@ -657,13 +786,15 @@ namespace whm.Controllers
 
             var product =
                 await _unitOfWork.Products
-                    .GetEntityByIdAsync(dto.ProductId);
+                    .GetEntityByIdAsync(
+                        dto.ProductId);
 
             if (product == null)
             {
                 return BadRequest(new
                 {
-                    message = "Product not found."
+                    message =
+                        "Product not found."
                 });
             }
 
@@ -692,7 +823,9 @@ namespace whm.Controllers
             await _unitOfWork.PurchaseOrders
                 .AddItemAsync(item);
 
-            order.TotalValue += item.TotalPrice;
+            order.TotalValue +=
+                item.TotalPrice;
+
             order.UpdatedAt =
                 DateTimeOffset.UtcNow;
 
@@ -707,7 +840,6 @@ namespace whm.Controllers
         // =========================================================
         // UPDATE ITEM
         // =========================================================
-
         [HttpPut("{id:int}/items/{itemId:int}")]
         public async Task<IActionResult> UpdateItem(
             int id,
@@ -719,7 +851,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             if (order.purchaseOrderStatus !=
                 PurchaseOrderStatus.Draft)
@@ -727,7 +865,7 @@ namespace whm.Controllers
                 return BadRequest(new
                 {
                     message =
-                        "Items can only be updated in draft orders."
+                        "Items can only be updated in Draft orders."
                 });
             }
 
@@ -745,10 +883,20 @@ namespace whm.Controllers
                 });
             }
 
+            // =====================================================
+            // PRODUCT
+            // =====================================================
+
             if (dto.ProductId.HasValue)
             {
                 if (dto.ProductId.Value <= 0)
-                    return BadRequest();
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Invalid ProductId."
+                    });
+                }
 
                 var product =
                     await _unitOfWork.Products
@@ -759,13 +907,18 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message = "Product not found."
+                        message =
+                            "Product not found."
                     });
                 }
 
                 item.ProductId =
                     dto.ProductId.Value;
             }
+
+            // =====================================================
+            // QUANTITY
+            // =====================================================
 
             if (dto.OrderedQuantity.HasValue)
             {
@@ -792,6 +945,10 @@ namespace whm.Controllers
                     dto.OrderedQuantity.Value;
             }
 
+            // =====================================================
+            // UNIT PRICE
+            // =====================================================
+
             if (dto.UnitPrice.HasValue)
             {
                 if (dto.UnitPrice.Value < 0)
@@ -807,6 +964,10 @@ namespace whm.Controllers
                     dto.UnitPrice.Value;
             }
 
+            // =====================================================
+            // RECALCULATE ITEM
+            // =====================================================
+
             item.RemainingQuantity =
                 item.OrderedQuantity -
                 item.ReceivedQuantity;
@@ -814,6 +975,10 @@ namespace whm.Controllers
             item.TotalPrice =
                 item.OrderedQuantity *
                 item.UnitPrice;
+
+            // =====================================================
+            // RECALCULATE ORDER TOTAL
+            // =====================================================
 
             order.TotalValue =
                 await CalculateTotalAsync(id);
@@ -834,7 +999,6 @@ namespace whm.Controllers
         // =========================================================
         // DELETE ITEM
         // =========================================================
-
         [HttpDelete("{id:int}/items/{itemId:int}")]
         public async Task<IActionResult> DeleteItem(
             int id,
@@ -845,7 +1009,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             if (order.purchaseOrderStatus !=
                 PurchaseOrderStatus.Draft)
@@ -853,7 +1023,7 @@ namespace whm.Controllers
                 return BadRequest(new
                 {
                     message =
-                        "Items can only be deleted from draft orders."
+                        "Items can only be deleted from Draft orders."
                 });
             }
 
@@ -864,16 +1034,23 @@ namespace whm.Controllers
             if (item == null ||
                 item.PurchaseOrderId != id)
             {
-                return NotFound();
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order item not found."
+                });
             }
 
             _unitOfWork.PurchaseOrders
                 .DeleteItem(item);
 
-            order.TotalValue -= item.TotalPrice;
+            order.TotalValue -=
+                item.TotalPrice;
 
             if (order.TotalValue < 0)
+            {
                 order.TotalValue = 0;
+            }
 
             order.UpdatedAt =
                 DateTimeOffset.UtcNow;
@@ -888,9 +1065,8 @@ namespace whm.Controllers
         }
 
         // =========================================================
-        // RECEIPTS
+        // GET RECEIPTS
         // =========================================================
-
         [HttpGet("{id:int}/receipts")]
         public async Task<IActionResult> GetReceipts(int id)
         {
@@ -899,7 +1075,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             var receipts =
                 await _unitOfWork.PurchaseOrders
@@ -909,9 +1091,8 @@ namespace whm.Controllers
         }
 
         // =========================================================
-        // HISTORY
+        // GET HISTORY
         // =========================================================
-
         [HttpGet("{id:int}/history")]
         public async Task<IActionResult> GetHistory(int id)
         {
@@ -920,7 +1101,13 @@ namespace whm.Controllers
                     .GetEntityByIdAsync(id);
 
             if (order == null)
-                return NotFound();
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Purchase order not found."
+                });
+            }
 
             var history =
                 await _unitOfWork.PurchaseOrders
@@ -930,9 +1117,8 @@ namespace whm.Controllers
         }
 
         // =========================================================
-        // HELPERS
+        // CALCULATE TOTAL
         // =========================================================
-
         private async Task<decimal> CalculateTotalAsync(
             int purchaseOrderId)
         {
@@ -943,6 +1129,9 @@ namespace whm.Controllers
             return items.Sum(x => x.TotalPrice);
         }
 
+        // =========================================================
+        // RECALCULATE TOTAL
+        // =========================================================
         private async Task RecalculateTotalAsync(
             PurchaseOrder order)
         {
