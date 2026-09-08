@@ -51,7 +51,7 @@ export default function ProductDetails({
         return (
             <Card
                 title="Product Details"
-                maxWidth="var(--sidebar-width)"
+                maxWidth="var(--sidedetails-width)"
             >
                 <div
                     style={{
@@ -70,7 +70,7 @@ export default function ProductDetails({
         return (
             <Card
                 title="Product Details"
-                maxWidth="var(--sidebar-width)"
+                maxWidth="var(--sidedetails-width)"
             >
                 <div
                     style={{
@@ -87,7 +87,7 @@ export default function ProductDetails({
         return (
             <Card
                 title="Product Details"
-                maxWidth="var(--sidebar-width)"
+                maxWidth="var(--sidedetails-width)"
             >
                 <div
                     style={{
@@ -110,7 +110,7 @@ export default function ProductDetails({
         return (
             <Card
                 title="Product Details"
-                maxWidth="var(--sidebar-width)"
+                maxWidth="var(--sidedetails-width)"
             >
                 <div
                     style={{
@@ -171,7 +171,7 @@ export default function ProductDetails({
                     X
                 </button>
             }
-            maxWidth="var(--sidebar-width)"
+            maxWidth="var(--sidedetails-width)"
         >
             <div
                 style={{

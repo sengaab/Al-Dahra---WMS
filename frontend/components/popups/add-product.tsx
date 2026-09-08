@@ -100,13 +100,21 @@ export default function AddProduct({
     );
 
     const unitOptions = units.map((unit) => ({
-        label: `${unit.name}${
-            unit.abbreviation
-                ? ` (${unit.abbreviation})`
-                : ""
-        }`,
+        label: `${unit.name}${unit.abbreviation
+            ? ` (${unit.abbreviation})`
+            : ""
+            }`,
         value: unit.unitId.toString(),
     }));
+
+    const isFormValid =
+        sku.trim() !== "" &&
+        productName.trim() !== "" &&
+        barcode.trim() !== "" &&
+        category !== "" &&
+        unit !== "" &&
+        unitPrice !== "" &&
+        minimumStock !== "";
 
     const handleAddProduct = async () => {
         setError("");
@@ -160,16 +168,26 @@ export default function AddProduct({
                 onClose?.();
             }, 1500);
         } catch (err) {
-            console.error(
-                "Failed to create product:",
-                err
-            );
+            console.error("Failed to create product:", err);
 
-            setError(
+            const message =
                 err instanceof Error
                     ? err.message
-                    : "Failed to create product."
-            );
+                    : "Failed to create product.";
+
+            if (
+                message.toLowerCase().includes("sku") &&
+                message.toLowerCase().includes("exist")
+            ) {
+                setError("SKU already exists.");
+            } else if (
+                message.toLowerCase().includes("barcode") &&
+                message.toLowerCase().includes("exist")
+            ) {
+                setError("Barcode already exists.");
+            } else {
+                setError(message);
+            }
         } finally {
             setLoading(false);
         }
@@ -423,6 +441,7 @@ export default function AddProduct({
                     }}
                 >
                     <Button
+                        variant="outline"
                         style={{ width: "100%" }}
                         onClick={onClose}
                         disabled={loading}
@@ -436,12 +455,11 @@ export default function AddProduct({
                         onClick={handleAddProduct}
                         disabled={
                             loading ||
-                            loadingOptions
+                            loadingOptions ||
+                            !isFormValid
                         }
                     >
-                        {loading
-                            ? "Adding..."
-                            : "Add Product"}
+                        {loading ? "Adding..." : "Add Product"}
                     </Button>
                 </div>
             </div>

@@ -70,31 +70,31 @@ const navItems = [
     //     href: "/transfers",
     //     icon: "/nav/transfers.svg",
     // },
-    {
-        name: "Suppliers",
-        href: "/suppliers",
-        icon: "/nav/suppliers.svg",
-    },
-    {
-        name: "Returns",
-        href: "/returns",
-        icon: "/nav/returns.svg",
-    },
-    {
-        name: "Barcode Scanner",
-        href: "/scan",
-        icon: "/nav/barcode-scanner.svg",
-    },
-    {
-        name: "Reports",
-        href: "/reports",
-        icon: "/nav/reports.svg",
-    },
-    {
-        name: "Audit Logs",
-        href: "/audit-logs",
-        icon: "/nav/audit-logs.svg",
-    },
+    // {
+    //     name: "Suppliers",
+    //     href: "/suppliers",
+    //     icon: "/nav/suppliers.svg",
+    // },
+    // {
+    //     name: "Returns",
+    //     href: "/returns",
+    //     icon: "/nav/returns.svg",
+    // },
+    // {
+    //     name: "Barcode Scanner",
+    //     href: "/scan",
+    //     icon: "/nav/barcode-scanner.svg",
+    // },
+    // {
+    //     name: "Reports",
+    //     href: "/reports",
+    //     icon: "/nav/reports.svg",
+    // },
+    // {
+    //     name: "Audit Logs",
+    //     href: "/audit-logs",
+    //     icon: "/nav/audit-logs.svg",
+    // },
 ];
 
 const bottomNavItems = [
@@ -249,7 +249,7 @@ export default function Sidebar() {
                     gap: "var(--space-4)",
                 }}
             >
-                {bottomNavItems.map((item) => {
+                {/* {bottomNavItems.map((item) => {
                     const isActive =
                         pathname === item.href ||
                         pathname.startsWith(`${item.href}/`);
@@ -263,7 +263,7 @@ export default function Sidebar() {
                             active={isActive}
                         />
                     );
-                })}
+                })} */}
 
                 {/* Logout */}
                 <button

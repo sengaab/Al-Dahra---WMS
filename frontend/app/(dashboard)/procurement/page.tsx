@@ -125,7 +125,7 @@ export default function Procurement() {
     }, [purchaseOrders, suppliers]);
 
     function formatCurrency(value: number) {
-        return `EGP ${value.toLocaleString("en-EG", {
+        return `E£ ${value.toLocaleString("en-EG", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2,
         })}`;

@@ -1111,7 +1111,7 @@ export default function Locations() {
                     </p>
 
                     <Button
-                        variant="secondary"
+                        variant="beige"
                         size="sm"
                     >
                         Add Location

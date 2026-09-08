@@ -32,9 +32,25 @@ export async function apiFetch<T>(
     );
 
     if (!response.ok) {
-        throw new Error(
-            `API Error: ${response.status} ${response.statusText}`
-        );
+        let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+
+        try {
+            const errorData = await response.json();
+
+            if (errorData?.message) {
+                errorMessage = errorData.message;
+            }
+        } catch {
+            // Keep the default error message
+        }
+
+        const error = new Error(errorMessage) as Error & {
+            status: number;
+        };
+
+        error.status = response.status;
+
+        throw error;
     }
 
     return response.json();
