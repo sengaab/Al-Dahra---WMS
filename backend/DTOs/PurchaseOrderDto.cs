@@ -3,6 +3,7 @@
     public class PurchaseOrderDto
     {
         public int PurchaseOrderId { get; set; }
+
         public string PONumber { get; set; } = string.Empty;
 
         public int SupplierId { get; set; }
@@ -30,8 +31,11 @@
         public DateTimeOffset UpdatedAt { get; set; }
 
         public int ItemsCount { get; set; }
+
         public decimal TotalOrderedQuantity { get; set; }
+
         public decimal TotalReceivedQuantity { get; set; }
+
         public decimal TotalRemainingQuantity { get; set; }
     }
 
@@ -46,6 +50,9 @@
         public DateTimeOffset? OrderDate { get; set; }
 
         public DateTimeOffset? ExpectedDate { get; set; }
+
+        // New field
+        public string? Status { get; set; }
     }
 
     public class UpdatePurchaseOrderDto
@@ -86,14 +93,19 @@
         public int PurchaseOrderId { get; set; }
 
         public int ProductId { get; set; }
+
         public string ProductName { get; set; } = string.Empty;
+
         public string SKU { get; set; } = string.Empty;
 
         public decimal OrderedQuantity { get; set; }
+
         public decimal ReceivedQuantity { get; set; }
+
         public decimal RemainingQuantity { get; set; }
 
         public decimal UnitPrice { get; set; }
+
         public decimal TotalPrice { get; set; }
     }
 
@@ -106,9 +118,11 @@
         public int PurchaseOrderId { get; set; }
 
         public int WarehouseId { get; set; }
+
         public string WarehouseName { get; set; } = string.Empty;
 
         public Guid ReceivedBy { get; set; }
+
         public string? ReceiverName { get; set; }
 
         public DateTimeOffset ReceivedAt { get; set; }
