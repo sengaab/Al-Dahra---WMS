@@ -280,16 +280,7 @@ namespace whm.Controllers
                 });
             }
 
-            // Only PendingApproval can be updated
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.PendingApproval)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Only PendingApproval purchase orders can be updated."
-                });
-            }
+           
 
             // =====================================================
             // PO NUMBER
