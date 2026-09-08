@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 import Card from "@/components/card";
 import Status from "@/components/status";
 import Button from "@/components/button";
 
-import {
-    getPurchaseOrderById,
-    getPurchaseOrderItems,
-    submitPurchaseOrder,
-    approvePurchaseOrder,
-    orderPurchaseOrder,
-} from "@/lib/api/purchase-orders";
+
+
+import { usePurchaseOrder } from "@/hooks/usePurchaseOrder";
+import { usePurchaseOrderActions } from "@/hooks/usePurchaseOrderActions";
 
 import type {
     PurchaseOrderDto,
@@ -22,11 +19,12 @@ import type {
 
 interface POProps {
     poId: number;
+
     onClose?: () => void;
 
     /*
-     * Parent should use these values to open AddOrder
-     * in edit mode.
+     * Parent should use these values
+     * to open AddOrder in edit mode.
      */
     onEdit?: (
         purchaseOrder: PurchaseOrderDto,
@@ -34,17 +32,38 @@ interface POProps {
     ) => void;
 }
 
-const formatDate = (value?: string | null) => {
-    if (!value) return "-";
+/*
+ * ==========================================
+ * FORMAT DATE
+ * ==========================================
+ */
 
-    return new Intl.DateTimeFormat("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-    }).format(new Date(value));
+const formatDate = (
+    value?: string | null
+) => {
+    if (!value) {
+        return "-";
+    }
+
+    return new Intl.DateTimeFormat(
+        "en-GB",
+        {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        }
+    ).format(new Date(value));
 };
 
-const formatCurrency = (value: number) =>
+/*
+ * ==========================================
+ * FORMAT CURRENCY
+ * ==========================================
+ */
+
+const formatCurrency = (
+    value: number
+) =>
     new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "EGP",
@@ -54,6 +73,12 @@ const formatCurrency = (value: number) =>
         .format(value)
         .replace("EGP", "E£");
 
+/*
+ * ==========================================
+ * COMPONENT
+ * ==========================================
+ */
+
 export default function PODetails({
     poId,
     onClose,
@@ -61,73 +86,32 @@ export default function PODetails({
 }: POProps) {
     const router = useRouter();
 
-    const [purchaseOrder, setPurchaseOrder] =
-        useState<PurchaseOrderDto | null>(null);
-
-    const [items, setItems] =
-        useState<PurchaseOrderItemDto[]>([]);
-
-    const [loading, setLoading] = useState(true);
-
-    const [actionLoading, setActionLoading] =
-        useState(false);
-
-    const [error, setError] = useState("");
-
-    const [actionError, setActionError] =
-        useState("");
-
     /*
      * ==========================================
-     * LOAD PURCHASE ORDER
+     * PURCHASE ORDER HOOK
      * ==========================================
      */
 
-    useEffect(() => {
-        let mounted = true;
+    const {
+        purchaseOrder,
+        items,
+        loading,
+        error,
+        refreshPurchaseOrder,
+    } = usePurchaseOrder(poId);
 
-        const loadPurchaseOrder = async () => {
-            try {
-                setLoading(true);
-                setError("");
-
-                const [order, orderItems] =
-                    await Promise.all([
-                        getPurchaseOrderById(poId),
-                        getPurchaseOrderItems(poId),
-                    ]);
-
-                if (!mounted) return;
-
-                setPurchaseOrder(order);
-                setItems(orderItems);
-            } catch (err: any) {
-                if (!mounted) return;
-
-                console.error(
-                    "Load PO error:",
-                    err
-                );
-
-                setError(
-                    err?.message ||
-                    "Failed to load purchase order."
-                );
-            } finally {
-                if (mounted) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        if (poId) {
-            loadPurchaseOrder();
-        }
-
-        return () => {
-            mounted = false;
-        };
-    }, [poId]);
+    const {
+        actionLoading,
+        actionError,
+        handleSubmit,
+        handleApprove,
+        handleOrder,
+    } = usePurchaseOrderActions(
+        poId,
+        purchaseOrder,
+        items,
+        refreshPurchaseOrder
+    );
 
     /*
      * ==========================================
@@ -136,7 +120,8 @@ export default function PODetails({
      */
 
     const currentStatus =
-        purchaseOrder?.status || "Draft";
+        purchaseOrder?.status ||
+        "Draft";
 
     const normalizedStatus =
         currentStatus
@@ -153,7 +138,9 @@ export default function PODetails({
         return items.reduce(
             (total, item) =>
                 total +
-                Number(item.totalPrice || 0),
+                Number(
+                    item.totalPrice || 0
+                ),
             0
         );
     }, [items]);
@@ -167,12 +154,14 @@ export default function PODetails({
     const information = [
         [
             "Supplier",
-            purchaseOrder?.supplierName || "-",
+            purchaseOrder?.supplierName ||
+            "-",
         ],
 
         [
             "Deliver to",
-            purchaseOrder?.siteName || "-",
+            purchaseOrder?.siteName ||
+            "-",
         ],
 
         [
@@ -191,106 +180,16 @@ export default function PODetails({
 
         [
             "Created By",
-            purchaseOrder?.creatorName || "-",
+            purchaseOrder?.creatorName ||
+            "-",
         ],
 
         [
             "Approved By",
-            purchaseOrder?.approverName || "-",
+            purchaseOrder?.approverName ||
+            "-",
         ],
     ];
-
-    /*
-     * ==========================================
-     * REFRESH PO
-     * ==========================================
-     */
-
-    const refreshPurchaseOrder =
-        async () => {
-            const [
-                order,
-                orderItems,
-            ] = await Promise.all([
-                getPurchaseOrderById(
-                    poId
-                ),
-
-                getPurchaseOrderItems(
-                    poId
-                ),
-            ]);
-
-            setPurchaseOrder(order);
-
-            setItems(orderItems);
-        };
-
-    /*
-     * ==========================================
-     * APPROVE
-     * Pending Approval -> Approved
-     * ==========================================
-     */
-
-    const handleApprove = async () => {
-        try {
-            setActionLoading(true);
-
-            setActionError("");
-
-            await approvePurchaseOrder(
-                poId
-            );
-
-            await refreshPurchaseOrder();
-        } catch (err: any) {
-            console.error(
-                "Approve PO error:",
-                err
-            );
-
-            setActionError(
-                err?.message ||
-                "Failed to approve purchase order."
-            );
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    /*
-     * ==========================================
-     * SUBMIT
-     * Draft -> Pending Approval
-     * ==========================================
-     */
-
-    const handleSubmit = async () => {
-        try {
-            setActionLoading(true);
-
-            setActionError("");
-
-            await submitPurchaseOrder(
-                poId
-            );
-
-            await refreshPurchaseOrder();
-        } catch (err: any) {
-            console.error(
-                "Submit PO error:",
-                err
-            );
-
-            setActionError(
-                err?.message ||
-                "Failed to submit purchase order."
-            );
-        } finally {
-            setActionLoading(false);
-        }
-    };
 
     /*
      * ==========================================
@@ -308,23 +207,6 @@ export default function PODetails({
      * ==========================================
      * EDIT
      * ==========================================
-     *
-     * We already have:
-     *
-     * purchaseOrder
-     * items
-     *
-     * So send both to the parent.
-     *
-     * The parent will then render:
-     *
-     * <AddOrder
-     *     editOrder={purchaseOrder}
-     *     editItems={items}
-     * />
-     *
-     * This makes AddOrder show the PO number
-     * and populate all previous values.
      */
 
     const handleEdit = () => {
@@ -369,9 +251,6 @@ export default function PODetails({
 
         const rows = items.map(
             (item) => [
-                /*
-                 * PurchaseOrderItemDto uses SKU.
-                 */
                 item.sku,
 
                 item.productName,
@@ -445,13 +324,20 @@ export default function PODetails({
 
     /*
      * ==========================================
-     * STATUS COLOR
+     * STATUS VARIANT
      * ==========================================
      */
 
     function getStatusVariant(
         type: string
-    ): "green" | "green-stroke" | "yellow" | "blue" | "grey" | "orange" | "red-stroke" {
+    ):
+        | "green"
+        | "green-stroke"
+        | "yellow"
+        | "blue"
+        | "grey"
+        | "orange"
+        | "red-stroke" {
         switch (type) {
             case "Draft":
                 return "grey";
@@ -479,6 +365,12 @@ export default function PODetails({
         }
     }
 
+    /*
+     * ==========================================
+     * STATUS LABEL
+     * ==========================================
+     */
+
     const getStatusLabel = (
         status: string
     ) => {
@@ -493,9 +385,6 @@ export default function PODetails({
                 return status;
         }
     };
-
-
-
 
     /*
      * ==========================================
@@ -516,18 +405,14 @@ export default function PODetails({
                 <div
                     className="column-container"
                     style={{
-                        width:
-                            "100%",
-
+                        width: "100%",
                         justifyContent:
                             "space-between",
                     }}
                 >
                     <button
                         type="button"
-                        onClick={
-                            onClose
-                        }
+                        onClick={onClose}
                         disabled={
                             actionLoading
                         }
@@ -549,8 +434,7 @@ export default function PODetails({
                                     ? "not-allowed"
                                     : "pointer",
 
-                            border:
-                                "none",
+                            border: "none",
 
                             background:
                                 "transparent",
@@ -570,14 +454,14 @@ export default function PODetails({
             <div
                 className="column-container"
                 style={{
-                    width:
-                        "100%",
-
+                    width: "100%",
                     paddingInline:
                         "var(--space-2)",
                 }}
             >
-                {/* LOADING */}
+                {/* ==========================================
+                    LOADING
+                ========================================== */}
 
                 {loading && (
                     <p
@@ -595,7 +479,9 @@ export default function PODetails({
                     </p>
                 )}
 
-                {/* ERROR */}
+                {/* ==========================================
+                    ERROR
+                ========================================== */}
 
                 {!loading &&
                     error && (
@@ -616,7 +502,9 @@ export default function PODetails({
                         </p>
                     )}
 
-                {/* CONTENT */}
+                {/* ==========================================
+                    CONTENT
+                ========================================== */}
 
                 {!loading &&
                     !error &&
@@ -625,15 +513,17 @@ export default function PODetails({
                             {/* STATUS */}
 
                             <Status
-                                text={
-                                    getStatusLabel(currentStatus)
-                                }
-                                variant={
-                                    getStatusVariant(currentStatus)
-                                }
+                                text={getStatusLabel(
+                                    currentStatus
+                                )}
+                                variant={getStatusVariant(
+                                    currentStatus
+                                )}
                             />
 
-                            {/* PO INFORMATION */}
+                            {/* ==========================================
+                                PO INFORMATION
+                            ========================================== */}
 
                             <div
                                 className="grid"
@@ -690,7 +580,9 @@ export default function PODetails({
                                 )}
                             </div>
 
-                            {/* LINE ITEMS */}
+                            {/* ==========================================
+                                LINE ITEMS
+                            ========================================== */}
 
                             <p className="body-title">
                                 Line Items
@@ -1118,7 +1010,9 @@ export default function PODetails({
                                 </div>
                             </div>
 
-                            {/* ACTION ERROR */}
+                            {/* ==========================================
+                                ACTION ERROR
+                            ========================================== */}
 
                             {actionError && (
                                 <p
@@ -1137,7 +1031,9 @@ export default function PODetails({
                                 </p>
                             )}
 
-                            {/* ACTIONS */}
+                            {/* ==========================================
+                                ACTIONS
+                            ========================================== */}
 
                             <div
                                 className="row-container"
@@ -1151,10 +1047,13 @@ export default function PODetails({
                                     gap:
                                         "var(--space-2)",
 
-                                    paddingBottom: "var(--space-2)"
+                                    paddingBottom:
+                                        "var(--space-2)",
                                 }}
                             >
-                                {/* APPROVE */}
+                                {/* ==========================================
+                                    APPROVE
+                                ========================================== */}
 
                                 {normalizedStatus ===
                                     "pendingapproval" && (
@@ -1174,7 +1073,9 @@ export default function PODetails({
                                         </Button>
                                     )}
 
-                                {/* RECEIVE */}
+                                {/* ==========================================
+                                    RECEIVE
+                                ========================================== */}
 
                                 {(
                                     normalizedStatus ===
@@ -1196,7 +1097,9 @@ export default function PODetails({
                                         </Button>
                                     )}
 
-                                {/* DRAFT ACTIONS */}
+                                {/* ==========================================
+                                    DRAFT ACTIONS
+                                ========================================== */}
 
                                 {normalizedStatus ===
                                     "draft" && (
@@ -1231,43 +1134,24 @@ export default function PODetails({
                                         </>
                                     )}
 
-                                {/* ORDER */}
+                                {/* ==========================================
+                                    ORDER
+                                ========================================== */}
 
                                 {normalizedStatus === "approved" && (
                                     <Button
                                         variant="secondary"
-                                        onClick={async () => {
-                                            try {
-                                                setActionLoading(true);
-                                                setActionError("");
-
-                                                await orderPurchaseOrder(poId);
-
-                                                await refreshPurchaseOrder();
-                                            } catch (err: any) {
-                                                console.error(
-                                                    "Order PO error:",
-                                                    err
-                                                );
-
-                                                setActionError(
-                                                    err?.message ||
-                                                    "Failed to order purchase order."
-                                                );
-                                            } finally {
-                                                setActionLoading(false);
-                                            }
-                                        }}
+                                        onClick={handleOrder}
                                         disabled={actionLoading}
                                         size="sm"
                                     >
-                                        {actionLoading
-                                            ? "Ordering..."
-                                            : "Order"}
+                                        {actionLoading ? "Ordering..." : "Order"}
                                     </Button>
                                 )}
 
-                                {/* EXPORT */}
+                                {/* ==========================================
+                                    EXPORT
+                                ========================================== */}
 
                                 <Button
                                     variant="outline"

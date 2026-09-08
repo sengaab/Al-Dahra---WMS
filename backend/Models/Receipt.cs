@@ -11,6 +11,7 @@ namespace whm.Models
         Completed,
         Cancelled
     }
+
     public class Receipt
     {
         [Key]
@@ -26,15 +27,16 @@ namespace whm.Models
         [Required]
         public int WarehouseId { get; set; }
 
-        [Required]
-        public Guid ReceivedBy { get; set; }
+        // Nullable because the receiver is assigned when receiving starts
+        public Guid? ReceivedBy { get; set; }
 
-        public DateTimeOffset ReceivedAt { get; set; }
+        // Nullable because the receipt does not have a receiving date when first created
+        public DateTimeOffset? ReceivedAt { get; set; }
 
-        
         public string? Notes { get; set; }
+
         [Required]
-        public ReceiptStatus receiptStatus { get; set; }=ReceiptStatus.Pending;
+        public ReceiptStatus receiptStatus { get; set; } = ReceiptStatus.Pending;
 
         // =========================
         // Navigation Properties
@@ -44,7 +46,7 @@ namespace whm.Models
 
         public Warehouse Warehouse { get; set; } = null!;
 
-        public User Receiver { get; set; } = null!;
+        public User? Receiver { get; set; }
 
         public List<ReceiptItem> Items { get; set; }
             = new List<ReceiptItem>();

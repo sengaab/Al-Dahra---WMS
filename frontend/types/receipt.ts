@@ -18,8 +18,10 @@ export interface ReceiptDto {
 export interface CreateReceiptDto {
     purchaseOrderId: number;
     warehouseId: number;
-    receivedBy: string;
-    receivedAt: string;
+
+    receivedBy?: string;
+    receivedAt?: string;
+
     notes?: string | null;
 }
 
@@ -49,7 +51,7 @@ export interface CreateReceiptItemDto {
     purchaseOrderItemId: number;
     productId: number;
 
-    receivedQuantity: number;
+    receivedQuantity?: number;
     acceptedQuantity: number;
     quarantineQuantity: number;
     rejectedQuantity: number;

@@ -121,11 +121,11 @@
 
         public string WarehouseName { get; set; } = string.Empty;
 
-        public Guid ReceivedBy { get; set; }
+        public Guid? ReceivedBy { get; set; }
 
         public string? ReceiverName { get; set; }
 
-        public DateTimeOffset ReceivedAt { get; set; }
+        public DateTimeOffset? ReceivedAt { get; set; }
 
         public string? Notes { get; set; }
 
@@ -142,7 +142,7 @@
 
         public string? Status { get; set; }
 
-        public DateTimeOffset Date { get; set; }
+        public DateTimeOffset? Date { get; set; }
 
         public Guid? UserId { get; set; }
 
