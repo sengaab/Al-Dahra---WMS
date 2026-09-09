@@ -74,14 +74,6 @@ namespace whm.Controllers
             // VALIDATION
             // =====================================================
 
-            if (string.IsNullOrWhiteSpace(dto.PONumber))
-            {
-                return BadRequest(new
-                {
-                    message = "PONumber is required."
-                });
-            }
-
             if (dto.SupplierId <= 0)
             {
                 return BadRequest(new
@@ -95,25 +87,6 @@ namespace whm.Controllers
                 return BadRequest(new
                 {
                     message = "Valid SiteId is required."
-                });
-            }
-
-            var poNumber = dto.PONumber.Trim();
-
-            // =====================================================
-            // CHECK DUPLICATE PO NUMBER
-            // =====================================================
-
-            var exists =
-                await _unitOfWork.PurchaseOrders
-                    .PONumberExistsAsync(poNumber);
-
-            if (exists)
-            {
-                return Conflict(new
-                {
-                    message =
-                        "Purchase order number already exists."
                 });
             }
 
@@ -161,8 +134,7 @@ namespace whm.Controllers
             {
                 return Unauthorized(new
                 {
-                    message =
-                        "User identity was not found."
+                    message = "User identity was not found."
                 });
             }
 
@@ -172,10 +144,49 @@ namespace whm.Controllers
             {
                 return Unauthorized(new
                 {
-                    message =
-                        "Invalid user identity."
+                    message = "Invalid user identity."
                 });
             }
+
+            // =====================================================
+            // GENERATE PO NUMBER
+            // Format: PO-2026-0001
+            // =====================================================
+
+            var year = DateTime.UtcNow.Year;
+
+            var prefix = $"PO-{year}-";
+
+            var existingNumbers =
+                await _unitOfWork.PurchaseOrders
+                    .GetAllAsync(
+                        search: prefix,
+                        page: 1,
+                        pageSize: 100);
+
+            var lastNumber = existingNumbers
+                .Select(x => x.PONumber)
+                .Where(x =>
+                    !string.IsNullOrWhiteSpace(x) &&
+                    x.StartsWith(prefix))
+                .Select(x =>
+                {
+                    var numberPart =
+                        x.Substring(prefix.Length);
+
+                    return int.TryParse(
+                        numberPart,
+                        out var number)
+                        ? number
+                        : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            var nextNumber = lastNumber + 1;
+
+            var poNumber =
+                $"{prefix}{nextNumber:D4}";
 
             // =====================================================
             // STATUS
@@ -196,7 +207,8 @@ namespace whm.Controllers
                         message =
                             "Invalid status. Valid values are: " +
                             "Draft, PendingApproval, Approved, " +
-                            "Rejected, Cancelled, Received, Closed."
+                            "Rejected, Ordered, PartiallyReceived, " +
+                            "Received, Cancelled, Closed."
                     });
                 }
 
@@ -232,7 +244,8 @@ namespace whm.Controllers
 
                 ExpectedDate = expectedDate,
 
-                purchaseOrderStatus = purchaseOrderStatus,
+                purchaseOrderStatus =
+                    purchaseOrderStatus,
 
                 TotalValue = 0,
 
@@ -258,7 +271,6 @@ namespace whm.Controllers
                 },
                 createdOrder);
         }
-
         // =========================================================
         // UPDATE PURCHASE ORDER
         // =========================================================
