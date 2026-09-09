@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using whm.Data;
 using whm.DTOs.PurchaseOrder;
 using whm.Models;
@@ -269,6 +270,10 @@ namespace whm.Repositories
                 .ToListAsync();
         }
 
+        // =========================================================
+        // GET ITEM ENTITY
+        // =========================================================
+
         public async Task<PurchaseOrderItem?> GetItemEntityByIdAsync(
             int purchaseOrderItemId)
         {
@@ -277,6 +282,10 @@ namespace whm.Repositories
                     x.PurchaseOrderItemId ==
                     purchaseOrderItemId);
         }
+
+        // =========================================================
+        // GET ITEM BY ID
+        // =========================================================
 
         public async Task<PurchaseOrderItemDto?> GetItemByIdAsync(
             int purchaseOrderItemId)
@@ -397,12 +406,15 @@ namespace whm.Repositories
                     x.CreatedAt,
                     x.CreatedBy,
                     x.purchaseOrderStatus,
+
                     CreatorName = x.Creator != null
                         ? x.Creator.Name
                         : null,
+
                     ApproverName = x.Approver != null
                         ? x.Approver.Name
                         : null,
+
                     x.ApprovedBy,
                     x.ApprovedAt
                 })
@@ -414,11 +426,21 @@ namespace whm.Repositories
             result.Add(new PurchaseOrderHistoryDto
             {
                 EventType = "PurchaseOrderCreated",
-                Description = "Purchase order created",
-                Status = PurchaseOrderStatus.Draft.ToString(),
-                Date = order.CreatedAt,
-                UserId = order.CreatedBy,
-                UserName = order.CreatorName
+
+                Description =
+                    "Purchase order created",
+
+                Status =
+                    PurchaseOrderStatus.Draft.ToString(),
+
+                Date =
+                    order.CreatedAt,
+
+                UserId =
+                    order.CreatedBy,
+
+                UserName =
+                    order.CreatorName
             });
 
             if (order.ApprovedAt.HasValue &&
@@ -426,19 +448,31 @@ namespace whm.Repositories
             {
                 result.Add(new PurchaseOrderHistoryDto
                 {
-                    EventType = "PurchaseOrderApproved",
-                    Description = "Purchase order approved",
-                    Status = PurchaseOrderStatus.Approved.ToString(),
-                    Date = order.ApprovedAt.Value,
-                    UserId = order.ApprovedBy.Value,
-                    UserName = order.ApproverName
+                    EventType =
+                        "PurchaseOrderApproved",
+
+                    Description =
+                        "Purchase order approved",
+
+                    Status =
+                        PurchaseOrderStatus.Approved.ToString(),
+
+                    Date =
+                        order.ApprovedAt.Value,
+
+                    UserId =
+                        order.ApprovedBy.Value,
+
+                    UserName =
+                        order.ApproverName
                 });
             }
 
             var receipts = await _context.Receipts
                 .AsNoTracking()
                 .Where(x =>
-                    x.PurchaseOrderId == purchaseOrderId)
+                    x.PurchaseOrderId ==
+                    purchaseOrderId)
                 .Select(x => new
                 {
                     x.ReceiptId,
@@ -446,9 +480,11 @@ namespace whm.Repositories
                     x.ReceivedAt,
                     x.ReceivedBy,
                     x.receiptStatus,
-                    ReceiverName = x.Receiver != null
-                        ? x.Receiver.Name
-                        : null
+
+                    ReceiverName =
+                        x.Receiver != null
+                            ? x.Receiver.Name
+                            : null
                 })
                 .ToListAsync();
 
@@ -456,7 +492,9 @@ namespace whm.Repositories
             {
                 result.Add(new PurchaseOrderHistoryDto
                 {
-                    EventType = "Receipt",
+                    EventType =
+                        "Receipt",
+
                     Description =
                         $"Receipt {receipt.ReceiptNumber} received",
 
@@ -480,7 +518,9 @@ namespace whm.Repositories
             var inspections = await _context.Inspections
                 .AsNoTracking()
                 .Where(x =>
-                    x.ReceiptItem.PurchaseOrderItem.PurchaseOrderId ==
+                    x.ReceiptItem
+                        .PurchaseOrderItem
+                        .PurchaseOrderId ==
                     purchaseOrderId)
                 .Select(x => new
                 {
@@ -489,9 +529,11 @@ namespace whm.Repositories
                     x.InspectedAt,
                     x.InspectedBy,
                     x.InspectionStatus,
-                    InspectorName = x.Inspector != null
-                        ? x.Inspector.Name
-                        : null
+
+                    InspectorName =
+                        x.Inspector != null
+                            ? x.Inspector.Name
+                            : null
                 })
                 .ToListAsync();
 
@@ -499,7 +541,9 @@ namespace whm.Repositories
             {
                 result.Add(new PurchaseOrderHistoryDto
                 {
-                    EventType = "Inspection",
+                    EventType =
+                        "Inspection",
+
                     Description =
                         "Receipt item inspection",
 
@@ -529,22 +573,25 @@ namespace whm.Repositories
         }
 
         // =========================================================
-        // ADD / UPDATE / DELETE
+        // ADD / UPDATE / DELETE PURCHASE ORDER
         // =========================================================
 
         public async Task AddAsync(PurchaseOrder purchaseOrder)
         {
-            await _context.PurchaseOrders.AddAsync(purchaseOrder);
+            await _context.PurchaseOrders
+                .AddAsync(purchaseOrder);
         }
 
         public void Update(PurchaseOrder purchaseOrder)
         {
-            _context.PurchaseOrders.Update(purchaseOrder);
+            _context.PurchaseOrders
+                .Update(purchaseOrder);
         }
 
         public void Delete(PurchaseOrder purchaseOrder)
         {
-            _context.PurchaseOrders.Remove(purchaseOrder);
+            _context.PurchaseOrders
+                .Remove(purchaseOrder);
         }
 
         // =========================================================
@@ -553,17 +600,39 @@ namespace whm.Repositories
 
         public async Task AddItemAsync(PurchaseOrderItem item)
         {
-            await _context.PurchaseOrderItems.AddAsync(item);
+            await _context.PurchaseOrderItems
+                .AddAsync(item);
         }
 
         public void UpdateItem(PurchaseOrderItem item)
         {
-            _context.PurchaseOrderItems.Update(item);
+            // Make sure RemainingQuantity is always
+            // synchronized with OrderedQuantity
+            // and ReceivedQuantity.
+
+            item.RemainingQuantity =
+                item.OrderedQuantity -
+                item.ReceivedQuantity;
+
+            // Prevent negative remaining quantity.
+            if (item.RemainingQuantity < 0)
+            {
+                item.RemainingQuantity = 0;
+            }
+
+            // Recalculate total price.
+            item.TotalPrice =
+                item.OrderedQuantity *
+                item.UnitPrice;
+
+            _context.PurchaseOrderItems
+                .Update(item);
         }
 
         public void DeleteItem(PurchaseOrderItem item)
         {
-            _context.PurchaseOrderItems.Remove(item);
+            _context.PurchaseOrderItems
+                .Remove(item);
         }
     }
 }

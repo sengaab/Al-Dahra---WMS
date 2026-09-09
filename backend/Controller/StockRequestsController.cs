@@ -63,6 +63,10 @@ namespace whm.Controllers
         public async Task<IActionResult> Create(
             [FromBody] CreateStockRequestDTO dto)
         {
+            // -------------------------------------------------
+            // Check Request Number
+            // -------------------------------------------------
+
             if (await _unitOfWork.StockRequests
                 .RequestNumberExistsAsync(dto.RequestNumber))
             {
@@ -71,6 +75,11 @@ namespace whm.Controllers
                     message = "Request number already exists."
                 });
             }
+
+
+            // -------------------------------------------------
+            // Check Requested By User
+            // -------------------------------------------------
 
             var requesterExists = await _unitOfWork.User
                 .GetByIdAsync(dto.RequestedBy);
@@ -83,24 +92,80 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -------------------------------------------------
+            // Status
+            //
+            // If Status is not provided:
+            //     Draft
+            //
+            // If Status is provided:
+            //     Use provided status
+            // -------------------------------------------------
+
+            var stockRequestStatus = StockRequestStatus.Draft;
+
+            if (!string.IsNullOrWhiteSpace(dto.Status))
+            {
+                if (!Enum.TryParse<StockRequestStatus>(
+                        dto.Status.Trim(),
+                        true,
+                        out var parsedStatus))
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Invalid status. Valid values are: " +
+                            "Draft, Submitted, PendingApproval, " +
+                            "Approved, Rejected, Issued, " +
+                            "Completed, Cancelled."
+                    });
+                }
+
+                stockRequestStatus = parsedStatus;
+            }
+
+
+            // -------------------------------------------------
+            // Create Stock Request
+            // -------------------------------------------------
+
             var request = new StockRequest
             {
+                // RequestNumber remains exactly from DTO
                 RequestNumber = dto.RequestNumber,
+
                 DepartmentId = dto.DepartmentId,
+
                 SiteId = dto.SiteId,
+
                 RequestedBy = dto.RequestedBy,
+
                 Priority = dto.Priority,
-                StockRequestStatus = StockRequestStatus.Draft,
+
+                StockRequestStatus = stockRequestStatus,
+
                 RequestedAt = DateTimeOffset.UtcNow
             };
+
+
+            // -------------------------------------------------
+            // Save
+            // -------------------------------------------------
 
             await _unitOfWork.StockRequests.AddAsync(request);
 
             await _unitOfWork.SaveAsync();
 
+
+            // -------------------------------------------------
+            // Get Created Request
+            // -------------------------------------------------
+
             var created =
                 await _unitOfWork.StockRequests.GetByIdWithItemsAsync(
                     request.RequestId);
+
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -127,6 +192,11 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
+            // -------------------------------------------------
+            // Check Request Number
+            // -------------------------------------------------
+
             if (await _unitOfWork.StockRequests
                 .RequestNumberExistsAsync(
                     dto.RequestNumber,
@@ -138,7 +208,13 @@ namespace whm.Controllers
                 });
             }
 
-            if (request.StockRequestStatus != StockRequestStatus.Draft)
+
+            // -------------------------------------------------
+            // Only Draft can be updated
+            // -------------------------------------------------
+
+            if (request.StockRequestStatus !=
+                StockRequestStatus.Draft)
             {
                 return BadRequest(new
                 {
@@ -147,14 +223,24 @@ namespace whm.Controllers
                 });
             }
 
+
+            // -------------------------------------------------
+            // Update
+            // -------------------------------------------------
+
             request.RequestNumber = dto.RequestNumber;
+
             request.DepartmentId = dto.DepartmentId;
+
             request.SiteId = dto.SiteId;
+
             request.Priority = dto.Priority;
+
 
             _unitOfWork.StockRequests.Update(request);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -179,7 +265,9 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
-            if (request.StockRequestStatus != StockRequestStatus.Draft)
+
+            if (request.StockRequestStatus !=
+                StockRequestStatus.Draft)
             {
                 return BadRequest(new
                 {
@@ -188,9 +276,11 @@ namespace whm.Controllers
                 });
             }
 
+
             _unitOfWork.StockRequests.Delete(request);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -207,7 +297,8 @@ namespace whm.Controllers
         public async Task<IActionResult> Submit(int id)
         {
             var request =
-                await _unitOfWork.StockRequests.GetByIdWithItemsAsync(id);
+                await _unitOfWork.StockRequests
+                    .GetByIdWithItemsAsync(id);
 
             if (request == null)
                 return NotFound(new
@@ -215,7 +306,9 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
-            if (request.StockRequestStatus != StockRequestStatus.Draft)
+
+            if (request.StockRequestStatus !=
+                StockRequestStatus.Draft)
             {
                 return BadRequest(new
                 {
@@ -223,6 +316,7 @@ namespace whm.Controllers
                         "Only draft requests can be submitted."
                 });
             }
+
 
             if (!request.Items.Any())
             {
@@ -233,12 +327,15 @@ namespace whm.Controllers
                 });
             }
 
+
             request.StockRequestStatus =
                 StockRequestStatus.Submitted;
+
 
             _unitOfWork.StockRequests.Update(request);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -266,10 +363,11 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
             if (request.StockRequestStatus !=
-                StockRequestStatus.Submitted &&
+                    StockRequestStatus.Submitted &&
                 request.StockRequestStatus !=
-                StockRequestStatus.PendingApproval)
+                    StockRequestStatus.PendingApproval)
             {
                 return BadRequest(new
                 {
@@ -277,6 +375,7 @@ namespace whm.Controllers
                         "Only submitted requests can be approved."
                 });
             }
+
 
             var approver =
                 await _unitOfWork.User.GetByIdAsync(approvedBy);
@@ -289,15 +388,20 @@ namespace whm.Controllers
                 });
             }
 
+
             request.ApprovedBy = approvedBy;
-            request.ApprovedAt = DateTimeOffset.UtcNow;
+
+            request.ApprovedAt =
+                DateTimeOffset.UtcNow;
 
             request.StockRequestStatus =
                 StockRequestStatus.Approved;
 
+
             _unitOfWork.StockRequests.Update(request);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -323,10 +427,11 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
             if (request.StockRequestStatus !=
-                StockRequestStatus.Submitted &&
+                    StockRequestStatus.Submitted &&
                 request.StockRequestStatus !=
-                StockRequestStatus.PendingApproval)
+                    StockRequestStatus.PendingApproval)
             {
                 return BadRequest(new
                 {
@@ -335,12 +440,15 @@ namespace whm.Controllers
                 });
             }
 
+
             request.StockRequestStatus =
                 StockRequestStatus.Rejected;
+
 
             _unitOfWork.StockRequests.Update(request);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -366,6 +474,7 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
             if (request.StockRequestStatus ==
                     StockRequestStatus.Issued ||
                 request.StockRequestStatus ==
@@ -380,12 +489,15 @@ namespace whm.Controllers
                 });
             }
 
+
             request.StockRequestStatus =
                 StockRequestStatus.Cancelled;
+
 
             _unitOfWork.StockRequests.Update(request);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -396,7 +508,6 @@ namespace whm.Controllers
 
 
         // =====================================================
-        // GET ITEMS
         // GET /api/stock-requests/{id}/items
         // =====================================================
 
@@ -412,17 +523,19 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
             var items =
                 await _unitOfWork.StockRequests.GetItemsAsync(id);
 
-            var result = items.Select(MapItemToResponse).ToList();
+            var result =
+                items.Select(MapItemToResponse).ToList();
+
 
             return Ok(result);
         }
 
 
         // =====================================================
-        // POST ITEM
         // POST /api/stock-requests/{id}/items
         // =====================================================
 
@@ -440,6 +553,7 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
             if (request.StockRequestStatus !=
                 StockRequestStatus.Draft)
             {
@@ -450,6 +564,7 @@ namespace whm.Controllers
                 });
             }
 
+
             if (dto.RequestedQuantity <= 0)
             {
                 return BadRequest(new
@@ -458,6 +573,7 @@ namespace whm.Controllers
                         "Requested quantity must be greater than zero."
                 });
             }
+
 
             if (await _unitOfWork.StockRequests
                 .ProductExistsInRequestAsync(
@@ -471,31 +587,41 @@ namespace whm.Controllers
                 });
             }
 
+
             var item = new StockRequestItem
             {
                 RequestId = id,
+
                 ProductId = dto.ProductId,
-                RequestedQuantity = dto.RequestedQuantity,
+
+                RequestedQuantity =
+                    dto.RequestedQuantity,
+
                 ReservedQuantity = 0,
+
                 IssuedQuantity = 0,
-                RemainingQuantity = dto.RequestedQuantity
+
+                RemainingQuantity =
+                    dto.RequestedQuantity
             };
+
 
             await _unitOfWork.StockRequests.AddItemAsync(item);
 
             await _unitOfWork.SaveAsync();
+
 
             var created =
                 await _unitOfWork.StockRequests.GetItemByIdAsync(
                     id,
                     item.RequestItemId);
 
+
             return Ok(MapItemToResponse(created!));
         }
 
 
         // =====================================================
-        // PUT ITEM
         // PUT /api/stock-requests/{id}/items/{itemId}
         // =====================================================
 
@@ -514,6 +640,7 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
             if (request.StockRequestStatus !=
                 StockRequestStatus.Draft)
             {
@@ -523,6 +650,7 @@ namespace whm.Controllers
                         "Items can only be updated in draft requests."
                 });
             }
+
 
             var item =
                 await _unitOfWork.StockRequests.GetItemByIdAsync(
@@ -535,6 +663,7 @@ namespace whm.Controllers
                     message = "Request item not found."
                 });
 
+
             if (dto.RequestedQuantity <= 0)
             {
                 return BadRequest(new
@@ -543,6 +672,7 @@ namespace whm.Controllers
                         "Requested quantity must be greater than zero."
                 });
             }
+
 
             if (await _unitOfWork.StockRequests
                 .ProductExistsInRequestAsync(
@@ -557,29 +687,35 @@ namespace whm.Controllers
                 });
             }
 
+
             item.ProductId = dto.ProductId;
-            item.RequestedQuantity = dto.RequestedQuantity;
+
+            item.RequestedQuantity =
+                dto.RequestedQuantity;
+
 
             item.RemainingQuantity =
                 dto.RequestedQuantity -
                 item.ReservedQuantity -
                 item.IssuedQuantity;
 
+
             if (item.RemainingQuantity < 0)
             {
                 item.RemainingQuantity = 0;
             }
 
+
             _unitOfWork.StockRequests.UpdateItem(item);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(MapItemToResponse(item));
         }
 
 
         // =====================================================
-        // DELETE ITEM
         // DELETE /api/stock-requests/{id}/items/{itemId}
         // =====================================================
 
@@ -597,6 +733,7 @@ namespace whm.Controllers
                     message = "Stock request not found."
                 });
 
+
             if (request.StockRequestStatus !=
                 StockRequestStatus.Draft)
             {
@@ -606,6 +743,7 @@ namespace whm.Controllers
                         "Items can only be deleted from draft requests."
                 });
             }
+
 
             var item =
                 await _unitOfWork.StockRequests.GetItemByIdAsync(
@@ -618,9 +756,11 @@ namespace whm.Controllers
                     message = "Request item not found."
                 });
 
+
             _unitOfWork.StockRequests.DeleteItem(item);
 
             await _unitOfWork.SaveAsync();
+
 
             return Ok(new
             {
@@ -639,23 +779,33 @@ namespace whm.Controllers
             return new StockRequestResponseDTO
             {
                 RequestId = request.RequestId,
+
                 RequestNumber = request.RequestNumber,
 
                 DepartmentId = request.DepartmentId,
-                DepartmentName = request.Department?.Name,
+
+                DepartmentName =
+                    request.Department?.Name,
 
                 SiteId = request.SiteId,
-                SiteName = request.Site?.Name,
+
+                SiteName =
+                    request.Site?.Name,
 
                 RequestedBy = request.RequestedBy,
-                RequesterName = request.Requester?.Name,
+
+                RequesterName =
+                    request.Requester?.Name,
 
                 ApprovedBy = request.ApprovedBy,
-                ApproverName = request.Approver?.Name,
+
+                ApproverName =
+                    request.Approver?.Name,
 
                 Priority = request.Priority,
 
                 RequestedAt = request.RequestedAt,
+
                 ApprovedAt = request.ApprovedAt,
 
                 StockRequestStatus =
@@ -673,15 +823,20 @@ namespace whm.Controllers
         {
             return new StockRequestItemResponseDTO
             {
-                RequestItemId = item.RequestItemId,
+                RequestItemId =
+                    item.RequestItemId,
 
-                RequestId = item.RequestId,
+                RequestId =
+                    item.RequestId,
 
-                ProductId = item.ProductId,
+                ProductId =
+                    item.ProductId,
 
-                ProductName = item.Product?.Name,
+                ProductName =
+                    item.Product?.Name,
 
-                SKU = item.Product?.SKU,
+                SKU =
+                    item.Product?.SKU,
 
                 RequestedQuantity =
                     item.RequestedQuantity,
