@@ -137,17 +137,20 @@ namespace whm.Controllers
                 });
             }
 
-            // Validate Receiver/User
-            var receiver =
-                await unitOfWork.User
-                    .GetByIdAsync(dto.ReceivedBy);
-
-            if (receiver == null)
+            // Validate Receiver/User only if supplied
+            if (dto.ReceivedBy.HasValue)
             {
-                return BadRequest(new
+                var receiver =
+                    await unitOfWork.User
+                        .GetByIdAsync(dto.ReceivedBy.Value);
+
+                if (receiver == null)
                 {
-                    message = "Receiving user not found."
-                });
+                    return BadRequest(new
+                    {
+                        message = "Receiving user not found."
+                    });
+                }
             }
 
             var receipt = new Receipt
@@ -165,9 +168,7 @@ namespace whm.Controllers
                     dto.ReceivedBy,
 
                 ReceivedAt =
-                    dto.ReceivedAt == default
-                        ? DateTimeOffset.UtcNow
-                        : dto.ReceivedAt,
+                    dto.ReceivedAt,
 
                 Notes =
                     dto.Notes,
@@ -249,9 +250,17 @@ namespace whm.Controllers
             }
 
             // Validate User
+            if (!dto.ReceivedBy.HasValue)
+            {
+                return BadRequest(new
+                {
+                    message = "Receiving user is required."
+                });
+            }
+
             var receiver =
                 await unitOfWork.User
-                    .GetByIdAsync(dto.ReceivedBy);
+                    .GetByIdAsync(dto.ReceivedBy.Value);
 
             if (receiver == null)
             {
@@ -453,7 +462,7 @@ namespace whm.Controllers
             }
 
             // Make sure Product belongs to PO item
-            
+
 
             var item = new ReceiptItem
             {
