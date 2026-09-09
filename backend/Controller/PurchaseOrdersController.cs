@@ -511,15 +511,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Only Draft purchase orders can be submitted."
-                });
-            }
+
 
             var items =
                 await _unitOfWork.PurchaseOrders
@@ -752,15 +744,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Items can only be added to Draft orders."
-                });
-            }
+           
 
             if (dto.ProductId <= 0)
             {
@@ -864,15 +848,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Items can only be updated in Draft orders."
-                });
-            }
+            
 
             var item =
                 await _unitOfWork.PurchaseOrders
@@ -1022,15 +998,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Items can only be deleted from Draft orders."
-                });
-            }
+           
 
             var item =
                 await _unitOfWork.PurchaseOrders
