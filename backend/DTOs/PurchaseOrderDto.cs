@@ -1,4 +1,5 @@
-﻿namespace whm.DTOs.PurchaseOrder
+﻿
+namespace whm.DTOs.PurchaseOrder
 {
     public class PurchaseOrderDto
     {
@@ -51,7 +52,6 @@
 
         public DateTimeOffset? ExpectedDate { get; set; }
 
-        // New field
         public string? Status { get; set; }
     }
 
@@ -82,6 +82,9 @@
         public int? ProductId { get; set; }
 
         public decimal? OrderedQuantity { get; set; }
+
+        // Added so ReceivedQuantity can be updated
+        public decimal? ReceivedQuantity { get; set; }
 
         public decimal? UnitPrice { get; set; }
     }
@@ -155,3 +158,4 @@
         public int? InspectionId { get; set; }
     }
 }
+
