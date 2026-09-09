@@ -511,15 +511,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Only Draft purchase orders can be submitted."
-                });
-            }
+
 
             var items =
                 await _unitOfWork.PurchaseOrders
@@ -752,15 +744,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Items can only be added to Draft orders."
-                });
-            }
+           
 
             if (dto.ProductId <= 0)
             {
@@ -842,15 +826,21 @@ namespace whm.Controllers
                         item.PurchaseOrderItemId));
         }
 
-        // =========================================================
-        // UPDATE ITEM
-        // =========================================================
-        [HttpPut("{id:int}/items/{itemId:int}")]
-        public async Task<IActionResult> UpdateItem(
-            int id,
-            int itemId,
-            [FromBody] UpdatePurchaseOrderItemDto dto)
+      
+// =========================================================
+// UPDATE ITEM
+// =========================================================
+
+[HttpPut("{id:int}/items/{itemId:int}")]
+public async Task<IActionResult> UpdateItem(
+    int id,
+    int itemId,
+    [FromBody] UpdatePurchaseOrderItemDto dto)
         {
+            // =====================================================
+            // CHECK PURCHASE ORDER
+            // =====================================================
+
             var order =
                 await _unitOfWork.PurchaseOrders
                     .GetEntityByIdAsync(id);
@@ -859,20 +849,13 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message =
-                        "Purchase order not found."
+                    message = "Purchase order not found."
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Items can only be updated in Draft orders."
-                });
-            }
+            // =====================================================
+            // CHECK ITEM
+            // =====================================================
 
             var item =
                 await _unitOfWork.PurchaseOrders
@@ -883,8 +866,7 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message =
-                        "Purchase order item not found."
+                    message = "Purchase order item not found."
                 });
             }
 
@@ -898,8 +880,7 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message =
-                            "Invalid ProductId."
+                        message = "Invalid ProductId."
                     });
                 }
 
@@ -912,8 +893,7 @@ namespace whm.Controllers
                 {
                     return BadRequest(new
                     {
-                        message =
-                            "Product not found."
+                        message = "Product not found."
                     });
                 }
 
@@ -922,7 +902,7 @@ namespace whm.Controllers
             }
 
             // =====================================================
-            // QUANTITY
+            // ORDERED QUANTITY
             // =====================================================
 
             if (dto.OrderedQuantity.HasValue)
@@ -936,18 +916,39 @@ namespace whm.Controllers
                     });
                 }
 
-                if (dto.OrderedQuantity.Value <
-                    item.ReceivedQuantity)
+                item.OrderedQuantity =
+                    dto.OrderedQuantity.Value;
+            }
+
+            // =====================================================
+            // RECEIVED QUANTITY
+            // =====================================================
+
+            if (dto.ReceivedQuantity.HasValue)
+            {
+                if (dto.ReceivedQuantity.Value < 0)
                 {
                     return BadRequest(new
                     {
                         message =
-                            "OrderedQuantity cannot be less than ReceivedQuantity."
+                            "ReceivedQuantity cannot be negative."
                     });
                 }
 
-                item.OrderedQuantity =
-                    dto.OrderedQuantity.Value;
+                // Received quantity cannot be greater
+                // than ordered quantity.
+                if (dto.ReceivedQuantity.Value >
+                    item.OrderedQuantity)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "ReceivedQuantity cannot be greater than OrderedQuantity."
+                    });
+                }
+
+                item.ReceivedQuantity =
+                    dto.ReceivedQuantity.Value;
             }
 
             // =====================================================
@@ -970,19 +971,33 @@ namespace whm.Controllers
             }
 
             // =====================================================
-            // RECALCULATE ITEM
+            // RECALCULATE REMAINING QUANTITY
             // =====================================================
 
             item.RemainingQuantity =
                 item.OrderedQuantity -
                 item.ReceivedQuantity;
 
+            // Safety check
+            if (item.RemainingQuantity < 0)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "RemainingQuantity cannot be negative."
+                });
+            }
+
+            // =====================================================
+            // RECALCULATE ITEM TOTAL
+            // =====================================================
+
             item.TotalPrice =
                 item.OrderedQuantity *
                 item.UnitPrice;
 
             // =====================================================
-            // RECALCULATE ORDER TOTAL
+            // RECALCULATE PURCHASE ORDER TOTAL
             // =====================================================
 
             order.TotalValue =
@@ -991,15 +1006,24 @@ namespace whm.Controllers
             order.UpdatedAt =
                 DateTimeOffset.UtcNow;
 
+            // =====================================================
+            // UPDATE
+            // =====================================================
+
             _unitOfWork.PurchaseOrders
                 .UpdateItem(item);
 
             await _unitOfWork.SaveAsync();
 
+            // =====================================================
+            // RETURN UPDATED ITEM
+            // =====================================================
+
             return Ok(
                 await _unitOfWork.PurchaseOrders
                     .GetItemByIdAsync(itemId));
         }
+
 
         // =========================================================
         // DELETE ITEM
@@ -1022,15 +1046,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (order.purchaseOrderStatus !=
-                PurchaseOrderStatus.Draft)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Items can only be deleted from Draft orders."
-                });
-            }
+           
 
             var item =
                 await _unitOfWork.PurchaseOrders
