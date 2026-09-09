@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using whm.Data;
@@ -11,9 +12,11 @@ using whm.Data;
 namespace WMS.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260909074548_mohammed")]
+    partial class mohammed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -737,10 +740,8 @@ namespace WMS.Migrations
 
                     b.Property<string>("receiptStatus")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("Pending");
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("ReceiptId");
 
@@ -764,7 +765,7 @@ namespace WMS.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReceiptItemId"));
 
-                    b.Property<decimal?>("AcceptedQuantity")
+                    b.Property<decimal>("AcceptedQuantity")
                         .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("BatchNumber")
@@ -780,16 +781,16 @@ namespace WMS.Migrations
                     b.Property<int>("PurchaseOrderItemId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal?>("QuarantineQuantity")
+                    b.Property<decimal>("QuarantineQuantity")
                         .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("ReceiptId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal?>("ReceivedQuantity")
+                    b.Property<decimal>("ReceivedQuantity")
                         .HasColumnType("decimal(18,4)");
 
-                    b.Property<decimal?>("RejectedQuantity")
+                    b.Property<decimal>("RejectedQuantity")
                         .HasColumnType("decimal(18,4)");
 
                     b.HasKey("ReceiptItemId");
@@ -1921,7 +1922,7 @@ namespace WMS.Migrations
                     b.HasOne("whm.Models.User", "Inspector")
                         .WithMany()
                         .HasForeignKey("InspectedBy")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("whm.Models.ReceiptItem", "ReceiptItem")
@@ -2177,7 +2178,7 @@ namespace WMS.Migrations
                     b.HasOne("whm.Models.User", "Receiver")
                         .WithMany()
                         .HasForeignKey("ReceivedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("whm.Models.Warehouse", "Warehouse")
                         .WithMany()

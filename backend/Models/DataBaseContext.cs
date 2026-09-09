@@ -112,10 +112,6 @@ namespace whm.Data
                 .HasConversion<string>()
                 .HasMaxLength(50);
 
-            modelBuilder.Entity<Receipt>()
-                .Property(x => x.receiptStatus)
-                .HasConversion<string>()
-                .HasMaxLength(50);
 
             modelBuilder.Entity<Reservation>()
                 .Property(x => x.reservationStatus)
@@ -459,33 +455,44 @@ namespace whm.Data
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // =========================================================
+            // Receipt
+            // =========================================================
 
-            // =====================================================
-            // RECEIPT
-            // =====================================================
+            modelBuilder.Entity<Receipt>()
+                .Property(x => x.receiptStatus)
+                .HasConversion<string>()
+                .HasMaxLength(50)
+                .HasDefaultValue(ReceiptStatus.Pending);
 
+            // Receipt -> PurchaseOrder
             modelBuilder.Entity<Receipt>()
                 .HasOne(x => x.PurchaseOrder)
                 .WithMany(x => x.Receipts)
                 .HasForeignKey(x => x.PurchaseOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
+            // Receipt -> Warehouse
             modelBuilder.Entity<Receipt>()
                 .HasOne(x => x.Warehouse)
                 .WithMany()
                 .HasForeignKey(x => x.WarehouseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
+            // Receipt -> User (Receiver)
+            // ReceivedBy is nullable
             modelBuilder.Entity<Receipt>()
                 .HasOne(x => x.Receiver)
                 .WithMany()
                 .HasForeignKey(x => x.ReceivedBy)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
 
 
-            // =====================================================
-            // RECEIPT ITEMS
-            // =====================================================
+            // =========================================================
+            // ReceiptItem
+            // =========================================================
 
             modelBuilder.Entity<ReceiptItem>()
                 .HasOne(x => x.Receipt)
@@ -493,11 +500,13 @@ namespace whm.Data
                 .HasForeignKey(x => x.ReceiptId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
             modelBuilder.Entity<ReceiptItem>()
                 .HasOne(x => x.PurchaseOrderItem)
                 .WithMany(x => x.ReceiptItems)
                 .HasForeignKey(x => x.PurchaseOrderItemId)
                 .OnDelete(DeleteBehavior.Cascade);
+
 
             modelBuilder.Entity<ReceiptItem>()
                 .HasOne(x => x.Product)
@@ -506,9 +515,9 @@ namespace whm.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
 
-            // =====================================================
-            // INSPECTION
-            // =====================================================
+            // =========================================================
+            // Inspection -> ReceiptItem
+            // =========================================================
 
             modelBuilder.Entity<Inspection>()
                 .HasOne(x => x.ReceiptItem)
@@ -516,12 +525,16 @@ namespace whm.Data
                 .HasForeignKey<Inspection>(x => x.ReceiptItemId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
+            // =========================================================
+            // Inspection -> Inspector
+            // =========================================================
+
             modelBuilder.Entity<Inspection>()
                 .HasOne(x => x.Inspector)
                 .WithMany()
                 .HasForeignKey(x => x.InspectedBy)
-                .OnDelete(DeleteBehavior.Cascade);
-
+                .OnDelete(DeleteBehavior.SetNull);
 
             // =====================================================
             // PUTAWAY
