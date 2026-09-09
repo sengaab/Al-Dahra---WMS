@@ -111,6 +111,28 @@ namespace whm.Controllers
             [FromBody] CreateReceiptDto dto)
         {
             // -----------------------------------------------------
+            // Validate Purchase Order ID
+            // -----------------------------------------------------
+            if (dto.PurchaseOrderId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Valid PurchaseOrderId is required."
+                });
+            }
+
+            // -----------------------------------------------------
+            // Validate Warehouse ID
+            // -----------------------------------------------------
+            if (dto.WarehouseId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Valid WarehouseId is required."
+                });
+            }
+
+            // -----------------------------------------------------
             // Validate Purchase Order
             // -----------------------------------------------------
             var purchaseOrder =
@@ -128,8 +150,10 @@ namespace whm.Controllers
             // -----------------------------------------------------
             // Validate Purchase Order Status
             // -----------------------------------------------------
-            if (purchaseOrder.purchaseOrderStatus != PurchaseOrderStatus.Ordered &&
-                purchaseOrder.purchaseOrderStatus != PurchaseOrderStatus.PartiallyReceived)
+            if (purchaseOrder.purchaseOrderStatus !=
+                    PurchaseOrderStatus.Ordered &&
+                purchaseOrder.purchaseOrderStatus !=
+                    PurchaseOrderStatus.PartiallyReceived)
             {
                 return BadRequest(new
                 {
@@ -137,6 +161,7 @@ namespace whm.Controllers
                         "A receipt can only be created for an Ordered or PartiallyReceived purchase order."
                 });
             }
+
             // -----------------------------------------------------
             // Validate Warehouse
             // -----------------------------------------------------
@@ -170,13 +195,57 @@ namespace whm.Controllers
                 }
             }
 
-            // -----------------------------------------------------
-            // Create Receipt
-            // -----------------------------------------------------
+            // =====================================================
+            // GENERATE RECEIPT NUMBER
+            // Format:
+            // GRN-2026-0001
+            // GRN-2026-0002
+            // GRN-2027-0001
+            // =====================================================
+
+            var currentYear = DateTime.UtcNow.Year;
+
+            var prefix = $"GRN-{currentYear}-";
+
+            // Get all existing receipts
+            var existingReceipts =
+                await unitOfWork.ReceiptRepository
+                    .GetAllAsync();
+
+            // Get the highest number for the current year
+            var lastNumber = existingReceipts
+                .Select(x => x.ReceiptNumber)
+                .Where(x =>
+                    !string.IsNullOrWhiteSpace(x) &&
+                    x.StartsWith(prefix))
+                .Select(x =>
+                {
+                    var numberPart =
+                        x.Substring(prefix.Length);
+
+                    return int.TryParse(
+                        numberPart,
+                        out var number)
+                        ? number
+                        : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            // Increment number
+            var nextNumber = lastNumber + 1;
+
+            // Final Receipt Number
+            var receiptNumber =
+                $"{prefix}{nextNumber:D4}";
+
+            // =====================================================
+            // CREATE RECEIPT
+            // =====================================================
+
             var receipt = new Receipt
             {
-                ReceiptNumber =
-                    $"REC-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}",
+                ReceiptNumber = receiptNumber,
 
                 PurchaseOrderId =
                     dto.PurchaseOrderId,
@@ -202,20 +271,44 @@ namespace whm.Controllers
 
             await unitOfWork.SaveAsync();
 
+            // =====================================================
+            // RETURN CREATED RECEIPT
+            // =====================================================
+
             return CreatedAtAction(
                 nameof(GetById),
-                new { id = receipt.ReceiptId },
+                new
+                {
+                    id = receipt.ReceiptId
+                },
                 new ReceiptDto
                 {
-                    ReceiptId = receipt.ReceiptId,
-                    ReceiptNumber = receipt.ReceiptNumber,
-                    PurchaseOrderId = receipt.PurchaseOrderId,
-                    WarehouseId = receipt.WarehouseId,
-                    ReceivedBy = receipt.ReceivedBy,
-                    ReceivedAt = receipt.ReceivedAt,
-                    Notes = receipt.Notes,
-                    ReceiptStatus = receipt.receiptStatus.ToString(),
-                    Items = new List<ReceiptItemDto>()
+                    ReceiptId =
+                        receipt.ReceiptId,
+
+                    ReceiptNumber =
+                        receipt.ReceiptNumber,
+
+                    PurchaseOrderId =
+                        receipt.PurchaseOrderId,
+
+                    WarehouseId =
+                        receipt.WarehouseId,
+
+                    ReceivedBy =
+                        receipt.ReceivedBy,
+
+                    ReceivedAt =
+                        receipt.ReceivedAt,
+
+                    Notes =
+                        receipt.Notes,
+
+                    ReceiptStatus =
+                        receipt.receiptStatus.ToString(),
+
+                    Items =
+                        new List<ReceiptItemDto>()
                 });
         }
 
@@ -315,7 +408,8 @@ namespace whm.Controllers
 
             return Ok(new
             {
-                message = "Receipt updated successfully."
+                message =
+                    "Receipt updated successfully."
             });
         }
 
@@ -372,6 +466,7 @@ namespace whm.Controllers
 
                 ExpiryDate =
                     i.ExpiryDate
+
             }).ToList();
 
             return Ok(result);
@@ -419,9 +514,32 @@ namespace whm.Controllers
             }
 
             // -----------------------------------------------------
+            // Validate Product ID
+            // -----------------------------------------------------
+            if (dto.ProductId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Valid ProductId is required."
+                });
+            }
+
+            // -----------------------------------------------------
+            // Validate Purchase Order Item ID
+            // -----------------------------------------------------
+            if (dto.PurchaseOrderItemId <= 0)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Valid PurchaseOrderItemId is required."
+                });
+            }
+
+            // -----------------------------------------------------
             // Validate quantities
             // -----------------------------------------------------
-
             if (dto.ReceivedQuantity.HasValue &&
                 dto.ReceivedQuantity.Value <= 0)
             {
@@ -463,7 +581,7 @@ namespace whm.Controllers
             }
 
             // -----------------------------------------------------
-            // If all quantities are supplied, validate the total
+            // Validate total if all quantities supplied
             // -----------------------------------------------------
             if (dto.ReceivedQuantity.HasValue &&
                 dto.AcceptedQuantity.HasValue &&
@@ -475,7 +593,8 @@ namespace whm.Controllers
                     dto.QuarantineQuantity.Value +
                     dto.RejectedQuantity.Value;
 
-                if (totalQuantity != dto.ReceivedQuantity.Value)
+                if (totalQuantity !=
+                    dto.ReceivedQuantity.Value)
                 {
                     return BadRequest(new
                     {
@@ -505,7 +624,8 @@ namespace whm.Controllers
             // -----------------------------------------------------
             var poItem =
                 await unitOfWork.PurchaseOrders
-                    .GetItemByIdAsync(dto.PurchaseOrderItemId);
+                    .GetItemByIdAsync(
+                        dto.PurchaseOrderItemId);
 
             if (poItem == null)
             {
@@ -532,7 +652,8 @@ namespace whm.Controllers
             // -----------------------------------------------------
             // Make sure Product belongs to PO Item
             // -----------------------------------------------------
-            if (poItem.ProductId != dto.ProductId)
+            if (poItem.ProductId !=
+                dto.ProductId)
             {
                 return BadRequest(new
                 {
@@ -702,7 +823,8 @@ namespace whm.Controllers
                     dto.QuarantineQuantity.Value +
                     dto.RejectedQuantity.Value;
 
-                if (totalQuantity != dto.ReceivedQuantity.Value)
+                if (totalQuantity !=
+                    dto.ReceivedQuantity.Value)
                 {
                     return BadRequest(new
                     {
@@ -952,7 +1074,7 @@ namespace whm.Controllers
                 }
 
                 // -------------------------------------------------
-                // If all quantities exist, validate total
+                // Validate total
                 // -------------------------------------------------
                 if (item.AcceptedQuantity.HasValue &&
                     item.QuarantineQuantity.HasValue &&
@@ -963,7 +1085,8 @@ namespace whm.Controllers
                         item.QuarantineQuantity.Value +
                         item.RejectedQuantity.Value;
 
-                    if (total != item.ReceivedQuantity.Value)
+                    if (total !=
+                        item.ReceivedQuantity.Value)
                     {
                         return BadRequest(new
                         {
