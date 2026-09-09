@@ -13,6 +13,11 @@ namespace whm.Repositories
             this.db = db;
         }
 
+
+        // =====================================================
+        // GET ALL RECEIPTS
+        // =====================================================
+
         public async Task<List<Receipt>> GetAllAsync()
         {
             return await db.Receipts
@@ -26,6 +31,11 @@ namespace whm.Repositories
                 .ToListAsync();
         }
 
+
+        // =====================================================
+        // GET RECEIPT BY ID
+        // =====================================================
+
         public async Task<Receipt?> GetByIdAsync(int id)
         {
             return await db.Receipts
@@ -33,8 +43,14 @@ namespace whm.Repositories
                 .Include(r => r.PurchaseOrder)
                 .Include(r => r.Warehouse)
                 .Include(r => r.Receiver)
-                .FirstOrDefaultAsync(r => r.ReceiptId == id);
+                .FirstOrDefaultAsync(r =>
+                    r.ReceiptId == id);
         }
+
+
+        // =====================================================
+        // GET RECEIPT WITH ITEMS
+        // =====================================================
 
         public async Task<Receipt?> GetByIdWithItemsAsync(int id)
         {
@@ -46,10 +62,17 @@ namespace whm.Repositories
                     .ThenInclude(i => i.Product)
                 .Include(r => r.Items)
                     .ThenInclude(i => i.PurchaseOrderItem)
-                .FirstOrDefaultAsync(r => r.ReceiptId == id);
+                .FirstOrDefaultAsync(r =>
+                    r.ReceiptId == id);
         }
 
-        public async Task<List<ReceiptItem>> GetItemsAsync(int receiptId)
+
+        // =====================================================
+        // GET RECEIPT ITEMS
+        // =====================================================
+
+        public async Task<List<ReceiptItem>> GetItemsAsync(
+            int receiptId)
         {
             return await db.ReceiptItems
                 .AsNoTracking()
@@ -59,6 +82,11 @@ namespace whm.Repositories
                 .OrderBy(i => i.ReceiptItemId)
                 .ToListAsync();
         }
+
+
+        // =====================================================
+        // GET RECEIPT ITEM BY ID
+        // =====================================================
 
         public async Task<ReceiptItem?> GetItemByIdAsync(
             int receiptId,
@@ -70,25 +98,50 @@ namespace whm.Repositories
                     i.ReceiptItemId == itemId);
         }
 
+
+        // =====================================================
+        // ADD RECEIPT
+        // =====================================================
+
         public async Task AddAsync(Receipt receipt)
         {
             await db.Receipts.AddAsync(receipt);
         }
+
+
+        // =====================================================
+        // ADD RECEIPT ITEM
+        // =====================================================
 
         public async Task AddItemAsync(ReceiptItem item)
         {
             await db.ReceiptItems.AddAsync(item);
         }
 
+
+        // =====================================================
+        // UPDATE RECEIPT
+        // =====================================================
+
         public void Update(Receipt receipt)
         {
             db.Receipts.Update(receipt);
         }
 
+
+        // =====================================================
+        // UPDATE RECEIPT ITEM
+        // =====================================================
+
         public void UpdateItem(ReceiptItem item)
         {
             db.ReceiptItems.Update(item);
         }
+
+
+        // =====================================================
+        // DELETE RECEIPT ITEM
+        // =====================================================
 
         public void DeleteItem(ReceiptItem item)
         {

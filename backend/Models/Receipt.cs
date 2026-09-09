@@ -14,8 +14,17 @@ namespace whm.Models
 
     public class Receipt
     {
+        // =========================
+        // Primary Key
+        // =========================
+
         [Key]
         public int ReceiptId { get; set; }
+
+
+        // =========================
+        // Required Data
+        // =========================
 
         [Required]
         [MaxLength(50)]
@@ -27,16 +36,25 @@ namespace whm.Models
         [Required]
         public int WarehouseId { get; set; }
 
-        // Nullable because the receiver is assigned when receiving starts
+
+        // =========================
+        // Optional Data
+        // =========================
+
         public Guid? ReceivedBy { get; set; }
 
-        // Nullable because the receipt does not have a receiving date when first created
         public DateTimeOffset? ReceivedAt { get; set; }
 
         public string? Notes { get; set; }
 
+
+        // =========================
+        // Status
+        // =========================
+
         [Required]
         public ReceiptStatus receiptStatus { get; set; } = ReceiptStatus.Pending;
+
 
         // =========================
         // Navigation Properties
@@ -47,6 +65,11 @@ namespace whm.Models
         public Warehouse Warehouse { get; set; } = null!;
 
         public User? Receiver { get; set; }
+
+
+        // =========================
+        // Collections
+        // =========================
 
         public List<ReceiptItem> Items { get; set; }
             = new List<ReceiptItem>();

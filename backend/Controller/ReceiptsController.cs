@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using whm.DTOs.Receipt;
 using whm.Models;
-using whm.Repositories;
 using whm.UnitOfWork;
 
 namespace whm.Controllers
@@ -111,10 +110,12 @@ namespace whm.Controllers
         public async Task<IActionResult> Create(
             [FromBody] CreateReceiptDto dto)
         {
+            // -----------------------------------------------------
             // Validate Purchase Order
+            // -----------------------------------------------------
             var purchaseOrder =
                 await unitOfWork.PurchaseOrders
-                    .GetByIdAsync(dto.PurchaseOrderId);
+                    .GetEntityByIdAsync(dto.PurchaseOrderId);
 
             if (purchaseOrder == null)
             {
@@ -124,7 +125,21 @@ namespace whm.Controllers
                 });
             }
 
+            // -----------------------------------------------------
+            // Validate Purchase Order Status
+            // -----------------------------------------------------
+            if (purchaseOrder.purchaseOrderStatus != PurchaseOrderStatus.Ordered &&
+                purchaseOrder.purchaseOrderStatus != PurchaseOrderStatus.PartiallyReceived)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "A receipt can only be created for an Ordered or PartiallyReceived purchase order."
+                });
+            }
+            // -----------------------------------------------------
             // Validate Warehouse
+            // -----------------------------------------------------
             var warehouse =
                 await unitOfWork.Warehouses
                     .GetByIdAsync(dto.WarehouseId);
@@ -137,7 +152,9 @@ namespace whm.Controllers
                 });
             }
 
-            // Validate Receiver/User only if supplied
+            // -----------------------------------------------------
+            // Validate Receiver if supplied
+            // -----------------------------------------------------
             if (dto.ReceivedBy.HasValue)
             {
                 var receiver =
@@ -153,10 +170,13 @@ namespace whm.Controllers
                 }
             }
 
+            // -----------------------------------------------------
+            // Create Receipt
+            // -----------------------------------------------------
             var receipt = new Receipt
             {
                 ReceiptNumber =
-                    $"REC-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
+                    $"REC-{DateTimeOffset.UtcNow:yyyyMMddHHmmssfff}",
 
                 PurchaseOrderId =
                     dto.PurchaseOrderId,
@@ -185,16 +205,17 @@ namespace whm.Controllers
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = receipt.ReceiptId },
-                new
+                new ReceiptDto
                 {
-                    receipt.ReceiptId,
-                    receipt.ReceiptNumber,
-                    receipt.PurchaseOrderId,
-                    receipt.WarehouseId,
-                    receipt.ReceivedBy,
-                    receipt.ReceivedAt,
-                    receipt.Notes,
-                    Status = receipt.receiptStatus.ToString()
+                    ReceiptId = receipt.ReceiptId,
+                    ReceiptNumber = receipt.ReceiptNumber,
+                    PurchaseOrderId = receipt.PurchaseOrderId,
+                    WarehouseId = receipt.WarehouseId,
+                    ReceivedBy = receipt.ReceivedBy,
+                    ReceivedAt = receipt.ReceivedAt,
+                    Notes = receipt.Notes,
+                    ReceiptStatus = receipt.receiptStatus.ToString(),
+                    Items = new List<ReceiptItemDto>()
                 });
         }
 
@@ -218,6 +239,9 @@ namespace whm.Controllers
                 });
             }
 
+            // -----------------------------------------------------
+            // Check status
+            // -----------------------------------------------------
             if (receipt.receiptStatus == ReceiptStatus.Completed)
             {
                 return BadRequest(new
@@ -236,7 +260,9 @@ namespace whm.Controllers
                 });
             }
 
+            // -----------------------------------------------------
             // Validate Warehouse
+            // -----------------------------------------------------
             var warehouse =
                 await unitOfWork.Warehouses
                     .GetByIdAsync(dto.WarehouseId);
@@ -249,27 +275,27 @@ namespace whm.Controllers
                 });
             }
 
-            // Validate User
-            if (!dto.ReceivedBy.HasValue)
+            // -----------------------------------------------------
+            // Validate Receiver only if supplied
+            // -----------------------------------------------------
+            if (dto.ReceivedBy.HasValue)
             {
-                return BadRequest(new
+                var receiver =
+                    await unitOfWork.User
+                        .GetByIdAsync(dto.ReceivedBy.Value);
+
+                if (receiver == null)
                 {
-                    message = "Receiving user is required."
-                });
+                    return BadRequest(new
+                    {
+                        message = "Receiving user not found."
+                    });
+                }
             }
 
-            var receiver =
-                await unitOfWork.User
-                    .GetByIdAsync(dto.ReceivedBy.Value);
-
-            if (receiver == null)
-            {
-                return BadRequest(new
-                {
-                    message = "Receiving user not found."
-                });
-            }
-
+            // -----------------------------------------------------
+            // Update
+            // -----------------------------------------------------
             receipt.WarehouseId =
                 dto.WarehouseId;
 
@@ -371,6 +397,9 @@ namespace whm.Controllers
                 });
             }
 
+            // -----------------------------------------------------
+            // Check Receipt status
+            // -----------------------------------------------------
             if (receipt.receiptStatus == ReceiptStatus.Completed)
             {
                 return BadRequest(new
@@ -389,7 +418,12 @@ namespace whm.Controllers
                 });
             }
 
-            if (dto.ReceivedQuantity <= 0)
+            // -----------------------------------------------------
+            // Validate quantities
+            // -----------------------------------------------------
+
+            if (dto.ReceivedQuantity.HasValue &&
+                dto.ReceivedQuantity.Value <= 0)
             {
                 return BadRequest(new
                 {
@@ -398,32 +432,62 @@ namespace whm.Controllers
                 });
             }
 
-            if (dto.AcceptedQuantity < 0 ||
-                dto.QuarantineQuantity < 0 ||
-                dto.RejectedQuantity < 0)
+            if (dto.AcceptedQuantity.HasValue &&
+                dto.AcceptedQuantity.Value < 0)
             {
                 return BadRequest(new
                 {
                     message =
-                        "Accepted, quarantine and rejected quantities cannot be negative."
+                        "Accepted quantity cannot be negative."
                 });
             }
 
-            var totalQuantity =
-                dto.AcceptedQuantity +
-                dto.QuarantineQuantity +
-                dto.RejectedQuantity;
-
-            if (totalQuantity != dto.ReceivedQuantity)
+            if (dto.QuarantineQuantity.HasValue &&
+                dto.QuarantineQuantity.Value < 0)
             {
                 return BadRequest(new
                 {
                     message =
-                        "Accepted + Quarantine + Rejected quantities must equal Received quantity."
+                        "Quarantine quantity cannot be negative."
                 });
             }
 
+            if (dto.RejectedQuantity.HasValue &&
+                dto.RejectedQuantity.Value < 0)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Rejected quantity cannot be negative."
+                });
+            }
+
+            // -----------------------------------------------------
+            // If all quantities are supplied, validate the total
+            // -----------------------------------------------------
+            if (dto.ReceivedQuantity.HasValue &&
+                dto.AcceptedQuantity.HasValue &&
+                dto.QuarantineQuantity.HasValue &&
+                dto.RejectedQuantity.HasValue)
+            {
+                var totalQuantity =
+                    dto.AcceptedQuantity.Value +
+                    dto.QuarantineQuantity.Value +
+                    dto.RejectedQuantity.Value;
+
+                if (totalQuantity != dto.ReceivedQuantity.Value)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Accepted + Quarantine + Rejected quantities must equal Received quantity."
+                    });
+                }
+            }
+
+            // -----------------------------------------------------
             // Validate Product
+            // -----------------------------------------------------
             var product =
                 await unitOfWork.Products
                     .GetByIdAsync(dto.ProductId);
@@ -436,10 +500,12 @@ namespace whm.Controllers
                 });
             }
 
-            // Validate PO Item
+            // -----------------------------------------------------
+            // Validate Purchase Order Item
+            // -----------------------------------------------------
             var poItem =
                 await unitOfWork.PurchaseOrders
-                    .GetByIdAsync(dto.PurchaseOrderItemId);
+                    .GetItemByIdAsync(dto.PurchaseOrderItemId);
 
             if (poItem == null)
             {
@@ -450,7 +516,9 @@ namespace whm.Controllers
                 });
             }
 
-            // Make sure PO item belongs to receipt's PO
+            // -----------------------------------------------------
+            // Make sure PO Item belongs to Receipt's PO
+            // -----------------------------------------------------
             if (poItem.PurchaseOrderId !=
                 receipt.PurchaseOrderId)
             {
@@ -461,9 +529,21 @@ namespace whm.Controllers
                 });
             }
 
-            // Make sure Product belongs to PO item
+            // -----------------------------------------------------
+            // Make sure Product belongs to PO Item
+            // -----------------------------------------------------
+            if (poItem.ProductId != dto.ProductId)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The selected product does not belong to the selected purchase order item."
+                });
+            }
 
-
+            // -----------------------------------------------------
+            // Create Receipt Item
+            // -----------------------------------------------------
             var item = new ReceiptItem
             {
                 ReceiptId =
@@ -529,6 +609,9 @@ namespace whm.Controllers
                 });
             }
 
+            // -----------------------------------------------------
+            // Check Receipt status
+            // -----------------------------------------------------
             if (receipt.receiptStatus == ReceiptStatus.Completed)
             {
                 return BadRequest(new
@@ -547,6 +630,9 @@ namespace whm.Controllers
                 });
             }
 
+            // -----------------------------------------------------
+            // Get Receipt Item
+            // -----------------------------------------------------
             var item =
                 await unitOfWork.ReceiptRepository
                     .GetItemByIdAsync(id, itemId);
@@ -555,11 +641,16 @@ namespace whm.Controllers
             {
                 return NotFound(new
                 {
-                    message = "Receipt item not found."
+                    message =
+                        "Receipt item not found."
                 });
             }
 
-            if (dto.ReceivedQuantity <= 0)
+            // -----------------------------------------------------
+            // Validate quantities
+            // -----------------------------------------------------
+            if (dto.ReceivedQuantity.HasValue &&
+                dto.ReceivedQuantity.Value <= 0)
             {
                 return BadRequest(new
                 {
@@ -568,31 +659,62 @@ namespace whm.Controllers
                 });
             }
 
-            if (dto.AcceptedQuantity < 0 ||
-                dto.QuarantineQuantity < 0 ||
-                dto.RejectedQuantity < 0)
+            if (dto.AcceptedQuantity.HasValue &&
+                dto.AcceptedQuantity.Value < 0)
             {
                 return BadRequest(new
                 {
                     message =
-                        "Accepted, quarantine and rejected quantities cannot be negative."
+                        "Accepted quantity cannot be negative."
                 });
             }
 
-            var totalQuantity =
-                dto.AcceptedQuantity +
-                dto.QuarantineQuantity +
-                dto.RejectedQuantity;
-
-            if (totalQuantity != dto.ReceivedQuantity)
+            if (dto.QuarantineQuantity.HasValue &&
+                dto.QuarantineQuantity.Value < 0)
             {
                 return BadRequest(new
                 {
                     message =
-                        "Accepted + Quarantine + Rejected quantities must equal Received quantity."
+                        "Quarantine quantity cannot be negative."
                 });
             }
 
+            if (dto.RejectedQuantity.HasValue &&
+                dto.RejectedQuantity.Value < 0)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Rejected quantity cannot be negative."
+                });
+            }
+
+            // -----------------------------------------------------
+            // Validate total if all quantities exist
+            // -----------------------------------------------------
+            if (dto.ReceivedQuantity.HasValue &&
+                dto.AcceptedQuantity.HasValue &&
+                dto.QuarantineQuantity.HasValue &&
+                dto.RejectedQuantity.HasValue)
+            {
+                var totalQuantity =
+                    dto.AcceptedQuantity.Value +
+                    dto.QuarantineQuantity.Value +
+                    dto.RejectedQuantity.Value;
+
+                if (totalQuantity != dto.ReceivedQuantity.Value)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            "Accepted + Quarantine + Rejected quantities must equal Received quantity."
+                    });
+                }
+            }
+
+            // -----------------------------------------------------
+            // Update fields
+            // -----------------------------------------------------
             item.ReceivedQuantity =
                 dto.ReceivedQuantity;
 
@@ -704,7 +826,8 @@ namespace whm.Controllers
                 });
             }
 
-            if (receipt.receiptStatus != ReceiptStatus.Pending)
+            if (receipt.receiptStatus !=
+                ReceiptStatus.Pending)
             {
                 return BadRequest(new
                 {
@@ -761,7 +884,8 @@ namespace whm.Controllers
                 });
             }
 
-            if (receipt.receiptStatus != ReceiptStatus.InProgress)
+            if (receipt.receiptStatus !=
+                ReceiptStatus.InProgress)
             {
                 return BadRequest(new
                 {
@@ -781,43 +905,88 @@ namespace whm.Controllers
 
             foreach (var item in receipt.Items)
             {
-                if (item.ReceivedQuantity <= 0)
+                // -------------------------------------------------
+                // Received Quantity
+                // -------------------------------------------------
+                if (!item.ReceivedQuantity.HasValue ||
+                    item.ReceivedQuantity.Value <= 0)
                 {
                     return BadRequest(new
                     {
                         message =
-                            $"Invalid received quantity for receipt item {item.ReceiptItemId}."
+                            $"Received quantity is required and must be greater than zero for receipt item {item.ReceiptItemId}."
                     });
                 }
 
-                if (item.AcceptedQuantity < 0 ||
-                    item.QuarantineQuantity < 0 ||
-                    item.RejectedQuantity < 0)
+                // -------------------------------------------------
+                // Check negative values
+                // -------------------------------------------------
+                if (item.AcceptedQuantity.HasValue &&
+                    item.AcceptedQuantity.Value < 0)
                 {
                     return BadRequest(new
                     {
                         message =
-                            $"Invalid quantities for receipt item {item.ReceiptItemId}."
+                            $"Accepted quantity cannot be negative for receipt item {item.ReceiptItemId}."
                     });
                 }
 
-                var total =
-                    item.AcceptedQuantity +
-                    item.QuarantineQuantity +
-                    item.RejectedQuantity;
-
-                if (total != item.ReceivedQuantity)
+                if (item.QuarantineQuantity.HasValue &&
+                    item.QuarantineQuantity.Value < 0)
                 {
                     return BadRequest(new
                     {
                         message =
-                            $"Accepted + Quarantine + Rejected quantities must equal Received quantity for item {item.ReceiptItemId}."
+                            $"Quarantine quantity cannot be negative for receipt item {item.ReceiptItemId}."
                     });
+                }
+
+                if (item.RejectedQuantity.HasValue &&
+                    item.RejectedQuantity.Value < 0)
+                {
+                    return BadRequest(new
+                    {
+                        message =
+                            $"Rejected quantity cannot be negative for receipt item {item.ReceiptItemId}."
+                    });
+                }
+
+                // -------------------------------------------------
+                // If all quantities exist, validate total
+                // -------------------------------------------------
+                if (item.AcceptedQuantity.HasValue &&
+                    item.QuarantineQuantity.HasValue &&
+                    item.RejectedQuantity.HasValue)
+                {
+                    var total =
+                        item.AcceptedQuantity.Value +
+                        item.QuarantineQuantity.Value +
+                        item.RejectedQuantity.Value;
+
+                    if (total != item.ReceivedQuantity.Value)
+                    {
+                        return BadRequest(new
+                        {
+                            message =
+                                $"Accepted + Quarantine + Rejected quantities must equal Received quantity for item {item.ReceiptItemId}."
+                        });
+                    }
                 }
             }
 
+            // -----------------------------------------------------
+            // Complete Receipt
+            // -----------------------------------------------------
             receipt.receiptStatus =
                 ReceiptStatus.Completed;
+
+            // If ReceivedAt wasn't supplied before,
+            // automatically set it when completing.
+            if (!receipt.ReceivedAt.HasValue)
+            {
+                receipt.ReceivedAt =
+                    DateTimeOffset.UtcNow;
+            }
 
             unitOfWork.ReceiptRepository
                 .Update(receipt);
@@ -833,7 +1002,10 @@ namespace whm.Controllers
                     receipt.ReceiptId,
 
                 status =
-                    receipt.receiptStatus.ToString()
+                    receipt.receiptStatus.ToString(),
+
+                receivedAt =
+                    receipt.ReceivedAt
             });
         }
 
@@ -855,7 +1027,8 @@ namespace whm.Controllers
                 });
             }
 
-            if (receipt.receiptStatus == ReceiptStatus.Completed)
+            if (receipt.receiptStatus ==
+                ReceiptStatus.Completed)
             {
                 return BadRequest(new
                 {
@@ -864,7 +1037,8 @@ namespace whm.Controllers
                 });
             }
 
-            if (receipt.receiptStatus == ReceiptStatus.Cancelled)
+            if (receipt.receiptStatus ==
+                ReceiptStatus.Cancelled)
             {
                 return BadRequest(new
                 {

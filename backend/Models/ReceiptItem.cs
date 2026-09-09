@@ -5,8 +5,17 @@ namespace whm.Models
 {
     public class ReceiptItem
     {
+        // =========================
+        // Primary Key
+        // =========================
+
         [Key]
         public int ReceiptItemId { get; set; }
+
+
+        // =========================
+        // Required Foreign Keys
+        // =========================
 
         [Required]
         public int ReceiptId { get; set; }
@@ -17,17 +26,27 @@ namespace whm.Models
         [Required]
         public int ProductId { get; set; }
 
-        [Column(TypeName = "decimal(18,4)")]
-        public decimal ReceivedQuantity { get; set; }
+
+        // =========================
+        // Quantities
+        // =========================
 
         [Column(TypeName = "decimal(18,4)")]
-        public decimal AcceptedQuantity { get; set; } = 0;
+        public decimal? ReceivedQuantity { get; set; }
 
         [Column(TypeName = "decimal(18,4)")]
-        public decimal QuarantineQuantity { get; set; } = 0;
+        public decimal? AcceptedQuantity { get; set; }
 
         [Column(TypeName = "decimal(18,4)")]
-        public decimal RejectedQuantity { get; set; } = 0;
+        public decimal? QuarantineQuantity { get; set; }
+
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal? RejectedQuantity { get; set; }
+
+
+        // =========================
+        // Optional Data
+        // =========================
 
         [MaxLength(100)]
         public string? BatchNumber { get; set; }
@@ -46,6 +65,11 @@ namespace whm.Models
         public Product Product { get; set; } = null!;
 
         public Inspection? Inspection { get; set; }
+
+
+        // =========================
+        // Collections
+        // =========================
 
         public List<PutawayItem> PutawayItems { get; set; }
             = new List<PutawayItem>();
