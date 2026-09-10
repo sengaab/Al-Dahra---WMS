@@ -1131,6 +1131,85 @@ namespace whm.Controllers
                     receipt.ReceivedAt
             });
         }
+        
+// =========================================================
+// POST: api/receipts/{id}/partially-received
+// =========================================================
+[HttpPost("{id:int}/partially-received")]
+public async Task<IActionResult> MarkAsPartiallyReceived(int id)
+        {
+            var receipt =
+                await unitOfWork.ReceiptRepository
+                    .GetByIdWithItemsAsync(id);
+
+            if (receipt == null)
+            {
+                return NotFound(new
+                {
+                    message = "Receipt not found."
+                });
+            }
+
+            // ---------------------------------------------------------
+            // Check current status
+            // ---------------------------------------------------------
+            if (receipt.receiptStatus != ReceiptStatus.InProgress)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        $"Receipt cannot be marked as PartiallyReceived because its current status is {receipt.receiptStatus}."
+                });
+            }
+
+            // ---------------------------------------------------------
+            // Check receipt items
+            // ---------------------------------------------------------
+            if (!receipt.Items.Any())
+            {
+                return BadRequest(new
+                {
+                    message = "Cannot mark a receipt as PartiallyReceived without items."
+                });
+            }
+
+            // ---------------------------------------------------------
+            // Check received quantities
+            // ---------------------------------------------------------
+            var hasReceivedQuantity = receipt.Items.Any(i =>
+                i.ReceivedQuantity.HasValue &&
+                i.ReceivedQuantity.Value > 0);
+
+            if (!hasReceivedQuantity)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "At least one receipt item must have a received quantity greater than zero."
+                });
+            }
+
+            // ---------------------------------------------------------
+            // Mark as Partially Received
+            // ---------------------------------------------------------
+            receipt.receiptStatus = ReceiptStatus.PartiallyReceived;
+
+            unitOfWork.ReceiptRepository
+                .Update(receipt);
+
+            await unitOfWork.SaveAsync();
+
+            return Ok(new
+            {
+                message = "Receipt marked as partially received successfully.",
+
+                receiptId = receipt.ReceiptId,
+
+                status = receipt.receiptStatus.ToString()
+            });
+        }
+
+
 
         // =========================================================
         // POST: api/receipts/{id}/cancel

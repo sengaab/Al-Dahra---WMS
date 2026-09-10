@@ -1166,6 +1166,293 @@ public async Task<IActionResult> Order(int id)
                     now
             });
         }
+        
+// =========================================================
+// SET AS DRAFT
+// =========================================================
+// POST: api/purchase-orders/{id}/draft
+// =========================================================
+[HttpPost("{id:int}/draft")]
+public async Task<IActionResult> SetAsDraft(int id)
+        {
+            var order =
+                await _unitOfWork.PurchaseOrders
+                    .GetEntityByIdAsync(id);
+
+            if (order == null)
+            {
+                return NotFound(new
+                {
+                    message = "Purchase order not found."
+                });
+            }
+
+            if (order.purchaseOrderStatus != PurchaseOrderStatus.Rejected &&
+                order.purchaseOrderStatus != PurchaseOrderStatus.PendingApproval)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        $"Purchase order cannot be changed to Draft from {order.purchaseOrderStatus}."
+                });
+            }
+
+            order.purchaseOrderStatus = PurchaseOrderStatus.Draft;
+            order.UpdatedAt = DateTimeOffset.UtcNow;
+
+            await _unitOfWork.SaveAsync();
+
+            return Ok(new
+            {
+                message = "Purchase order changed to Draft successfully.",
+                purchaseOrderId = order.PurchaseOrderId,
+                status = order.purchaseOrderStatus.ToString()
+            });
+        }
+
+
+        // =========================================================
+        // MARK AS PARTIALLY RECEIVED
+        // =========================================================
+        // POST: api/purchase-orders/{id}/partially-received
+        // =========================================================
+        [HttpPost("{id:int}/partially-received")]
+        public async Task<IActionResult> MarkAsPartiallyReceived(int id)
+        {
+            var order =
+                await _unitOfWork.PurchaseOrders
+                    .GetEntityByIdAsync(id);
+
+            if (order == null)
+            {
+                return NotFound(new
+                {
+                    message = "Purchase order not found."
+                });
+            }
+
+            if (order.purchaseOrderStatus != PurchaseOrderStatus.Ordered)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        $"Purchase order cannot be marked as PartiallyReceived from {order.purchaseOrderStatus}."
+                });
+            }
+
+            var items =
+                await _unitOfWork.PurchaseOrders
+                    .GetItemsAsync(id);
+
+            if (!items.Any())
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Purchase order must contain at least one item."
+                });
+            }
+
+            // At least one item must be received
+            var hasReceivedItems = items.Any(x =>
+                x.ReceivedQuantity > 0);
+
+            if (!hasReceivedItems)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "At least one item must have a received quantity greater than zero."
+                });
+            }
+
+            // Make sure the order is not fully received
+            var totalOrdered =
+                items.Sum(x => x.OrderedQuantity);
+
+            var totalReceived =
+                items.Sum(x => x.ReceivedQuantity);
+
+            if (totalReceived >= totalOrdered)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "All ordered quantities have been received. Use the Received status instead."
+                });
+            }
+
+            order.purchaseOrderStatus =
+                PurchaseOrderStatus.PartiallyReceived;
+
+            order.UpdatedAt =
+                DateTimeOffset.UtcNow;
+
+            await _unitOfWork.SaveAsync();
+
+            return Ok(new
+            {
+                message =
+                    "Purchase order marked as partially received successfully.",
+
+                purchaseOrderId =
+                    order.PurchaseOrderId,
+
+                status =
+                    order.purchaseOrderStatus.ToString()
+            });
+        }
+
+
+        // =========================================================
+        // MARK AS RECEIVED
+        // =========================================================
+        // POST: api/purchase-orders/{id}/received
+        // =========================================================
+        [HttpPost("{id:int}/received")]
+        public async Task<IActionResult> MarkAsReceived(int id)
+        {
+            var order =
+                await _unitOfWork.PurchaseOrders
+                    .GetEntityByIdAsync(id);
+
+            if (order == null)
+            {
+                return NotFound(new
+                {
+                    message = "Purchase order not found."
+                });
+            }
+
+            if (order.purchaseOrderStatus !=
+                    PurchaseOrderStatus.PartiallyReceived &&
+                order.purchaseOrderStatus !=
+                    PurchaseOrderStatus.Ordered)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        $"Purchase order cannot be marked as Received from {order.purchaseOrderStatus}."
+                });
+            }
+
+            var items =
+                await _unitOfWork.PurchaseOrders
+                    .GetItemsAsync(id);
+
+            if (!items.Any())
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Purchase order must contain at least one item."
+                });
+            }
+
+            // Check that all quantities have been received
+            var incompleteItems = items
+                .Where(x =>
+                    x.ReceivedQuantity < x.OrderedQuantity)
+                .ToList();
+
+            if (incompleteItems.Any())
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Purchase order cannot be marked as Received because some items are still partially received.",
+
+                    incompleteItems = incompleteItems.Select(x => new
+                    {
+                        purchaseOrderItemId =
+                            x.PurchaseOrderItemId,
+
+                        orderedQuantity =
+                            x.OrderedQuantity,
+
+                        receivedQuantity =
+                            x.ReceivedQuantity,
+
+                        remainingQuantity =
+                            x.RemainingQuantity
+                    })
+                });
+            }
+
+            order.purchaseOrderStatus =
+                PurchaseOrderStatus.Received;
+
+            order.UpdatedAt =
+                DateTimeOffset.UtcNow;
+
+            await _unitOfWork.SaveAsync();
+
+            return Ok(new
+            {
+                message =
+                    "Purchase order marked as received successfully.",
+
+                purchaseOrderId =
+                    order.PurchaseOrderId,
+
+                status =
+                    order.purchaseOrderStatus.ToString()
+            });
+        }
+
+
+        // =========================================================
+        // CLOSE PURCHASE ORDER
+        // =========================================================
+        // POST: api/purchase-orders/{id}/close
+        // =========================================================
+        [HttpPost("{id:int}/close")]
+        public async Task<IActionResult> Close(int id)
+        {
+            var order =
+                await _unitOfWork.PurchaseOrders
+                    .GetEntityByIdAsync(id);
+
+            if (order == null)
+            {
+                return NotFound(new
+                {
+                    message = "Purchase order not found."
+                });
+            }
+
+            if (order.purchaseOrderStatus !=
+                PurchaseOrderStatus.Received)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        $"Only Received purchase orders can be closed. Current status is {order.purchaseOrderStatus}."
+                });
+            }
+
+            order.purchaseOrderStatus =
+                PurchaseOrderStatus.Closed;
+
+            order.UpdatedAt =
+                DateTimeOffset.UtcNow;
+
+            await _unitOfWork.SaveAsync();
+
+            return Ok(new
+            {
+                message =
+                    "Purchase order closed successfully.",
+
+                purchaseOrderId =
+                    order.PurchaseOrderId,
+
+                status =
+                    order.purchaseOrderStatus.ToString()
+            });
+        }
+
+
 
 
 
