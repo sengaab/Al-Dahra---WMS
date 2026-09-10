@@ -1006,15 +1006,7 @@ namespace whm.Controllers
                 });
             }
 
-            if (receipt.receiptStatus !=
-                ReceiptStatus.InProgress)
-            {
-                return BadRequest(new
-                {
-                    message =
-                        "Only receipts in progress can be completed."
-                });
-            }
+          
 
             if (!receipt.Items.Any())
             {
