@@ -483,7 +483,7 @@ namespace whm.Controllers
 
                 MinimumStock = dto.MinimumStock,
 
-                stockStatus = StockStatus.Available,
+                stockStatus = StockStatus.Quarantined,
 
                 CreatedAt = now,
 
