@@ -151,6 +151,13 @@ body {
    font-weight: var(--weight-medium);
 }
 
+/* Navigation Item */
+.nav-item-serif {
+   font-family: var(--font-roboto-serif);
+   font-size: var(--font-nav-item);
+   font-weight: var(--weight-medium);
+}
+
 
 /* Placeholder */
 .placeholder {
@@ -243,4 +250,10 @@ body {
     padding: var(--space-5);
     border: var(--border-default);
     border-radius: var(--radius-md);
+}
+
+.separator {
+    width: 100%;
+    height: 1px;
+    background-color: var(--light-grey);
 }

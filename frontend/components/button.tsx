@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "beige";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "beige" | "completed";
 
 interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -70,6 +70,17 @@ export default function Button({
       },
     },
 
+    completed: {
+      normal: {
+        backgroundColor: "var(--light-green)",
+        color: "var(--midnight-blue)",
+      },
+      hover: {
+        backgroundColor: "var(--light-green)",
+        color: "var(--midnight-blue)",
+      },
+    },
+
     ghost: {
       normal: {
         backgroundColor: "transparent",
@@ -83,7 +94,7 @@ export default function Button({
 
   const currentVariant = variants[variant];
 
-  const hasStroke = ["outline", "beige"].includes(variant);
+  const hasStroke = ["outline", "beige", "completed"].includes(variant);
 
   return (
     <button
@@ -98,39 +109,39 @@ export default function Button({
       }}
       className="body-title"
       style={{
-  ...currentVariant.normal,
-  ...(isHovered && !props.disabled ? currentVariant.hover : {}),
+        ...currentVariant.normal,
+        ...(isHovered && !props.disabled ? currentVariant.hover : {}),
 
-  boxSizing: "border-box",
+        boxSizing: "border-box",
 
-  border: hasStroke
-    ? "2px solid var(--light-grey)"
-    : "2px solid transparent",
+        border: hasStroke
+          ? variant=="completed"?"2px solid var(--dark-green)": "2px solid var(--light-grey)"
+          : "2px solid transparent",
 
-  opacity: props.disabled ? 0.5 : 1,
-  cursor: props.disabled ? "not-allowed" : "pointer",
+        opacity: props.disabled ? 0.5 : 1,
+        cursor: props.disabled ? "not-allowed" : "pointer",
 
-  borderRadius: "8px",
-  fontWeight: 400,
-  transition: "all 0.2s ease",
-  textWrap: "nowrap",
+        borderRadius: "8px",
+        fontWeight: 400,
+        transition: "all 0.2s ease",
+        textWrap: "nowrap",
 
-  height: size === "sm"
-    ? "fit-content"
-    : "var(--input-height)",
+        height: size === "sm"
+          ? "fit-content"
+          : "var(--input-height)",
 
-  paddingInline: "var(--input-padding-x)",
-  paddingBlock: "var(--space-1)",
+        paddingInline: "var(--input-padding-x)",
+        paddingBlock: "var(--space-1)",
 
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "var(--space-2)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "var(--space-2)",
 
-  outline: "none",
+        outline: "none",
 
-  ...style,
-}}
+        ...style,
+      }}
     >
       {children}
     </button>
