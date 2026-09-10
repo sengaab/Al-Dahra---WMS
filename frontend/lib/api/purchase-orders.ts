@@ -308,3 +308,48 @@ export async function orderPurchaseOrder(
         }
     );
 }
+
+
+export async function draftPurchaseOrder(
+    purchaseOrderId: number
+): Promise<PurchaseOrderActionResponseDto> {
+    return apiFetch<PurchaseOrderActionResponseDto>(
+        `/api/purchase-orders/${purchaseOrderId}/draft`,
+        {
+            method: "POST",
+        }
+    );
+}
+
+export async function partialReceivedPurchaseOrder(
+    purchaseOrderId: number
+): Promise<PurchaseOrderActionResponseDto> {
+    return apiFetch<PurchaseOrderActionResponseDto>(
+        `/api/purchase-orders/${purchaseOrderId}/partially-received`,
+        {
+            method: "POST",
+        }
+    );
+}
+
+export async function receivedPurchaseOrder(
+    purchaseOrderId: number
+): Promise<PurchaseOrderActionResponseDto> {
+    return apiFetch<PurchaseOrderActionResponseDto>(
+        `/api/purchase-orders/${purchaseOrderId}/received`,
+        {
+            method: "POST",
+        }
+    );
+}
+
+export async function closePurchaseOrder(
+    purchaseOrderId: number
+): Promise<PurchaseOrderActionResponseDto> {
+    return apiFetch<PurchaseOrderActionResponseDto>(
+        `/api/purchase-orders/${purchaseOrderId}/close`,
+        {
+            method: "POST",
+        }
+    );
+}

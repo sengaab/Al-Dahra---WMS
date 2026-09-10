@@ -199,7 +199,7 @@ export default function PODetails({
 
     const handleReceive = () => {
         router.push(
-            `/receiving?poId=${poId}`
+            `/receiving/po-lines?poId=${poId}`
         );
     };
 

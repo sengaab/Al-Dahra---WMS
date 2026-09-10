@@ -59,6 +59,8 @@ export function useReceipts(): UseReceiptsReturn {
                         receiptId: receipt.receiptId,
                         receiptNumber: receipt.receiptNumber,
 
+                        poId: receipt.purchaseOrderId,
+
                         poNumber: purchaseOrder?.poNumber ?? "-",
                         supplierName:
                             purchaseOrder?.supplierName ?? "-",

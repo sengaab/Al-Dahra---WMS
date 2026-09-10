@@ -93,6 +93,8 @@ export interface ReceiptListItem {
     receiptId: number;
     receiptNumber: string;
 
+    poId: number;
+
     poNumber: string;
     supplierName: string;
     expectedDate: string | null;

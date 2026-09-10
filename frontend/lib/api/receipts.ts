@@ -128,3 +128,14 @@ export async function cancelReceipt(
         }
     );
 }
+
+export async function partialReceivedReceipt(
+    receiptId: number
+): Promise<ReceiptActionResponseDto> {
+    return apiFetch<ReceiptActionResponseDto>(
+        `/api/Receipts/${receiptId}/partially-received`,
+        {
+            method: "POST",
+        }
+    );
+}

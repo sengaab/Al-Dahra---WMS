@@ -120,12 +120,6 @@ export function usePurchaseOrderActions(
 
                         productId: item.productId,
 
-                        receivedQuantity:
-                            item.remainingQuantity,
-
-                        acceptedQuantity:
-                            item.remainingQuantity,
-
                         quarantineQuantity: 0,
 
                         rejectedQuantity: 0,
