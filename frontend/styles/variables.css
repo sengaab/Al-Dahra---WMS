@@ -12,12 +12,12 @@
     --midnight-blue: #1c252c;
     --blood-red: #780606;
     --lime-green: #F1FE77;
-    
-    
+
+
     /* =========================================
     System Colors
     ========================================= */
-    
+
     --orange: #C86920;
     --light-orange: #FFCD82;
     --red: #780606;
@@ -208,8 +208,10 @@
      ========================================= */
 
     --sidebar-width: 240px;
-    
+
     --sidedetails-width: 280px;
+
+    --sidedetails-width-lg: 450px;
 
     --header-height: clamp(52px, 4.5vw, 68px);
 
@@ -239,6 +241,8 @@
     --button-ghost-hover:
         rgba(0, 0, 0, 0.05);
 
+
+    --line-body: clamp(15px, 1.1vw, 18px);
 
     /* Inputs */
     --input-height: 36px;

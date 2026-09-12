@@ -9,8 +9,8 @@ import type {
     PurchaseOrderDto,
     PurchaseOrderItemDto,
 } from "@/types/purchase-order";
-import AddOrder from "@/components/popups/add-order";
-import PODetails from "@/components/po-details";
+import AddOrder from "@/app/(dashboard)/purchase-orders/components/add-order";
+import PODetails from "@/app/(dashboard)/purchase-orders/components/po-details";
 
 const statuses = [
     { label: "All", value: "All" },

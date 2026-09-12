@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import Card from "@/components/card";
 import Dropdown from "@/components/dropdown";
-import ProductDetails from "@/components/product-details";
-import AddProduct from "@/components/popups/add-product";
+import ProductDetails from "@/app/(dashboard)/inventory/components/product-details";
+import AddProduct from "@/app/(dashboard)/inventory/components/add-product";
 import SearchBar from "@/components/searchbar";
 import Button from "@/components/button";
 import Status from "@/components/status";

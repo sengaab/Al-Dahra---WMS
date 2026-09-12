@@ -52,9 +52,9 @@ export interface CreateReceiptItemDto {
     productId: number;
 
     receivedQuantity?: number;
-    acceptedQuantity: number;
-    quarantineQuantity: number;
-    rejectedQuantity: number;
+    acceptedQuantity?: number;
+    quarantineQuantity?: number;
+    rejectedQuantity?: number;
 
     batchNumber?: string | null;
     expiryDate?: string | null;
@@ -87,4 +87,21 @@ export interface AddReceiptItemResponseDto {
 
 export interface ReceiptItemActionResponseDto {
     message: string;
+}
+
+export interface ReceiptListItem {
+    receiptId: number;
+    receiptNumber: string;
+
+    poId: number;
+
+    poNumber: string;
+    supplierName: string;
+    expectedDate: string | null;
+
+    itemsCount: number;
+    expectedQty: number;
+    receivedQty: number;
+
+    receiptStatus: string;
 }

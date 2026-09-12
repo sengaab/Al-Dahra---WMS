@@ -8,6 +8,13 @@ import {
     orderPurchaseOrder,
 } from "@/lib/api/purchase-orders";
 
+import {
+    createReceipt,
+    addReceiptItem,
+} from "@/lib/api/receipts";
+
+import { getWarehouses } from "@/lib/api/warehouses";
+
 import type {
     PurchaseOrderDto,
     PurchaseOrderItemDto,
@@ -67,11 +74,70 @@ export function usePurchaseOrderActions(
             setActionLoading(true);
             setActionError("");
 
+            if (!purchaseOrder) {
+                throw new Error(
+                    "Purchase order information is not available."
+                );
+            }
+
+            // 1. Get warehouses belonging to this site
+            const warehouses = await getWarehouses({
+                siteId: purchaseOrder.siteId,
+                page: 1,
+                pageSize: 1,
+            });
+
+            if (!warehouses || warehouses.length === 0) {
+                throw new Error(
+                    `No warehouse found for site ${purchaseOrder.siteName}.`
+                );
+            }
+
+            // 2. Take the first warehouse
+            const warehouse = warehouses[0];
+
+            // 3. Change PO status to Ordered
             await orderPurchaseOrder(poId);
 
+            // 4. Create receipt
+            const receipt = await createReceipt({
+                purchaseOrderId: poId,
+                warehouseId: warehouse.warehouseId,
+                notes: `Receipt created for purchase order ${purchaseOrder.poNumber}`,
+            });
+
+            // 5. Add PO items to the receipt
+            const remainingItems = items.filter(
+                (item) => item.remainingQuantity > 0
+            );
+
+            for (const item of remainingItems) {
+                await addReceiptItem(
+                    receipt.receiptId,
+                    {
+                        purchaseOrderItemId:
+                            item.purchaseOrderItemId,
+
+                        productId: item.productId,
+
+                        quarantineQuantity: 0,
+
+                        rejectedQuantity: 0,
+
+                        batchNumber: null,
+
+                        expiryDate: null,
+                    }
+                );
+            }
+
+            // 6. Refresh PO
             await refreshPurchaseOrder();
         } catch (err: any) {
-            console.error("Order purchase order error:", err);
+            console.error(
+                "Order purchase order error:",
+                err
+            );
 
             setActionError(
                 err?.message ||
